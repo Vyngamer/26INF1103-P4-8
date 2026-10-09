@@ -53,10 +53,10 @@ def assess(record, ai_result):
     warnings = get_warnings(
         ai_result["sentiment_analysis"],
         ai_result["burnout_risk_score"],
-        record["sleep_duration"],
-        record["academic_workload"],
-        record["social_activity_level"],
-        record["focus_level"],
+        record["sleep"],
+        record["workload"],
+        record["social"],
+        record["focus"],
     )
 
     route = decide_route(ai_result, tier, warnings)
