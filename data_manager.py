@@ -19,7 +19,7 @@ def load(filename):
             json.dump(records, file)
     return records
     
-def save(record, filename):
+def save(record, filename, user_id):
     records = load(filename)
 
     now = datetime.now()
@@ -28,7 +28,7 @@ def save(record, filename):
         "record_id": str(uuid.uuid4()),
         "date": now.strftime("%d-%m-%Y"),
         "time": now.strftime("%H:%M:%S"),
-        "user_info": record["user_info"],
+        "user_id": user_id,
         "user_input": record["user_input"],
         "ai_output": record["ai_output"],
         "logic_output": record["logic_output"]
@@ -51,18 +51,6 @@ def query(filter, filename):
 
     return matching_records
 
-def query_pd(filter, filename, columns=None):
-    records = load(filename)
-
-    df = pd.json_normalize(records)
-
-    matching_records = df[filter(df)]
-
-    if columns:
-        matching_records = matching_records.loc[:, columns]
-
-    return matching_records
-
 def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
     path = Path(file_path)
 
@@ -78,7 +66,7 @@ def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
     backup_path = path.parent / backup_name
 
     shutil.copy2(path, backup_path)
-    return str(backup_path)
+
 
 def get_user_history(records, username):
     history = []
@@ -100,7 +88,10 @@ def get_user_history(records, username):
 filename = "records.json"
 records = load(filename)
 
+#------------------------------------------------------------------------------
 #Note that below is the required format for the return value for each of the 3 layers
+user_id = 1
+
 user_input = {
     "sleep_duration": 3,
     "stress_level": 1,
@@ -126,40 +117,19 @@ logic_output = {
     "route": "Urgent support",
     "counselling_recommendation": True
     }
-
-user_info = {
-    "username": "user2"
-    }
+#------------------------------------------------------------------------------
 
 #Need to insert in the actual functions from other layers
 record = {
-    "user_info": user_info,
     "user_input": user_input,
     "ai_output": ai_output,
     "logic_output": logic_output
     }
 
-#save(record, filename)
+#save(record, filename, user_id)
+#backup_json_file(filename)
+#query(lambda record: record["user_input"]["stress_level"] > 8, filename)
+#get_user_history(records, user_id)
 
-# filter normal query
-'''results = query(
-    lambda record: record["user_input"]["stress_level"] > 8,
-    filename
-)
 
-print(results)'''
 
-# filter query using pandas
-'''results = query_pd(
-    lambda df: df["user_input.stress_level"] >= 8,
-    filename,
-    columns=["record_id", "date", "time", "user_input.reflection"]
-    )
-
-print(results)
-'''
-
-backup_file = backup_json_file("records.json")
-print(f"Backup saved to: {backup_file}")
-
-print(get_user_history(records, "user1"))
