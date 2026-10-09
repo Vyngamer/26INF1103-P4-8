@@ -113,7 +113,7 @@ def generate_prompt(survey_data):
 
     return system_instruction, prompt
 
-def ai_survey_response(survey_data, previous_interaction_id=None):
+def generate_survey_response(survey_data, previous_interaction_id=None):
     """
     Used at the start of the program at the start of the day after the survey is done by the user. This function properly feeds in the proper system instructions including research papers that will inform the chatbot on the relevant data to better serve the user.
 
@@ -137,7 +137,7 @@ def ai_survey_response(survey_data, previous_interaction_id=None):
             'properties': {
                     'mental_wellness_risk_score': {
                         'default': 'integer between 0 and 100', 'title': 'Mental Wellness Risk Score', 'type': 'integer'},
-                    'sentiment': {
+                    'sentiment_analysis': {
                         'default': 'strictly one of ["Positive", "Neutral", "Negative"]', 'title': 'Sentiment Analysis', 'type': 'string'},
                     'burnout_risk_score': {
                             'default': 'integer between 0 and 100', 'title': 'Burnout Risk Score', 'type': 'integer'}, 
@@ -154,7 +154,7 @@ def ai_survey_response(survey_data, previous_interaction_id=None):
     return interaction
 
 if __name__ == "__main__":
-    print(ai_survey_response({}, None).output_text)
+    print(generate_survey_response({}, None).output_text)
 
     # develop error handling
     # develop test cases
