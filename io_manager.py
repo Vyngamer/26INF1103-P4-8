@@ -109,7 +109,7 @@ ai_sample = {
 #placeholder for logic output
 logic_sample = {
       "risk_tier": "High",
-      "warnings": "Burnout Warning",
+      "warnings": ["Burnout Warning", "warning 2"],
       "route": "Counselor follow-up",
       "needs_counseling": True
 }
@@ -131,12 +131,12 @@ def risk_assessment():
     print(f"\nRecommendation(s):\n{ai_sample['personalized_recommendations']}")
     
     #Warnings & Crisis Alert
-    print(f"\nPlease heed these warning(s): {logic_sample['warnings']}")
-    print(f"Crisis Alert: {'YES' if ai_sample['crisis_alert'] else 'NO'}")
+    print(f"\nPlease heed these warning(s):\n{'\n'.join(logic_sample['warnings'])}")
+    #print(f"Crisis Alert: {'YES' if ai_sample['crisis_alert'] else 'NO'}")
 
     #Suggest counseling if needed
     if logic_sample['needs_counseling']:
-        print(f"\nYou are advised to seek counseling.")
+        print(f"\nAlert:You are advised to seek counseling.")
 
 #Note to self: implement rich text after logic flow is working
     
