@@ -140,6 +140,3 @@ print(results)
 
 backup_file = backup_json_file("records.json")
 print(f"Backup saved to: {backup_file}")
-
-# Creates: data_backup.json (overwrites existing backup without timestamp)
-backup_file = backup_json_file("records.json", add_timestamp=False)
