@@ -1,4 +1,4 @@
-# Project Initial Details of INF1103_G8
+# Project Initial Details of 26-INF1103-P4-8
 
 ### Problem Statement
 Mental health challenges such as stress, anxiety, and burnout are increasingly common among students. Many students fail to recognise early warning signs of declining mental well-being until their academic performance, physical health, or social life is negatively affected. Existing wellness applications often provide generic advice and do not offer personalised analysis based on a student's individual circumstances.
@@ -54,4 +54,4 @@ Recommendation: Prioritise sleep and manage assignment deadlines with a study pl
 
 ### Repository information
 The link to the repository can be found here:
-https://github.com/Vyngamer/INF1103_G8
+https://github.com/Vyngamer/26-INF1103-P4-8
