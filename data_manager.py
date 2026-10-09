@@ -28,6 +28,7 @@ def save(record, filename):
         "record_id": str(uuid.uuid4()),
         "date": now.strftime("%d-%m-%Y"),
         "time": now.strftime("%H:%M:%S"),
+        "user_info": record["user_info"],
         "user_input": record["user_input"],
         "ai_output": record["ai_output"],
         "logic_output": record["logic_output"]
@@ -107,11 +108,17 @@ ai_output = {
 logic_output = {
     "mental_wellness_risk_tier": "High",
     "warnings": ["High Burnout Warning"],
+    "route": "Urgent support",
     "counselling_recommendation": True
+    }
+
+user_info = {
+    "username": "user1"
     }
 
 #Need to insert in the actual functions from other layers
 record = {
+    "user_info": user_info,
     "user_input": user_input,
     "ai_output": ai_output,
     "logic_output": logic_output
