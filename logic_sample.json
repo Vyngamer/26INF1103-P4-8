@@ -1,0 +1,6 @@
+{
+    "risk_tier": "High",
+    "warnings": ["Burnout Warning", "warning 2"],
+    "route": "Counselor follow-up",
+    "needs_counseling": true
+}
