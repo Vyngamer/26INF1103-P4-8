@@ -78,16 +78,31 @@ def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
     backup_path = path.parent / backup_name
 
     shutil.copy2(path, backup_path)
-    return str(backup_path) 
+    return str(backup_path)
+
+def get_user_history(records, username):
+    history = []
+
+    for record in records:
+        if record["user_info"]["username"] == username:
+            history.append({
+                "sleep_duration": record["user_input"]["sleep_duration"],
+                "focus_level": record["user_input"]["focus_level"],
+                "social_activity_level": record["user_input"]["social_activity_level"],
+                "mental_wellness_risk_score": record["ai_output"]["mental_wellness_risk_score"],
+                "burnout_risk_score": record["ai_output"]["burnout_risk_score"]
+            })
+
+    return history
 
 # Main Function
 
 filename = "records.json"
-load(filename)
+records = load(filename)
 
 #Note that below is the required format for the return value for each of the 3 layers
 user_input = {
-    "sleep_duration": 5,
+    "sleep_duration": 3,
     "stress_level": 1,
     "focus_level": 2,
     "academic_workload": 9,
@@ -113,7 +128,7 @@ logic_output = {
     }
 
 user_info = {
-    "username": "user1"
+    "username": "user2"
     }
 
 #Need to insert in the actual functions from other layers
@@ -124,7 +139,7 @@ record = {
     "logic_output": logic_output
     }
 
-save(record, filename)
+#save(record, filename)
 
 # filter normal query
 '''results = query(
@@ -144,6 +159,7 @@ print(results)'''
 print(results)
 '''
 
-
 backup_file = backup_json_file("records.json")
 print(f"Backup saved to: {backup_file}")
+
+print(get_user_history(records, "user1"))
