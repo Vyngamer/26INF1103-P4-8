@@ -137,7 +137,7 @@ def ai_survey_response(survey_data, previous_interaction_id=None):
             'properties': {
                     'mental_wellness_risk_score': {
                         'default': 'integer between 0 and 100', 'title': 'Mental Wellness Risk Score', 'type': 'integer'},
-                    'sentiment_analysis': {
+                    'sentiment': {
                         'default': 'strictly one of ["Positive", "Neutral", "Negative"]', 'title': 'Sentiment Analysis', 'type': 'string'},
                     'burnout_risk_score': {
                             'default': 'integer between 0 and 100', 'title': 'Burnout Risk Score', 'type': 'integer'}, 
