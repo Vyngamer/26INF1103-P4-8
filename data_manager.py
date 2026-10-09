@@ -3,6 +3,8 @@ from datetime import datetime
 import pandas as pd
 import os
 import uuid
+from pathlib import Path
+import shutil
 
 def load(filename):
     if os.path.exists(filename): 
@@ -59,6 +61,23 @@ def query_pd(filter, filename, columns=None):
         matching_records = matching_records.loc[:, columns]
 
     return matching_records
+
+def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
+    path = Path(file_path)
+
+    if not path.is_file():
+        raise FileNotFoundError(f"Source file not found: {file_path}")
+
+    if add_timestamp:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_name = f"{path.stem}_backup_{timestamp}{path.suffix}"
+    else:
+        backup_name = f"{path.stem}_backup{path.suffix}"
+
+    backup_path = path.parent / backup_name
+
+    shutil.copy2(path, backup_path)
+    return str(backup_path) 
 
 # Main Function
 
@@ -117,3 +136,10 @@ print(results)'''
 
 print(results)
 '''
+
+
+backup_file = backup_json_file("records.json")
+print(f"Backup saved to: {backup_file}")
+
+# Creates: data_backup.json (overwrites existing backup without timestamp)
+backup_file = backup_json_file("records.json", add_timestamp=False)
