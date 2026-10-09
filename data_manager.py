@@ -1,11 +1,11 @@
 import json
 from datetime import datetime
-import pandas as pd
 import os
 import uuid
 from pathlib import Path
 import shutil
 
+# load function will read the data from the json database and load it into records
 def load(filename):
     if os.path.exists(filename): 
         try:
@@ -18,17 +18,16 @@ def load(filename):
         with open(filename,"w") as file:
             json.dump(records, file)
     return records
-    
-def save(record, filename, user_id):
-    records = load(filename)
 
+# save function will save the user_input, ai_ouput and logic_output into database
+def save(record, filename):
+    records = load(filename)
     now = datetime.now()
 
     new_record = {
         "record_id": str(uuid.uuid4()),
         "date": now.strftime("%d-%m-%Y"),
         "time": now.strftime("%H:%M:%S"),
-        "user_id": user_id,
         "user_input": record["user_input"],
         "ai_output": record["ai_output"],
         "logic_output": record["logic_output"]
@@ -38,8 +37,7 @@ def save(record, filename, user_id):
     with open(filename, "w") as file:
         json.dump(records, file, indent=4)
 
-    return print(f"Records has been saved in {filename}")
-
+# query functions that can be used for filtering rows
 def query(filter, filename):
     records = load(filename)
 
@@ -51,6 +49,7 @@ def query(filter, filename):
 
     return matching_records
 
+# backup function will backup the JSON file regularly
 def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
     path = Path(file_path)
 
@@ -67,12 +66,12 @@ def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
 
     shutil.copy2(path, backup_path)
 
-
-def get_user_history(records, username):
+# get_user_history function will retrieve past records for the current user
+def get_user_history(records, user_id):
     history = []
 
     for record in records:
-        if record["user_info"]["username"] == username:
+        if record["user_id"] == user_id:
             history.append({
                 "sleep_duration": record["user_input"]["sleep_duration"],
                 "focus_level": record["user_input"]["focus_level"],
@@ -83,18 +82,21 @@ def get_user_history(records, username):
 
     return history
 
-# Main Function
+# merge_record function combine data from other layers to form 1 record
+def merge_record(user_input, ai_output, logic_output):
+    record = {
+    "user_input": user_input,
+    "ai_output": ai_output,
+    "logic_output": logic_output
+    }
+    return record
 
-filename = "records.json"
-records = load(filename)
-
-#------------------------------------------------------------------------------
 #Note that below is the required format for the return value for each of the 3 layers
-user_id = 1
-
+#------------------------------------------------------------------------------
 user_input = {
-    "sleep_duration": 3,
-    "stress_level": 1,
+    "user_id": 1,
+    "sleep_duration": 9,
+    "stress_level": 2,
     "focus_level": 2,
     "academic_workload": 9,
     "mood": "Exhausted",
@@ -103,6 +105,7 @@ user_input = {
     }
 
 ai_output = {
+    "conversation_id": 10,
     "mental_wellness_risk_score": 78,
     "sentiment": "Negative",
     "burnout_risk_score": 82,
@@ -119,17 +122,15 @@ logic_output = {
     }
 #------------------------------------------------------------------------------
 
-#Need to insert in the actual functions from other layers
-record = {
-    "user_input": user_input,
-    "ai_output": ai_output,
-    "logic_output": logic_output
-    }
 
-#save(record, filename, user_id)
-#backup_json_file(filename)
-#query(lambda record: record["user_input"]["stress_level"] > 8, filename)
-#get_user_history(records, user_id)
+# Main Function
+if __name__ == "__main__":
+    filename = "records.json"
+    records = load(filename)
 
+    record = merge_record(user_input, ai_output, logic_output)
 
-
+    #save(record, filename)
+    #backup_json_file(filename)
+    #query(lambda record: record["user_input"]["stress"] > 8, filename)
+    #get_user_history(records, user_id)
