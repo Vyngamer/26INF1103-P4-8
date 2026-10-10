@@ -45,6 +45,13 @@ def decide_route(ai_output, tier, warnings):
 
     return "Self-care guidance"
 
+# Calculate the average of a field across previous attempts.
+def get_average(previous_attempts, field):
+    
+    average = sum(attempt[field] for attempt in previous_attempts) / len(previous_attempts)
+    return average
+
+
 # Apply business rules to user input and AI output, then return the assessment outcome.
 def assess(user_input, ai_output):
     """Return the outcome derived from the validated AI fields and input."""
