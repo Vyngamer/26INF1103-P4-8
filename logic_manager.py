@@ -51,6 +51,11 @@ def get_average(previous_attempts, field):
     average = sum(attempt[field] for attempt in previous_attempts) / len(previous_attempts)
     return average
 
+# Remind the user to sleep more if sleep is below 7 hours.
+def check_sleep(sleep_duration):
+    if sleep_duration < 7:
+        return ["You slept less than 7 hours. Try to get more sleep."]
+    return []
 
 # Apply business rules to user input and AI output, then return the assessment outcome.
 def assess(user_input, ai_output):
