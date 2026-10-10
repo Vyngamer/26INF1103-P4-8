@@ -57,6 +57,21 @@ def check_sleep(sleep_duration):
         return ["You slept less than 7 hours. Try to get more sleep."]
     return []
 
+# Shows how much sleep the user has compared to their average.
+def compare_sleep(previous_attempts, sleep_duration):
+    if not previous_attempts:
+        return []
+
+    average = get_average(previous_attempts, "sleep_duration")
+    difference = average - sleep_duration
+
+    if difference > 0:
+        return [f"You slept {difference:.2f} hours less than your average."]
+    elif difference < 0:
+        return [f"You slept {abs(difference):.2f} hours more than your average."]
+
+    return ["You slept the same number of hours as your average."]
+
 # Apply business rules to user input and AI output, then return the assessment outcome.
 def assess(user_input, ai_output):
     """Return the outcome derived from the validated AI fields and input."""
