@@ -28,16 +28,16 @@ def get_warnings(sentiment_analysis, burnout_risk_score, sleep, workload, social
     return warnings
 
 # Choose a support route based on AI results, risk tier, and warnings.
-def decide_route(ai_result, tier, warnings):
+def decide_route(ai_output, tier, warnings):
     """Choose one actionable outcome from the AI assessment and warnings."""
-    if ai_result["crisis_alert"]:
+    if ai_output["crisis_alert"]:
         return "Urgent support"
 
     # This rule combines three distinct AI output fields.
     combined_risk = (
-        ai_result["mental_wellness_risk_score"] >= 60
-        and ai_result["burnout_risk_score"] >= 70
-        and ai_result["sentiment_analysis"] == "Negative"
+        ai_output["mental_wellness_risk_score"] >= 60
+        and ai_output["burnout_risk_score"] >= 70
+        and ai_output["sentiment"] == "Negative"
     )
     # Recommend counsellor follow-up if the tier is High, there are at least two warnings, or combined risk is present.
     if tier == "High" or len(warnings) >= 2 or combined_risk:
@@ -46,24 +46,24 @@ def decide_route(ai_result, tier, warnings):
     return "Self-care guidance"
 
 # Apply business rules to user input and AI output, then return the assessment outcome.
-def assess(record, ai_result):
+def assess(user_input, ai_output):
     """Return the outcome derived from the validated AI fields and input."""
-    tier = get_risk_tier(ai_result["mental_wellness_risk_score"])
+    tier = get_risk_tier(ai_output["mental_wellness_risk_score"])
 
     warnings = get_warnings(
-        ai_result["sentiment_analysis"],
-        ai_result["burnout_risk_score"],
-        record["sleep"],
-        record["workload"],
-        record["social"],
-        record["focus"],
+        ai_output["sentiment"],
+        ai_output["burnout_risk_score"],
+        user_input["sleep_duration"],
+        user_input["academic_workload"],
+        user_input["social_activity_level"],
+        user_input["focus_level"],
     )
 
-    route = decide_route(ai_result, tier, warnings)
+    route = decide_route(ai_output, tier, warnings)
 
     return {
-        "risk_tier": tier,
+        "mental_wellness_risk_tier": tier,
         "warnings": warnings,
         "route": route,
-        "needs_counselling": route in ("Urgent support", "Counsellor follow-up"),
+        "counselling_recommendation": route in ("Urgent support", "Counsellor follow-up"),
     }
