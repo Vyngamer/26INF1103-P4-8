@@ -55,10 +55,18 @@ def find_user_by_id(users_list, uid):
 #Password validation
 def pw_validation(password):
     problems = []
+    #Check for minimum length
     if len(password) < MIN_PASSWORD_LENGTH:
         problems.append(f"at least {MIN_PASSWORD_LENGTH} characters")
+    #Check for no spaces
     if password != password.strip():
         problems.append("no spaces at the start or end")
+    #Check for at least one number
+    if not any(char.isdigit() for char in password):
+        problems.append("at least one number")
+    #Check for at least one special character
+    if not any(not char.isalnum() and not char.isspace() for char in password):
+        problems.append("at least one special character (e.g. ! @ # $ %)")
     return problems
 
 #Ask for a new password twice. Success result carries the password in "password"
