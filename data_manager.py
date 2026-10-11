@@ -108,7 +108,7 @@ def merge_record(user_input, ai_output, logic_output):
     }
     return record
 
-# function that will be return all records from that user only
+# function that will be return all records from that user only in order
 def get_user_records(user_id, filename):
     records = load(filename)
     user_records = []
@@ -116,6 +116,14 @@ def get_user_records(user_id, filename):
     for record in records:
         if record["user_input"]["user_id"] == user_id:
             user_records.append(record)
+
+    user_records.sort(
+        key=lambda record: datetime.strptime(
+            f"{record['date']} {record['time']}",
+            "%d-%m-%Y %H:%M:%S"
+        ),
+        reverse=True
+    )
 
     return user_records
 
@@ -126,15 +134,7 @@ def get_latest_user_record(user_id, filename):
     if not user_records:
         return None
 
-    latest_record = max(
-        user_records,
-        key=lambda record: datetime.strptime(
-            record["date"] + " " + record["time"],
-            "%d-%m-%Y %H:%M:%S"
-        )
-    )
-
-    return latest_record
+    return user_records[0]
 
 # function that will display out the latest record on the screen nicely
 def view_latest_assessment(user_id, filename):
@@ -193,6 +193,51 @@ def view_latest_assessment(user_id, filename):
 
     print("=" * 50)
 
+# function that will display all the assessment history
+def view_assessment_history(user_id, filename):
+    records = get_user_records(user_id, filename)
+
+    if not records:
+        print("\nNo assessment history found.")
+        return
+
+    print("\n" + "=" * 78)
+    print("                     ASSESSMENT HISTORY")
+    print("=" * 78)
+
+    # Display table headings
+    print(
+        f"{'No.':<5}"
+        f"{'Date':<14}"
+        f"{'Time':<11}"
+        f"{'Risk Score':<13}"
+        f"{'Burnout':<11}"
+        f"{'Risk Tier':<12}"
+        f"{'Mood':<12}"
+    )
+
+    print("-" * 78)
+
+    # Display each assessment
+    for index, record in enumerate(records, start=1):
+        user_input = record["user_input"]
+        ai_output = record["ai_output"]
+        logic_output = record["logic_output"]
+
+        print(
+            f"{index:<5}"
+            f"{record['date']:<14}"
+            f"{record['time']:<11}"
+            f"{ai_output['mental_wellness_risk_score']:<13}"
+            f"{ai_output['burnout_risk_score']:<11}"
+            f"{logic_output['mental_wellness_risk_tier']:<12}"
+            f"{user_input['mood']:<12}"
+        )
+
+    print("-" * 78)
+    print(f"Total assessments: {len(records)}")
+    print("=" * 78)
+
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 user_input = {
@@ -235,4 +280,4 @@ if __name__ == "__main__":
     #save(record, filename)
     #query(lambda record: record["user_input"]["stress"] > 8, filename)
     #get_user_history(records, user_id)
-    view_latest_assessment(1, filename)
+    view_assessment_history(1, filename)
