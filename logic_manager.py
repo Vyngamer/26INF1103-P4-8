@@ -72,6 +72,33 @@ def compare_sleep(previous_attempts, sleep_duration):
 
     return ["You slept the same number of hours as your average."]
 
+# Prioritise showing consecutive social decline. If not, then compare with the previous average.
+def compare_social(previous_attempts, social_activity_level):
+    if not previous_attempts:
+        return []
+
+    # Check for three drops of at least 1 point across four consecutive attempts.
+    if len(previous_attempts) >= 3:
+        first = previous_attempts[-3]["social_activity_level"]
+        second = previous_attempts[-2]["social_activity_level"]
+        third = previous_attempts[-1]["social_activity_level"]
+
+        consecutive_drop = (
+            first - second >= 1
+            and second - third >= 1
+            and third - social_activity_level >= 1
+        )
+
+        if consecutive_drop:
+            return ["Your social activity has dropped across four consecutive attempts. Try connecting with others."]
+
+    average = get_average(previous_attempts, "social_activity_level")
+
+    if average - social_activity_level >= 2:
+        return ["You are socialising less than your previous average. Try connecting with others."]
+
+    return []
+
 # Apply business rules to user input and AI output, then return the assessment outcome.
 def assess(user_input, ai_output):
     """Return the outcome derived from the validated AI fields and input."""
