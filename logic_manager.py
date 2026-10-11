@@ -125,6 +125,46 @@ def compare_focus(previous_attempts, focus_level):
 
     return []
 
+# a function that compares scores based on what argument you give
+def compare_risk_score(previous_attempts, risk_score, field, label):
+    if not previous_attempts:
+        return []
+
+    previous = previous_attempts[-1][field]
+
+    # No improvement messages if risk increased since the latest attempt.
+    if risk_score > previous:
+        return []
+
+    # A decrease of at least 10 points indicates improvement.
+    if previous - risk_score >= 10:
+        return [f"Your {label} risk score has improved since your last attempt. Keep it up!"]
+
+    average = get_average(previous_attempts, field)
+
+    if average - risk_score >= 10:
+        return [f"Your {label} risk score has improved compared with your previous average. Keep it up!"]
+
+    return []
+
+# a function that checks if the mental wellness score has improved
+def compare_mental_wellness(previous_attempts, mental_wellness_risk_score):
+    return compare_risk_score(
+        previous_attempts,
+        mental_wellness_risk_score,
+        "mental_wellness_risk_score",
+        "mental wellness",
+    )
+
+# a function that checks if the burnout score has improved
+def compare_burnout(previous_attempts, burnout_risk_score):
+    return compare_risk_score(
+        previous_attempts,
+        burnout_risk_score,
+        "burnout_risk_score",
+        "burnout",
+    )
+
 # Apply business rules to user input and AI output, then return the assessment outcome.
 def assess(user_input, ai_output, previous_attempts):
     tier = get_risk_tier(ai_output["mental_wellness_risk_score"])
