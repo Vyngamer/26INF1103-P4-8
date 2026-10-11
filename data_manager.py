@@ -119,11 +119,28 @@ def get_user_records(user_id, filename):
 
     return user_records
 
+# function that retrieves the latest record from the user
+def get_latest_user_record(user_id, filename):
+    user_records = get_user_records(user_id, filename)
+
+    if not user_records:
+        return None
+
+    latest_record = max(
+        user_records,
+        key=lambda record: datetime.strptime(
+            record["date"] + " " + record["time"],
+            "%d-%m-%Y %H:%M:%S"
+        )
+    )
+
+    return latest_record
+
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 user_input = {
     "user_id": 1,
-    "sleep_duration": 9,
+    "sleep_duration": 8,
     "stress_level": 2,
     "focus_level": 2,
     "academic_workload": 9,
@@ -158,7 +175,7 @@ if __name__ == "__main__":
 
     record = merge_record(user_input, ai_output, logic_output)
 
-    save(record, filename)
-    #backup_json_file(filename)
+    #save(record, filename)
     #query(lambda record: record["user_input"]["stress"] > 8, filename)
     #get_user_history(records, user_id)
+    print(get_latest_user_record(1, filename))
