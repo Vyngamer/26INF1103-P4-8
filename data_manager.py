@@ -40,9 +40,7 @@ def save(record, filename):
     with open(filename, "w") as file:
         json.dump(records, file, indent=4)
 
-    print("Records saved successfully")
-
-# query functions that can be used for filtering rows
+# query function that can be used for filtering rows
 def query(filter, filename):
     records = load(filename)
 
@@ -108,7 +106,7 @@ def merge_record(user_input, ai_output, logic_output):
     }
     return record
 
-# function that will be return all records from that user only in order
+# function that will be return all records from that user in order
 def get_user_records(user_id, filename):
     records = load(filename)
     user_records = []
@@ -379,6 +377,84 @@ def compare_assessments(user_id, filename):
 
     print("=" * 85)
 
+# function to view the overall summary of the well being
+def view_wellbeing_summary(user_id, filename):
+    records = get_user_records(user_id, filename)
+
+    if not records:
+        print("\nNo assessment records found.")
+        return
+
+    # Records are sorted newest first
+    latest = records[0]
+    latest_ai = latest["ai_output"]
+    latest_logic = latest["logic_output"]
+
+    # Calculate average scores across all assessments
+    total_risk = 0
+    total_burnout = 0
+
+    for record in records:
+        ai_output = record["ai_output"]
+        total_risk += ai_output["mental_wellness_risk_score"]
+        total_burnout += ai_output["burnout_risk_score"]
+
+    average_risk = total_risk / len(records)
+    average_burnout = total_burnout / len(records)
+
+    # Display summary
+    print("\n" + "=" * 55)
+    print("              WELL-BEING SUMMARY")
+    print("=" * 55)
+
+    print("\n--- Assessment History ---")
+    print(f"Total Assessments      : {len(records)}")
+    print(f"First Assessment       : {records[-1]['date']}")
+    print(f"Latest Assessment      : {latest['date']}")
+
+    print("\n--- Latest Results ---")
+    print(
+        f"Mental Wellness Risk   : "
+        f"{latest_ai['mental_wellness_risk_score']}/100"
+    )
+    print(f"Burnout Risk           : {latest_ai['burnout_risk_score']}/100")
+    print(f"Risk Tier              : {latest_logic['mental_wellness_risk_tier']}")
+    print(f"Mood                   : {latest['user_input']['mood']}")
+
+    print("\n--- Average Scores ---")
+    print(f"Average Risk Score     : {average_risk:.1f}/100")
+    print(f"Average Burnout Score  : {average_burnout:.1f}/100")
+
+    # Compare latest and previous assessments
+    print("\n--- Recent Changes ---")
+
+    if len(records) < 2:
+        print("Complete another assessment to see recent changes.")
+    else:
+        previous_ai = records[1]["ai_output"]
+
+        risk_change = (
+            latest_ai["mental_wellness_risk_score"]
+            - previous_ai["mental_wellness_risk_score"]
+        )
+
+        burnout_change = (
+            latest_ai["burnout_risk_score"]
+            - previous_ai["burnout_risk_score"]
+        )
+
+        print(f"Mental Wellness Risk   : {risk_change:+} points")
+        print(f"Burnout Risk           : {burnout_change:+} points")
+
+        if risk_change > 0:
+            print("Risk Trend             : Increasing")
+        elif risk_change < 0:
+            print("Risk Trend             : Decreasing")
+        else:
+            print("Risk Trend             : Unchanged")
+
+    print("=" * 55)
+
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 user_input = {
@@ -422,4 +498,4 @@ if __name__ == "__main__":
     #query(lambda record: record["user_input"]["stress"] > 8, filename)
     #get_user_history(records, user_id)
     #view_assessment_history(1, filename)
-    compare_assessments(1,filename)
+    view_wellbeing_summary(1,filename)
