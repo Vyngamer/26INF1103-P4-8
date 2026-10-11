@@ -126,8 +126,7 @@ def compare_focus(previous_attempts, focus_level):
     return []
 
 # Apply business rules to user input and AI output, then return the assessment outcome.
-def assess(user_input, ai_output):
-    """Return the outcome derived from the validated AI fields and input."""
+def assess(user_input, ai_output, previous_attempts):
     tier = get_risk_tier(ai_output["mental_wellness_risk_score"])
 
     warnings = get_warnings(
@@ -138,12 +137,32 @@ def assess(user_input, ai_output):
         user_input["social_activity_level"],
         user_input["focus_level"],
     )
-
+# Assign a support route using AI output, mental_wellness risk tier and warnings
     route = decide_route(ai_output, tier, warnings)
+
+    display_messages = (
+        check_sleep(user_input["sleep_duration"])
+        + compare_sleep(
+            previous_attempts, user_input["sleep_duration"]
+        )
+        + compare_social(
+            previous_attempts, user_input["social_activity_level"]
+        )
+        + compare_focus(
+            previous_attempts, user_input["focus_level"]
+        )
+        + compare_mental_wellness(
+            previous_attempts, ai_output["mental_wellness_risk_score"]
+        )
+        + compare_burnout(
+            previous_attempts, ai_output["burnout_risk_score"]
+        )
+    )
 
     return {
         "mental_wellness_risk_tier": tier,
         "warnings": warnings,
         "route": route,
         "counselling_recommendation": route in ("Urgent support", "Counsellor follow-up"),
+        "display_messages": display_messages,
     }
