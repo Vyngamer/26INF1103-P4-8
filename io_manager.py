@@ -12,9 +12,10 @@ LOGIC_FILE = "logic_sample.json"
 AI_FILE = "ai_sample.json"
 
 '''
-For Testing
-Set True to call menu functions directly
-Set False to return function objects for main program to call
+SET TO FALSE FOR REAL USE
+
+True: For standalone console to call menu functions directly
+False: Return (option no., func) and let main program call
 '''
 TEST_MODE = False
 
