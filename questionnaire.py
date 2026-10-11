@@ -45,7 +45,9 @@ def prompt_questionnaire() -> dict:
         "social_activity_level": scale_question("how socially active have you been"),
         "reflection": get_reflection
     }
-    responses = {}
+    responses = {
+        "user_id": None
+    }
     for i, (question, func) in enumerate(questionnaire.items(), start=1):
         print(f"\n{i}. {question.replace('_', ' ').title()}")
         responses[question] = func()
@@ -107,8 +109,9 @@ def load_results(filename: str) -> dict:
 
 
 #Run the survey, show the assessment, and return the merged results dict
-def full_survey(survey_file: str, logic_file: str, ai_file: str) -> dict:
+def full_survey(survey_file: str, logic_file: str, ai_file: str, uid) -> dict:
     survey = prompt_questionnaire()   #Start survey
+    survey["user_id"] = uid
     save_results(survey_file, survey) #Save results to JSON file
 
     #Get logic and AI outputs and merge into one dict

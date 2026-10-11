@@ -71,7 +71,7 @@ USER MENU HANDLERS
 
 #Handles survey and assessment
 def handle_survey(state):
-    full_survey(SURVEY_FILE, LOGIC_FILE, AI_FILE)
+    full_survey(SURVEY_FILE, LOGIC_FILE, AI_FILE, state["uid"])
     pause()
 
 #User history
