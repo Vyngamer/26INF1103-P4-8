@@ -238,6 +238,147 @@ def view_assessment_history(user_id, filename):
     print(f"Total assessments: {len(records)}")
     print("=" * 78)
 
+def compare_assessments(user_id, filename):
+    records = get_user_records(user_id, filename)
+
+    if len(records) < 2:
+        print("\nYou need at least 2 assessments to compare.")
+        return
+
+    # Records are sorted newest first
+    latest = records[0]
+    previous = records[1]
+
+    latest_input = latest["user_input"]
+    previous_input = previous["user_input"]
+
+    latest_ai = latest["ai_output"]
+    previous_ai = previous["ai_output"]
+
+    latest_logic = latest["logic_output"]
+    previous_logic = previous["logic_output"]
+
+    print("\n" + "=" * 85)
+    print(" " * 25 + "ASSESSMENT COMPARISON")
+    print("=" * 85)
+
+    print(f"{'Information':<25}{'Previous Assessment':<25}{'Latest Assessment':<25}")
+    print("-" * 85)
+
+    # Assessment dates
+    print(
+        f"{'Date':<25}"
+        f"{previous['date']:<25}"
+        f"{latest['date']:<25}"
+    )
+
+    # User inputs
+    print(
+        f"{'Sleep Duration':<25}"
+        f"{str(previous_input['sleep_duration']) + ' hours':<25}"
+        f"{str(latest_input['sleep_duration']) + ' hours':<25}"
+    )
+
+    print(
+        f"{'Stress Level':<25}"
+        f"{str(previous_input['stress_level']) + '/10':<25}"
+        f"{str(latest_input['stress_level']) + '/10':<25}"
+    )
+
+    print(
+        f"{'Focus Level':<25}"
+        f"{str(previous_input['focus_level']) + '/10':<25}"
+        f"{str(latest_input['focus_level']) + '/10':<25}"
+    )
+
+    print(
+        f"{'Academic Workload':<25}"
+        f"{str(previous_input['academic_workload']) + '/10':<25}"
+        f"{str(latest_input['academic_workload']) + '/10':<25}"
+    )
+
+    print(
+        f"{'Social Activity':<25}"
+        f"{str(previous_input['social_activity_level']) + '/10':<25}"
+        f"{str(latest_input['social_activity_level']) + '/10':<25}"
+    )
+
+    print(
+        f"{'Mood':<25}"
+        f"{previous_input['mood']:<25}"
+        f"{latest_input['mood']:<25}"
+    )
+
+    # AI results
+    print("-" * 85)
+
+    print(
+        f"{'Mental Wellness Risk':<25}"
+        f"{str(previous_ai['mental_wellness_risk_score']) + '/100':<25}"
+        f"{str(latest_ai['mental_wellness_risk_score']) + '/100':<25}"
+    )
+
+    print(
+        f"{'Burnout Risk':<25}"
+        f"{str(previous_ai['burnout_risk_score']) + '/100':<25}"
+        f"{str(latest_ai['burnout_risk_score']) + '/100':<25}"
+    )
+
+    print(
+        f"{'Sentiment':<25}"
+        f"{previous_ai['sentiment']:<25}"
+        f"{latest_ai['sentiment']:<25}"
+    )
+
+    print(
+        f"{'Risk Tier':<25}"
+        f"{previous_logic['mental_wellness_risk_tier']:<25}"
+        f"{latest_logic['mental_wellness_risk_tier']:<25}"
+    )
+
+    print(
+        f"{'Crisis Alert':<25}"
+        f"{str(previous_ai['crisis_alert']):<25}"
+        f"{str(latest_ai['crisis_alert']):<25}"
+    )
+
+    print(
+        f"{'Counselling Required':<25}"
+        f"{str(previous_logic['counselling_recommendation']):<25}"
+        f"{str(latest_logic['counselling_recommendation']):<25}"
+    )
+
+    print("=" * 85)
+
+    # Risk score changes
+    risk_change = (
+        latest_ai["mental_wellness_risk_score"]
+        - previous_ai["mental_wellness_risk_score"]
+    )
+
+    burnout_change = (
+        latest_ai["burnout_risk_score"]
+        - previous_ai["burnout_risk_score"]
+    )
+
+    print("\n--- Changes Since Previous Assessment ---")
+
+    if risk_change > 0:
+        print(f"Mental wellness risk increased by {risk_change} points.")
+    elif risk_change < 0:
+        print(f"Mental wellness risk decreased by {abs(risk_change)} points.")
+    else:
+        print("Mental wellness risk remained unchanged.")
+
+    if burnout_change > 0:
+        print(f"Burnout risk increased by {burnout_change} points.")
+    elif burnout_change < 0:
+        print(f"Burnout risk decreased by {abs(burnout_change)} points.")
+    else:
+        print("Burnout risk remained unchanged.")
+
+    print("=" * 85)
+
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 user_input = {
@@ -280,4 +421,5 @@ if __name__ == "__main__":
     #save(record, filename)
     #query(lambda record: record["user_input"]["stress"] > 8, filename)
     #get_user_history(records, user_id)
-    view_assessment_history(1, filename)
+    #view_assessment_history(1, filename)
+    compare_assessments(1,filename)
