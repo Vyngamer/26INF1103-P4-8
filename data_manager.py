@@ -19,7 +19,7 @@ def load(filename):
             json.dump(records, file)
     return records
 
-# save function will save the user_input, ai_ouput and logic_output into database
+# save function will save the user_input, ai_ouput and logic_output into database as a single record
 def save(record, filename):
 
     if Path(filename).is_file():
@@ -54,7 +54,7 @@ def query(filter, filename):
 
     return matching_records
 
-# function will backup the JSON file into a folder and keep the latest 3
+# function will backup the JSON file into a folder and keep the latest 3 files
 def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
     path = Path(file_path)
 
@@ -70,13 +70,12 @@ def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
     else:
         backup_name = f"{path.stem}_backup{path.suffix}"
 
-    backup_path = path.parent / backup_name
+    backup_path = backup_folder / backup_name
 
     shutil.copy2(path, backup_path)
 
     backup_pattern = f"{path.stem}_backup_*{path.suffix}"
     backup_files = list(backup_folder.glob(backup_pattern))
-
     backup_files.sort(key=lambda file: file.name, reverse=True)
 
     for old_backup in backup_files[3:]:
@@ -84,8 +83,8 @@ def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
 
     return str(backup_path)
 
-# get_user_history function will retrieve past records for the current user
-def get_user_history(records, user_id):
+# get_user_history function will retrieve past records for selected columns for the current user
+def get_user_int_records(records, user_id):
     history = []
 
     for record in records:
@@ -109,6 +108,17 @@ def merge_record(user_input, ai_output, logic_output):
     }
     return record
 
+# function that will be return all records from that user only
+def get_user_records(user_id, filename):
+    records = load(filename)
+    user_records = []
+
+    for record in records:
+        if record["user_input"]["user_id"] == user_id:
+            user_records.append(record)
+
+    return user_records
+
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 user_input = {
@@ -119,7 +129,7 @@ user_input = {
     "academic_workload": 9,
     "mood": "Exhausted",
     "social_activity_level": 3,
-    "reflection": "im feeling too stressed already"
+    "reflection": "not enough sleep"
     }
 
 ai_output = {
@@ -148,7 +158,7 @@ if __name__ == "__main__":
 
     record = merge_record(user_input, ai_output, logic_output)
 
-    #save(record, filename)
+    save(record, filename)
     #backup_json_file(filename)
     #query(lambda record: record["user_input"]["stress"] > 8, filename)
     #get_user_history(records, user_id)
