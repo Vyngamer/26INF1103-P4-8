@@ -99,6 +99,32 @@ def compare_social(previous_attempts, social_activity_level):
 
     return []
 
+# Show a focus message which priortise the latest attempt over the average.
+def compare_focus(previous_attempts, focus_level):
+    if not previous_attempts:
+        return []
+
+    previous = previous_attempts[-1]["focus_level"]
+
+    # Show a negative message for a drop of at least 2 from the latest attempt.
+    if previous - focus_level >= 2:
+        return ["Your focus level has dropped since your last attempt. Try taking a break and resting."]
+
+    # Show a positive message for an increase of at least 1 from the latest attempt.
+    if focus_level - previous >= 1:
+        return ["Your focus level has improved since your last attempt. Keep it up!"]
+
+    # Compare with the average if neither latest-attempt rule matches.
+    average = get_average(previous_attempts, "focus_level")
+
+    if average - focus_level >= 2:
+        return ["Your focus level is below your previous average. Try taking a break and resting."]
+
+    if focus_level - average >= 1:
+        return ["Your focus level has improved compared with your previous average. Keep it up!"]
+
+    return []
+
 # Apply business rules to user input and AI output, then return the assessment outcome.
 def assess(user_input, ai_output):
     """Return the outcome derived from the validated AI fields and input."""
