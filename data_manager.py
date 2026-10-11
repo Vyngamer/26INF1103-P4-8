@@ -134,6 +134,15 @@ def get_latest_user_record(user_id, filename):
 
     return user_records[0]
 
+'''
+Below are some useful functions that can be used for
+1. View Latest Assessment Report
+2. View Assessment History
+3. Compare Assessments
+4. Overall Well-being summary
+'''
+
+
 # function that will display out the latest record on the screen nicely
 def view_latest_assessment(user_id, filename):
     # retrieve the latest assessment record
@@ -455,7 +464,7 @@ def view_wellbeing_summary(user_id, filename):
 
     print("=" * 55)
 
-#Note that below is the required format for the return value for each of the 3 layers
+'''Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 user_input = {
     "user_id": 1,
@@ -484,7 +493,7 @@ logic_output = {
     "route": "Urgent support",
     "counselling_recommendation": True
     }
-#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------'''
 
 
 # Main Function
@@ -498,4 +507,4 @@ if __name__ == "__main__":
     #query(lambda record: record["user_input"]["stress"] > 8, filename)
     #get_user_history(records, user_id)
     #view_assessment_history(1, filename)
-    view_wellbeing_summary(1,filename)
+    #view_wellbeing_summary(1,filename)
