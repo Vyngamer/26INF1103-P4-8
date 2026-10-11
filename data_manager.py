@@ -49,12 +49,15 @@ def query(filter, filename):
 
     return matching_records
 
-# backup function will backup the JSON file regularly
+# function will backup the JSON file into a folder and keep the latest 3
 def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
     path = Path(file_path)
 
     if not path.is_file():
         raise FileNotFoundError(f"Source file not found: {file_path}")
+
+    backup_folder = path.parent / "Backup"
+    backup_folder.mkdir(parents=True, exist_ok=True)
 
     if add_timestamp:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -65,6 +68,16 @@ def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
     backup_path = path.parent / backup_name
 
     shutil.copy2(path, backup_path)
+
+    backup_pattern = f"{path.stem}_backup_*{path.suffix}"
+    backup_files = list(backup_folder.glob(backup_pattern))
+
+    backup_files.sort(key=lambda file: file.name, reverse=True)
+
+    for old_backup in backup_files[3:]:
+        old_backup.unlink()
+
+    return str(backup_path)
 
 # get_user_history function will retrieve past records for the current user
 def get_user_history(records, user_id):
