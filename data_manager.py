@@ -21,6 +21,9 @@ def load(filename):
 
 # save function will save the user_input, ai_ouput and logic_output into database
 def save(record, filename):
+
+    if Path(filename).is_file():
+        backup_path = backup_json_file(filename)
     records = load(filename)
     now = datetime.now()
 
@@ -36,6 +39,8 @@ def save(record, filename):
 
     with open(filename, "w") as file:
         json.dump(records, file, indent=4)
+
+    print("Records saved successfully")
 
 # query functions that can be used for filtering rows
 def query(filter, filename):
