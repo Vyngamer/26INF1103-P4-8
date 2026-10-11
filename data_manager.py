@@ -136,6 +136,63 @@ def get_latest_user_record(user_id, filename):
 
     return latest_record
 
+# function that will display out the latest record on the screen nicely
+def view_latest_assessment(user_id, filename):
+    # retrieve the latest assessment record
+    record = get_latest_user_record(user_id, filename)
+
+    if record is None:
+        print("\nNo assessment records found.")
+        return
+
+    user_input = record["user_input"]
+    ai_output = record["ai_output"]
+    logic_output = record["logic_output"]
+
+    print("\n" + "=" * 50)
+    print("          LATEST WELL-BEING ASSESSMENT")
+    print("=" * 50)
+
+    print(f"Record ID : {record['record_id']}")
+    print(f"Date      : {record['date']}")
+    print(f"Time      : {record['time']}")
+
+    print("\n--- User Inputs ---")
+    print(f"Sleep Duration       : {user_input['sleep_duration']} hours")
+    print(f"Stress Level         : {user_input['stress_level']}/10")
+    print(f"Focus Level          : {user_input['focus_level']}/10")
+    print(f"Academic Workload    : {user_input['academic_workload']}/10")
+    print(f"Mood                 : {user_input['mood']}")
+    print(f"Social Activity      : {user_input['social_activity_level']}/10")
+    print(f"Reflection           : {user_input['reflection']}")
+
+    print("\n--- AI Assessment Results ---")
+    print(f"Mental Wellness Risk : {ai_output['mental_wellness_risk_score']}/100")
+    print(f"Burnout Risk Score   : {ai_output['burnout_risk_score']}/100")
+    print(f"Sentiment            : {ai_output['sentiment']}")
+    print(f"Crisis Alert         : {ai_output['crisis_alert']}")
+    print(f"Primary Stressor     : {ai_output['primary_stressor']}")
+
+    print("\n--- Business Rule Results ---")
+    print(f"Risk Tier            : {logic_output['mental_wellness_risk_tier']}")
+    print(f"Route                : {logic_output['route']}")
+
+    print("Warnings:")
+    warnings = logic_output.get("warnings", [])
+
+    if warnings:
+        for warning in warnings:
+            print(f"  - {warning}")
+    else:
+        print("  - No warnings triggered")
+
+    print(f"Counselling Required : {logic_output['counselling_recommendation']}")
+
+    print("\n--- Personalised Recommendations ---")
+    print(ai_output["personalized_recommendations"])
+
+    print("=" * 50)
+
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 user_input = {
@@ -178,4 +235,4 @@ if __name__ == "__main__":
     #save(record, filename)
     #query(lambda record: record["user_input"]["stress"] > 8, filename)
     #get_user_history(records, user_id)
-    print(get_latest_user_record(1, filename))
+    view_latest_assessment(1, filename)
