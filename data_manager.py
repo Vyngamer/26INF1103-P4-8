@@ -464,7 +464,7 @@ def view_wellbeing_summary(user_id, filename):
 
     print("=" * 55)
 
-'''Note that below is the required format for the return value for each of the 3 layers
+#Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 user_input = {
     "user_id": 1,
@@ -493,7 +493,7 @@ logic_output = {
     "route": "Urgent support",
     "counselling_recommendation": True
     }
-#------------------------------------------------------------------------------'''
+#------------------------------------------------------------------------------
 
 
 # Main Function
