@@ -212,5 +212,19 @@ def assess(user_input, ai_output, previous_attempts):
         "warnings": warnings,
         "route": route,
         "counselling_recommendation": route in ("Urgent support", "Counsellor follow-up"),
-        "display_messages": display_messages,
+        "display_messages": display_messages
+    }
+
+def get_saveable_output(logic_output):
+    return {
+        key: value
+        for key, value in logic_output.items()
+        if key != "display_messages"
+    }
+
+def get_display_messages(logic_output):
+    return {
+        key: value
+        for key, value in logic_output.items()
+        if key == "display_messages"
     }
