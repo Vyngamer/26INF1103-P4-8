@@ -1,11 +1,81 @@
 from google import genai
+import sys
+import os
 import json
+import google
+from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
 
-client = genai.Client()
-gemini_flash = "gemini-3.8-flash"
-gemini_flash_lite = "gemini-3.1-flash-lite"
+#backup_model = "gemini-3.8-flash"
+#primary_model = "gemini-3.1-flash-lite"
+backup_model = ""
+primary_model = ""
 
-def call_api(prompt, system_instruction, response_output_format, previous_interaction_id):
+def general_error_handler(base_api_call_func):
+    def exit_program(*args, **kwargs):
+        try:
+            return base_api_call_func(*args, **kwargs)
+        except:
+            print("Try again later.")
+            return
+
+    return exit_program
+
+# decorator to handle other errors
+def backup_model_retry(base_api_call_func):
+    def retry_api_call(*args, **kwargs):
+        try: 
+            return base_api_call_func(*args, **kwargs)
+        except NotFoundError as e:
+            print("An error occured.")
+            print("Retrying with secondary model...")
+
+            try:
+                return base_api_call_func(*args, **kwargs, model=backup_model)
+            except NotFoundError as e: 
+                print("Both models unavailable.")
+                return exit()
+    
+    return retry_api_call
+
+# decorator to handle network failure
+def failed_network_handler(base_api_call_func):
+    def failed_network_notice(*args, **kwargs):
+        try:
+            return base_api_call_func(*args, **kwargs)
+        except APIConnectionError as e:
+
+            print("Network connection error. Please check that you are connected to the internet.")
+            return e
+    return failed_network_notice
+
+# decorator for when the primary api key fails
+def failed_api_key_handler(base_api_call_func):
+    def api_key_fallback(*args, **kwargs):
+        try:
+            return base_api_call_func(*args, **kwargs)    
+        except ValueError as e:
+            print("Primary key failed... Switching to alternate key")
+            
+            os.environ["GEMINI_API_KEY"] = os.getenv("BACKUP_GEMINI_API_KEY")
+            try:
+                return base_api_call_func(*args, **kwargs) 
+            except:
+                print("Both API keys unavailable...")
+                return exit()
+        
+    return api_key_fallback
+
+@general_error_handler
+@failed_network_handler
+@failed_api_key_handler
+def connect_client():
+    return genai.Client()
+
+@general_error_handler
+@backup_model_retry
+@failed_network_handler
+@failed_api_key_handler
+def call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model=primary_model):
     """
     The function returns the interaction object which contains the response from the chatbot.
 
@@ -28,7 +98,7 @@ def call_api(prompt, system_instruction, response_output_format, previous_intera
     """
 
     interaction = client.interactions.create(
-        model=gemini_flash_lite,
+        model=model,
         input=prompt,
         system_instruction=system_instruction,
         previous_interaction_id=previous_interaction_id,
@@ -153,8 +223,11 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
 
     return interaction
 
+client = connect_client()
+
 if __name__ == "__main__":
-    print(generate_survey_response({}, None).output_text)
+    variable = input('enter something')
+    print(generate_survey_response({}, None))
 
     # develop error handling
     # develop test cases
