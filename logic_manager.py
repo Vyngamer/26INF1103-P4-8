@@ -86,9 +86,9 @@ def compare_social(previous_attempts, social_activity_level):
 
     # Check for three drops of at least 1 point across four consecutive attempts.
     if len(previous_attempts) >= 3:
-        first = previous_attempts[-3]["social_activity_level"]
-        second = previous_attempts[-2]["social_activity_level"]
-        third = previous_attempts[-1]["social_activity_level"]
+        first = previous_attempts[-3]["user_input"]["social_activity_level"]
+        second = previous_attempts[-2]["user_input"]["social_activity_level"]
+        third = previous_attempts[-1]["user_input"]["social_activity_level"]
 
         consecutive_drop = (
             first - second >= 1
