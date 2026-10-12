@@ -41,7 +41,7 @@ We will create rules by combining user inputs and AI-generated outputs to identi
 | Burnout Warning (Workload) | Academic Workload | Burnout Risk Score | Burnout Risk Score > 60 AND Academic Workload ≥ 7 |
 | Social Withdrawal Risk | Social Activity Level | Sentiment Analysis | Social Activity Level ≤ 3 AND Sentiment = “Negative” |
 | Cognitive Fatigue Risk | Focus Level | Sentiment Analysis | Focus Level ≤ 4 AND Sentiment = “Negative” |
-| Counselling Recommendation | Social Activity Level, Focus Level | Crisis Alert | Crisis Alert = True OR Mental Wellness Risk Tier = “High” OR two or more warning rules are triggered |
+| Support Route | - | Crisis Alert, Mental Wellness Risk Score, Burnout Risk Score, Sentiment | Urgent support: Crisis Alert = True Counsellor follow-up:  Mental Wellness Risk Tier = “High” OR two or more warning rules are triggered OR (Mental Wellness Risk Score ≥ 60 AND Burnout Risk Score ≥ 70 AND Sentiment = “Negative”) Self-care guidance: Neither of the conditions met |
 
 #### Sample Output Report to User: <br>
 Mental Wellness Risk: High (78/100) <br>
