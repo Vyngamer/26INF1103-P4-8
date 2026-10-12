@@ -1,219 +1,171 @@
+'''
+User Account Actions
+'''
+
 import json
 import os
 import uuid
-import pwinput
-from hasher import hash_password
+from hasher import hash_password, verify_password, needs_upgrade
+from prompts import prompt_text, prompt_password
 
-DATABASE = "users.json" 
+DATABASE = "users.json"
+MIN_PASSWORD_LENGTH = 4
+
+'''
+Helpers
+'''
+
+#Build the dictionary every account action returns
+def make_result(ok, message, **data):
+    result = {"ok": ok, "message": message}
+    result.update(data)
+    return result
+
+#Load users list. [] if the file doesn't exist yet, None if corrupted
+def load_users():
+    if not os.path.exists(DATABASE):
+        return []
+    try:
+        with open(DATABASE, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except json.JSONDecodeError:
+        return None
+
+#Save users list (write to a temp file first for program crash handling)
+def save_users(users_list):
+    temp_file = DATABASE + ".tmp"
+    with open(temp_file, "w", encoding="utf-8") as file:
+        json.dump(users_list, file, indent=4)
+    os.replace(temp_file, DATABASE)   
+
+#Find a user by username (None if not found)
+def find_user(users_list, username):
+    for user in users_list:
+        if user["username"] == username:
+            return user
+    return None
+
+#Find a user by id (None if not found)
+def find_user_by_id(users_list, uid):
+    for user in users_list:
+        if user["user_id"] == uid:
+            return user
+    return None
 
 #Password validation
-def pw_validation():
-    pass
+def pw_validation(password):
+    problems = []
+    #Check for minimum length
+    if len(password) < MIN_PASSWORD_LENGTH:
+        problems.append(f"at least {MIN_PASSWORD_LENGTH} characters")
+    #Check for no spaces
+    if password != password.strip():
+        problems.append("no spaces at the start or end")
+    #Check for at least one number
+    if not any(char.isdigit() for char in password):
+        problems.append("at least one number")
+    #Check for at least one special character
+    if not any(not char.isalnum() and not char.isspace() for char in password):
+        problems.append("at least one special character (e.g. ! @ # $ %)")
+    return problems
+
+#Ask for a new password twice. Success result carries the password in "password"
+def prompt_new_password(noun="Password"):
+    password = prompt_password(f"Please Enter A {noun}: ")
+    problems = pw_validation(password)
+    if problems:
+        return make_result(False, "Password must have: " + ", ".join(problems) + ".")
+    confirm_password = prompt_password(f"Please Re-enter The {noun}: ")
+    if password != confirm_password:
+        return make_result(False, "Passwords do not match, please try again.")
+    return make_result(True, "", password=password)
+
+'''
+User Actions
+'''
 
 #Register New User
 def user_register():
-    if os.path.exists(DATABASE):
-        with open(DATABASE, 'r') as json_file:
-            try:
-                users_list = json.load(json_file)
-            except json.JSONDecodeError:
-                users_list = []
-    else:
-        users_list = []
+    users_list = load_users()
+    if users_list is None:
+        return make_result(False, "User database is corrupted. Please check users.json.")
 
     print("Create a new user")
-    while True:
-        # have length limit for userrname
-        username = input("Please Enter A Username: ")
-        if not username:
-            print("Username cannot be empty. Please try again.")
-            continue
-        break
+    username = prompt_text("Please Enter A Username: ")
+    if find_user(users_list, username):
+        return make_result(False, "Username already exists, please try again.")
 
-    #Check if username already exists
-    for user in users_list:
-        if user["username"] == username:
-            print("Username already exists, please try again")
-            return "username_exists" 
-            # The 'return' stops the function immediately, so we don't need 'username_pass'
+    new_password = prompt_new_password()
+    if not new_password["ok"]:
+        return new_password
 
-    #Prompt user to enter password
-
-    # password cannot have space at the front and back
-    #Disallowed characters for password
-    forbidden = []
-
-    while True:
-        password = pwinput.pwinput(prompt="Please Enter A Password: ")
-        if not password:
-            print("Password cannot be empty. Please try again.")
-            continue
-        break
-
-    while True:
-        confirm_password = pwinput.pwinput(prompt="Please Re-enter A Password: ")
-        if not confirm_password:
-            print("Password confirmation cannot be empty. Please try again.")
-            continue
-        break
-
-    if password != confirm_password:
-        print("Passwords do not match, please try again")
-        return "passwords_not_match"
-
-    #Create new user to add to DB
     new_user = {
         "user_id": str(uuid.uuid4()),
         "username": username,
-        "password": hash_password(password)
-        #"history": []
+        "password": hash_password(new_password["password"])
     }
-
-    #Add to DB
     users_list.append(new_user)
-    
-    with open(DATABASE, "w") as file:
-        json.dump(users_list, file, indent=4)
-
-    print("Account created successfully!")
-    return "success"
+    save_users(users_list)
+    return make_result(True, "Account created successfully!",
+                       uid=new_user["user_id"], username=username)
 
 #Login Existing User
 def user_login():
-    DATABASE = "users.json"  # Removed the forward slash so it saves in your current folder
+    users_list = load_users()
+    if users_list is None:
+        return make_result(False, "User database is corrupted. Please check users.json.")
+    if not users_list:
+        return make_result(False, "No users registered yet. Please register first.")
 
-    if not os.path.exists(DATABASE):
-        print("No users registered yet. Please register first.")
-        return "no_users"
-    with open(DATABASE, 'r') as json_file:
-        try:
-            users_list = json.load(json_file)
-        except json.JSONDecodeError:
-            print("User database is corrupted. Please register again.")
-            return "corrupted_database"
-    while True:
-        username = input("Please Enter Your Username: ").strip()
-        if not username:
-            print("Username cannot be empty. Please try again.")
-            continue
-        break
+    username = prompt_text("Please Enter Your Username: ")
+    password = prompt_password("Please Enter Your Password: ")
 
-    while True:
-        password = pwinput.pwinput(prompt="Please Enter Your Password: ").strip()
-        if not password:
-            print("Password cannot be empty. Please try again.")
-            continue
-        break
-    hashed_password = hash_password(password)
+    user = find_user(users_list, username)
+    if user is None or not verify_password(password, user["password"]):
+        return make_result(False, "Invalid username or password.")
 
-    for user in users_list:
-        if user["username"] == username and user["password"] == hashed_password:
-            print(f"\nLogin successful! Welcome, {user["username"]}!")
-            return user["username"]  # Return the username of the logged-in user
+    #Silently upgrade old unsalted hashes now that we have the plain password
+    if needs_upgrade(user["password"]):
+        user["password"] = hash_password(password)
+        save_users(users_list)
 
-    print("Invalid username or password. Please try again.")
-    return "invalid_credentials"
+    return make_result(True, f"Login successful! Welcome, {user['username']}!",
+                       uid=user["user_id"], username=user["username"])
 
 #Change Username
-def change_username(current_username):
-    # Load the existing users from the JSON file
-    with open("users.json", "r") as file:
-        users_list = json.load(file)
+def change_username(uid):
+    users_list = load_users()
+    if users_list is None:
+        return make_result(False, "User database is corrupted. Please check users.json.")
+    user = find_user_by_id(users_list, uid)
+    if user is None:
+        return make_result(False, "Current user not found.")
 
-    # Find the user with the current username
-    for user in users_list:
-        if user["username"] == current_username:
-            while True:
-                new_username = input("Enter your new username: ").strip()
-                if not new_username:
-                    print("Username cannot be empty. Please try again.")
-                    continue
-                break
-            # Check if the new username already exists
-            for existing_user in users_list:
-                if existing_user["username"] == new_username:
-                    print("Username already exists, please try again.")
-                    return "username_exists"
+    new_username = prompt_text("Enter your new username: ")
+    if find_user(users_list, new_username):
+        return make_result(False, "Username already exists, please try again.")
 
-            # Update the username
-            user["username"] = new_username
-
-            # Save the updated users list back to the JSON file
-            with open("users.json", "w") as file:
-                json.dump(users_list, file, indent=4)
-
-            print("Username updated successfully!")
-            return new_username
-
-    print("Current username not found.")
-    return "username_not_found"
+    user["username"] = new_username
+    save_users(users_list)
+    return make_result(True, "Username updated successfully!", username=new_username)
 
 #Change Password
-def change_password(username):
-    if os.path.exists("users.json"):
-        with open("users.json", 'r') as json_file:
-            try:
-                users_list = json.load(json_file)
-            except json.JSONDecodeError:
-                print("Database is corrupted. Please contact support.")
-                return "corrupted_database"
-    else:
-        print("No users found. Please register first.")
-        return "no_users"
+def change_password(uid):
+    users_list = load_users()
+    if users_list is None:
+        return make_result(False, "User database is corrupted. Please check users.json.")
+    user = find_user_by_id(users_list, uid)
+    if user is None:
+        return make_result(False, "Current user not found.")
 
-    # Find the user in the list
-    user_found = False
-    for user in users_list:
-        if user["username"] == username:
-            user_found = True
-            break
+    current_password = prompt_password("Please Enter Your Current Password: ")
+    if not verify_password(current_password, user["password"]):
+        return make_result(False, "Incorrect current password. Please try again.")
 
-    if not user_found:
-        print("User not found. Please register first.")
-        return "user_not_found"
+    new_password = prompt_new_password("New Password")
+    if not new_password["ok"]:
+        return new_password
 
-    # get the user to enter their current password
-    current_password = pwinput.pwinput(prompt="Please Enter Your Current Password: ").strip()
-    while True:
-        if not current_password:
-            print("Password cannot be empty. Please try again.")
-            current_password = pwinput.pwinput(prompt="Please Enter Your Current Password: ").strip()
-            continue
-        break
-
-    if hash_password(current_password) != user["password"]:
-        print("Incorrect current password. Please try again.")
-        return "incorrect_current_password"
-    else:
-        print("Current password verified. You can now set a new password.")
-        while True:
-            new_password = pwinput.pwinput(prompt="Please Enter A New Password: ").strip()
-            if not new_password:
-                print("New password cannot be empty. Please try again.")
-                continue
-            break
-        while True:
-            confirm_password = pwinput.pwinput(prompt="Please Re-enter The New Password: ").strip()
-            if not confirm_password:
-                print("Password confirmation cannot be empty. Please try again.")
-                continue
-            break
-    
-    if new_password != confirm_password:
-        print("Passwords do not match, please try again")
-        return "passwords_not_match"
-
-    # Get the new password from the user
-    # Update the user's password
-    if new_password == confirm_password:
-        for user in users_list:
-            if user["username"] == username:
-                user["password"] = hash_password(new_password)
-                break
-
-    # Save the updated users list back to the JSON file
-    with open("users.json", "w") as file:
-        json.dump(users_list, file, indent=4)
-
-    print("Password updated successfully!")
-    return "success"
+    user["password"] = hash_password(new_password["password"])
+    save_users(users_list)
+    return make_result(True, "Password updated successfully!")

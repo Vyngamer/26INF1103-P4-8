@@ -1,66 +1,185 @@
-from questionnaire import full_survey #Questionnaire functionality
+'''
+Main I/O Layer
+'''
+
+from questionnaire import full_survey
+from prompts import prompt_choice
 from user import user_login, user_register, change_username, change_password
 
-#Print menu options
-def menu_page(menu):
-    print("\n---------MENU---------")
-    for i, option in enumerate(menu.keys(), start=1):
-        print(f"{i}. {option}")
-    print("----------------------\n")
-    while True:
-        option = input(f"Enter option (1-{len(menu)}): ").strip()
-        if option.isdigit() and 1 <= int(option) <= len(menu):
-            return list(menu.keys())[int(option) - 1]
-        else:
-            print("Invalid option. Please select a valid option.")
+#I/O Files
+SURVEY_FILE = "results.json"
+LOGIC_FILE = "logic_sample.json"
+AI_FILE = "ai_sample.json"
 
-#Main Program
-def io_main():
-    #I/O Files
-    survey_file = "results.json"
-    logic_file = "logic_sample.json"
-    ai_file = "ai_sample.json"
-    files = [survey_file,logic_file,ai_file]
+'''
+SET TO FALSE FOR REAL USE
 
-    #Title
+True: For standalone console to call menu functions directly
+False: Return (option no., func) and let main program call
+'''
+TEST_MODE = False
+
+'''
+Session State
+'''
+#Fresh session state
+def new_state():
+    return {"running": True, "uid": None, "username": None}
+
+#Check if a user is logged in
+def is_logged_in(state):
+    return state["uid"] is not None
+
+#Change state to logged in
+def set_logged_in(state, uid, username):
+    state["uid"] = uid
+    state["username"] = username
+
+#Change state to logged out
+def set_logged_out(state):
+    state["uid"] = None
+    state["username"] = None
+
+#Allow user to enter to return to menu
+def pause():
+    input("\nPress Enter to return to the menu...")
+
+'''
+MAIN MENU HANDLERS
+'''
+
+#User registration
+def handle_register(state):
+    result = user_register()
+    print(result["message"])
+
+#User login
+def handle_login(state):
+    result = user_login()
+    print(f"\n{result['message']}")
+    if result["ok"]:
+        set_logged_in(state, result["uid"], result["username"])
+
+#Exit program
+def handle_exit(state):
+    print("\nProgram terminated. Thank You!")
+    state["running"] = False
+
+'''
+USER MENU HANDLERS
+'''
+
+#Handles survey and assessment
+def handle_survey(state):
+    full_survey(SURVEY_FILE, LOGIC_FILE, AI_FILE, state["uid"])
+    pause()
+
+#User history
+def handle_history(state):
+    print("This functionality has not been implemented yet.")
+    pause()
+
+#Change username
+def handle_change_username(state):
+    result = change_username(state["uid"])
+    print(result["message"])
+    if result["ok"]:
+        state["username"] = result["username"]
+    pause()
+
+#Change password
+def handle_change_password(state):
+    result = change_password(state["uid"])
+    print(result["message"])
+    pause()
+
+#User logout
+def handle_logout(state):
+    set_logged_out(state)
+    print("\nSuccessfully Logged Out.")
+
+'''
+MENUS
+'''
+
+MAIN_MENU = {
+    "Register New User": handle_register,
+    "Login": handle_login,
+    "Exit": handle_exit
+}
+
+USER_MENU = {
+    "Start Survey": handle_survey,
+    "View History": handle_history,
+    "Change Username": handle_change_username,
+    "Change Password": handle_change_password,
+    "Logout": handle_logout
+}
+
+#Identify which menu to show depending if user is logged in
+def current_menu(state):
+    if is_logged_in(state):
+        return USER_MENU
+    else:
+        return MAIN_MENU
+
+#Show a menu, then return option no. & associated function
+def choose_option(menu):
+    labels = list(menu)
+    label = prompt_choice(labels,
+                          "\n---------MENU---------",
+                          f"Enter option (1-{len(menu)}): ",
+                          "----------------------\n")
+    return labels.index(label) + 1, menu[label]
+
+#Main menu
+def run_menu(menu,state):
+    option, func = choose_option(menu)
+    #Call function if testing, else return option no. and function object
+    if TEST_MODE:
+        func(state)
+    else:
+        return option, func
+
+#Title
+def print_title():
     print("============================")
     print("Welcome to Mental Health Tool")
-    print("============================\n")
+    print("============================")
 
-    #User menu options
-    main_menu = {
-        "Register New User": lambda: user_register(),
-        "Login": lambda: user_login() ,
-        "Exit": None
-    }
-    submenu = {      
-        "Start Survey": lambda: full_survey(files),
-        "View History": lambda: print("This functionality has not been implemented yet."),
-        "Change Username": lambda: print("This functionality has not been implemented yet."),
-        "Change Password": lambda: print("This functionality has not been implemented yet."),
-        "Logout": lambda: None
-    }
+'''
+MAIN PROGRAM
+'''
 
-    loggedin = False
+#Main Program
+def io_main(state=None):
+    if state is None:
+        state = new_state()
 
-    #Main Menu
-    while True:
-        option = menu_page(main_menu)
-        if option == "Exit":
-            print("\nProgram terminated. Thank You!")
-            return
-        main_menu[option]()
-
-        #Sub-Menu
-        while True:
-            option = menu_page(submenu)
-            if option == "Logout":
-                print("\nSuccessfully Logged Out.")
-                break
-            submenu[option]()
-            input("\nPress Enter to return to the menu...")
+    #If not testing, return option no. & function for main prog
+    if not TEST_MODE:
+        return run_menu(current_menu(state), state)
     
+    #Title
+    print_title()
 
+    #If testing, loop & call directly in terminal
+    while state["running"]:
+        run_menu(current_menu(state), state)
+    
 #test
 if __name__ == "__main__":
-    io_main()
+    try:
+        if TEST_MODE:
+            print("TEST MODE: TRUE")
+            io_main()
+        else:
+            print("TEST MODE: FALSE")
+            state = new_state()
+            print_title()
+            while state["running"]:
+                i, func = io_main(state)
+                print(f"TEST: io_main returned: ({i}, {func.__name__})")
+                func(state)
+    except (KeyboardInterrupt, EOFError):
+        print("\n\nProgram terminated. Thank You!")
