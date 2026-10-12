@@ -47,9 +47,13 @@ def decide_route(ai_output, tier, warnings):
 
 # Calculate the average of a field across previous attempts.
 def get_average(previous_attempts, field):
+    sum=0
+    for attempt in previous_attempts:
+        sum += attempt["user_input"][field]
+    return sum/len(previous_attempts)
     
-    average = sum(attempt[field] for attempt in previous_attempts) / len(previous_attempts)
-    return average
+    # average = sum(attempt[field] for attempt in previous_attempts) / len(previous_attempts)
+    # return average
 
 # Remind the user to sleep more if sleep is below 7 hours.
 def check_sleep(sleep_duration):
@@ -104,7 +108,7 @@ def compare_focus(previous_attempts, focus_level):
     if not previous_attempts:
         return []
 
-    previous = previous_attempts[-1]["focus_level"]
+    previous = previous_attempts[-1]["user_input"]["focus_level"]
 
     # Show a negative message for a drop of at least 2 from the latest attempt.
     if previous - focus_level >= 2:
@@ -130,7 +134,7 @@ def compare_risk_score(previous_attempts, risk_score, field, label):
     if not previous_attempts:
         return []
 
-    previous = previous_attempts[-1][field]
+    previous = previous_attempts[-1]["ai_output"][field]
 
     # No improvement messages if risk increased since the latest attempt.
     if risk_score > previous:
@@ -169,6 +173,7 @@ def compare_burnout(previous_attempts, burnout_risk_score):
 def assess(user_input, ai_output, previous_attempts):
     tier = get_risk_tier(ai_output["mental_wellness_risk_score"])
 
+    print(previous_attempts)
     warnings = get_warnings(
         ai_output["sentiment"],
         ai_output["burnout_risk_score"],
