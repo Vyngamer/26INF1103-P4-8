@@ -254,7 +254,6 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
 client = connect_client()
 
 if __name__ == "__main__":
-    client = connect_client()
     variable = input('enter something')
     print(generate_survey_response({}, None))
 
