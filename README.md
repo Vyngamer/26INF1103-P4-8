@@ -32,16 +32,17 @@ We will format a prompt with the user inputs and send it to the LLM. The LLM wil
 | Personalized Recommendations | AI-generated wellness suggestions | String | Free-response text
 
 ### Business Rules
-We will create rules by combining user inputs and AI-generated outputs to identify mental wellness risks and provide appropriate alerts and recommendations.
+We will create rules by combining user inputs and AI-generated outputs to identify mental wellness risks and provide appropriate alerts and recommendations. 
 
 | Rule | User Input Used | AI Output Used | Condition |
 |---|---|---|---|
-| Mental Wellness Risk Tier | - | Mental Wellness Risk Score | High: Score ≥ 71 Medium: Score 41-70 Low: Score ≤ 40 |
+| Mental Wellness Risk Tier | - | Mental Wellness Risk Score | High: Score ≥ 71; Medium: Score 41-70; Low: Score ≤ 40 |
 | High Burnout Warning (Sleep) | Sleep Duration | Burnout Risk Score | Burnout Risk Score > 75 AND Sleep Duration < 6 |
 | Burnout Warning (Workload) | Academic Workload | Burnout Risk Score | Burnout Risk Score > 60 AND Academic Workload ≥ 7 |
 | Social Withdrawal Risk | Social Activity Level | Sentiment Analysis | Social Activity Level ≤ 3 AND Sentiment = “Negative” |
 | Cognitive Fatigue Risk | Focus Level | Sentiment Analysis | Focus Level ≤ 4 AND Sentiment = “Negative” |
-| Support Route | - | Crisis Alert, Mental Wellness Risk Score, Burnout Risk Score, Sentiment | Urgent support: Crisis Alert = True Counsellor follow-up:  Mental Wellness Risk Tier = “High” OR two or more warning rules are triggered OR (Mental Wellness Risk Score ≥ 60 AND Burnout Risk Score ≥ 70 AND Sentiment = “Negative”) Self-care guidance: Neither of the conditions met |
+| Support Route | - | Crisis Alert, Mental Wellness Risk Score, Burnout Risk Score, Sentiment | Urgent support: Crisis Alert = True; Counsellor follow-up:  Mental Wellness Risk Tier = “High” OR two or more warning rules are triggered OR (Mental Wellness Risk Score ≥ 60 AND Burnout Risk Score ≥ 70 AND Sentiment = “Negative”); Self-care guidance: Neither of the conditions met |
+
 
 #### Sample Output Report to User: <br>
 Mental Wellness Risk: High (78/100) <br>
