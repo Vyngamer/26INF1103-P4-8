@@ -12,7 +12,6 @@ primary_model = "gemini-3.1-flash-lite"
 def error_exit_program(base_api_call_func):
     def exit_program(*args, **kwargs):
         ret = base_api_call_func(*args, **kwargs)
-        print(ret)
         if isinstance(ret, Exception):
             exit()
         return base_api_call_func(*args, **kwargs)
@@ -77,7 +76,6 @@ def failed_api_key_handler(base_api_call_func):
 
 @error_exit_program
 @general_error_handler
-@failed_network_handler
 @failed_api_key_handler
 def connect_client():
     return genai.Client()
@@ -85,8 +83,8 @@ def connect_client():
 @error_exit_program
 @general_error_handler
 @backup_model_retry
-@failed_network_handler
 @failed_api_key_handler
+@failed_network_handler
 def call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model=primary_model):
     """
     The function returns the interaction object which contains the response from the chatbot.
@@ -253,9 +251,8 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
 
     return interaction
 
-client = connect_client()
-
 if __name__ == "__main__":
+    client = connect_client()
     variable = input('enter something')
     print(generate_survey_response({}, None))
 
