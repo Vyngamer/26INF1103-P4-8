@@ -49,7 +49,10 @@ def decide_route(ai_output, tier, warnings):
 def get_average(previous_attempts, field):
     sum=0
     for attempt in previous_attempts:
-        sum += attempt["user_input"][field]
+        if field not in ['mental_wellness_risk_score','burnout_risk_score']:
+            sum += attempt["user_input"][field]
+        else:
+            sum += attempt["ai_output"][field]
     return sum/len(previous_attempts)
     
     # average = sum(attempt[field] for attempt in previous_attempts) / len(previous_attempts)
