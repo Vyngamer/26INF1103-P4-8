@@ -3,13 +3,16 @@ Main I/O Layer
 '''
 
 from questionnaire import full_survey
-from prompts import prompt_choice
+from prompts import prompt_choice, prompt_range, prompt_yes_no
 from user import user_login, user_register, change_username, change_password
+from data_manager import get_user_records
+from history import view_assessment_history, view_assessment_details, view_wellbeing_summary, get_todays_records, delete_records
+from title import print_title
 
 #I/O Files
-SURVEY_FILE = "results.json"
 LOGIC_FILE = "logic_sample.json"
 AI_FILE = "ai_sample.json"
+RECORDS = "records.json"
 
 '''
 SET TO FALSE FOR REAL USE
@@ -71,12 +74,23 @@ USER MENU HANDLERS
 
 #Handles survey and assessment
 def handle_survey(state):
-    full_survey(SURVEY_FILE, LOGIC_FILE, AI_FILE, state["uid"])
-    pause()
+    #If the user already has an assessment today, ask before replacing it
+    todays = get_todays_records(state["uid"], RECORDS)
+    if todays:
+        print(f"\nYou have already completed an assessment today (at {todays[0]['time']}).")
 
-#User history
-def handle_history(state):
-    print("This functionality has not been implemented yet.")
+        if not prompt_yes_no("Only one assessment per day is allowed. "
+                             "Replace today's assessment and start a new survey? (y/n): "):
+            print("\nYour existing assessment for today has been kept.")
+            pause()
+            return
+
+    full_survey(LOGIC_FILE, AI_FILE, state["uid"])
+
+    #Replace the old record AFTER the new survey is finished,
+    #so quitting/crashing halfway through keeps the existing assessment
+    if todays:
+        delete_records([record["record_id"] for record in todays], state["uid"], RECORDS)
     pause()
 
 #Change username
@@ -99,6 +113,41 @@ def handle_logout(state):
     print("\nSuccessfully Logged Out.")
 
 '''
+Assessment History
+'''
+
+#Assessment history: Show assessment history, then secondary menu for further details
+def handle_history(state):
+    while True:
+        #Show the table again after every action, so it is always up to date
+        view_assessment_history(state["uid"], RECORDS)
+        if not get_user_records(state["uid"], RECORDS):
+            pause()
+            return
+        option, func = choose_option(HISTORY_MENU)
+        if func is None:    #Go Back
+            return
+        func(state)    
+
+#Ask which assessment, by its No. in the history table. Returns that number (0 = cancel)
+def prompt_assessment_number(state, action):
+    total = len(get_user_records(state["uid"], RECORDS))
+    return prompt_range(f"Enter the No. of the assessment to {action} (1-{total}, or 0 to cancel): ", 0, total)
+
+#View one assessment from the history table in detail
+def handle_history_details(state):
+    number = prompt_assessment_number(state, "view")
+    if number == 0:
+        return
+    view_assessment_details(get_user_records(state["uid"], RECORDS)[number - 1])
+    pause()
+
+#View the well-being summary
+def handle_history_summary(state):
+    view_wellbeing_summary(state["uid"], RECORDS)
+    pause()
+
+'''
 MENUS
 '''
 
@@ -114,6 +163,12 @@ USER_MENU = {
     "Change Username": handle_change_username,
     "Change Password": handle_change_password,
     "Logout": handle_logout
+}
+
+HISTORY_MENU = {
+    "View Assessment Details": handle_history_details,
+    "View Summary": handle_history_summary,
+    "Back": None
 }
 
 #Identify which menu to show depending if user is logged in
@@ -141,12 +196,6 @@ def run_menu(menu,state):
     else:
         return option, func
 
-#Title
-def print_title():
-    print("============================")
-    print("Welcome to Mental Health Tool")
-    print("============================")
-
 '''
 MAIN PROGRAM
 '''
@@ -161,7 +210,8 @@ def io_main(state=None):
         return run_menu(current_menu(state), state)
     
     #Title
-    print_title()
+    title = "STUDENT WELLBEING SUPPORT SYSTEM"
+    print_title(title)
 
     #If testing, loop & call directly in terminal
     while state["running"]:
@@ -176,7 +226,8 @@ if __name__ == "__main__":
         else:
             print("TEST MODE: FALSE")
             state = new_state()
-            print_title()
+            title = "STUDENT WELLBEING SUPPORT SYSTEM"
+            print_title(title)
             while state["running"]:
                 i, func = io_main(state)
                 print(f"TEST: io_main returned: ({i}, {func.__name__})")
