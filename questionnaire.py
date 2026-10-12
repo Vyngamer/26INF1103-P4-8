@@ -62,7 +62,7 @@ def risk_assessment(results: dict) -> None:
     print("\n--- Mental Health Assessment Results ---")
     #AI risk score & risk tier
     print(f"Mental Wellness Risk Score: {results.get('mental_wellness_risk_score', 'N/A')} / 100 "
-          f"({results.get('risk_tier', 'Unknown')} Risk)")
+          f"({results.get('mental_wellness_risk_tier', 'Unknown')} Risk)")
     #Burnout risk score
     print(f"Burnout Risk Score: {results.get('burnout_risk_score', 'N/A')} / 100")
     #Primary stressors
@@ -85,7 +85,7 @@ def risk_assessment(results: dict) -> None:
         print("   or reach out to someone you trust. You do not have to go through this alone.\n")
 
     #Suggest counseling if needed
-    if results.get("needs_counseling"):
+    if results.get("counselling_recommendation"):
         print("Alert: You are advised to seek counseling.\n")
 
 #Note to self: implement rich text after logic flow is working
@@ -93,12 +93,12 @@ def risk_assessment(results: dict) -> None:
 '''
 File I/O
 '''
-
+'''
 #Save results to json
 def save_results(filename: str, results: dict) -> None:
     with open(filename, "w", encoding="utf-8") as file:
         json.dump(results, file, indent=2)
-
+'''
 #Load from json
 def load_results(filename: str) -> dict:
     try:
@@ -109,14 +109,14 @@ def load_results(filename: str) -> dict:
 
 
 #Run the survey, show the assessment, and return the merged results dict
-def full_survey(survey_file: str, logic_file: str, ai_file: str, uid) -> dict:
+def full_survey(logic_file: str, ai_file: str, uid) -> dict:
     survey = prompt_questionnaire()   #Start survey
     survey["user_id"] = uid
-    save_results(survey_file, survey) #Save results to JSON file
+    #save_results(survey_file, survey) #Save results to JSON file
 
     #Get logic and AI outputs and merge into one dict
     result = load_results(logic_file) | load_results(ai_file)
 
     input("\nPress Enter to Continue... ")
     risk_assessment(result)
-    return result
+    return survey, result
