@@ -5,20 +5,29 @@ import json
 import google
 from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
 
-#backup_model = "gemini-3.8-flash"
-#primary_model = "gemini-3.1-flash-lite"
-backup_model = ""
-primary_model = ""
+backup_model = "gemini-3.8-flash"
+primary_model = "gemini-3.1-flash-lite"
 
-def general_error_handler(base_api_call_func):
+# decorator which exits the program if an error is detected
+def error_exit_program(base_api_call_func):
     def exit_program(*args, **kwargs):
-        try:
-            return base_api_call_func(*args, **kwargs)
-        except:
-            print("Try again later.")
-            return
+        ret = base_api_call_func(*args, **kwargs)
+        if isinstance(ret, Exception):
+            exit()
+        return base_api_call_func(*args, **kwargs)
 
     return exit_program
+
+# decorator which handles general errors after all other error handlers
+def general_error_handler(base_api_call_func):
+    def catch_general_error(*args, **kwargs):
+        try:
+            return base_api_call_func(*args, **kwargs)
+        except Exception as e:
+            print("Try again later.")
+            return e
+
+    return catch_general_error
 
 # decorator to handle other errors
 def backup_model_retry(base_api_call_func):
@@ -33,7 +42,7 @@ def backup_model_retry(base_api_call_func):
                 return base_api_call_func(*args, **kwargs, model=backup_model)
             except NotFoundError as e: 
                 print("Both models unavailable.")
-                return exit()
+                return e
     
     return retry_api_call
 
@@ -59,22 +68,23 @@ def failed_api_key_handler(base_api_call_func):
             os.environ["GEMINI_API_KEY"] = os.getenv("BACKUP_GEMINI_API_KEY")
             try:
                 return base_api_call_func(*args, **kwargs) 
-            except:
+            except ValueError as e:
                 print("Both API keys unavailable...")
-                return exit()
+                return e
         
     return api_key_fallback
 
+@error_exit_program
 @general_error_handler
-@failed_network_handler
 @failed_api_key_handler
 def connect_client():
     return genai.Client()
 
+@error_exit_program
 @general_error_handler
 @backup_model_retry
-@failed_network_handler
 @failed_api_key_handler
+@failed_network_handler
 def call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model=primary_model):
     """
     The function returns the interaction object which contains the response from the chatbot.
@@ -183,6 +193,22 @@ def generate_prompt(survey_data):
 
     return system_instruction, prompt
 
+def valid_survey(survey_data):
+    survey_key_list = [
+        "sleep_duration",
+        "stress_level",
+        "focus_level",
+        "academic_workload",
+        "mood",
+        "social_activity_level",
+        "reflection"
+    ]
+
+    for key in survey_key_list:
+        if key not in survey_data:
+            return False
+    return True
+
 def generate_survey_response(survey_data, previous_interaction_id=None):
     """
     Used at the start of the program at the start of the day after the survey is done by the user. This function properly feeds in the proper system instructions including research papers that will inform the chatbot on the relevant data to better serve the user.
@@ -200,6 +226,8 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
         contains the interactions.text_output property which is the response from the chosen chatbot
         contains the interactions.id property which shows the interaction id for stateful conversations.
     """
+#    if not valid_survey(survey_data):
+#        return "Survey data is invalid!"
 
     system_instruction, prompt = generate_prompt(survey_data)
 
@@ -226,6 +254,7 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
 client = connect_client()
 
 if __name__ == "__main__":
+    client = connect_client()
     variable = input('enter something')
     print(generate_survey_response({}, None))
 
