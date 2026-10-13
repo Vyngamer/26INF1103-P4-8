@@ -1,242 +1,71 @@
 [
     {
-        "record_id": "9e7c9580-5e64-4679-9481-b6534c7bd203",
+        "record_id": "58cf2be5-a36f-4849-944f-004c20ab96ba",
         "date": "12-10-2026",
-        "time": "21:10:10",
+        "time": "22:09:59",
         "user_input": {
-            "user_id": "d5d4c2ee-9ec7-404e-b00b-be9701e9349f",
-            "sleep_duration": 3.0,
-            "stress_level": 3,
-            "focus_level": 3,
-            "academic_workload": 3,
-            "mood": "Anxious",
-            "social_activity_level": 3,
-            "reflection": "im ok"
+            "user_id": "088c5abb-18d7-44d9-888b-2abca870e6bd",
+            "sleep_duration": 1.0,
+            "stress_level": 1,
+            "focus_level": 1,
+            "academic_workload": 1,
+            "mood": "Motivated",
+            "social_activity_level": 1,
+            "reflection": "second"
         },
         "ai_output": {
-            "burnout_risk_score": 45,
-            "crisis_alert": false,
-            "mental_wellness_risk_score": 55,
-            "personalized_recommendations": "It sounds like you are experiencing significant sleep deprivation, which can naturally increase feelings of anxiety. Please prioritize a consistent bedtime tonight to help your body recover; even a short nap or an earlier bedtime can significantly improve your focus and emotional regulation tomorrow.",
+            "burnout_risk_score": 50,
+            "crisis_alert": true,
+            "mental_wellness_risk_score": 85,
+            "personalized_recommendations": "Your sleep duration of only one hour is critically low and poses an immediate danger to your physical and cognitive health. Please prioritize immediate rest or contact a medical professional, as your current level of sleep deprivation is unsustainable and requires urgent attention.",
             "primary_stressor": "Sleep Deprivation",
             "sentiment": "Neutral"
         },
         "logic_output": {
-            "mental_wellness_risk_tier": "Medium",
+            "mental_wellness_risk_tier": "High",
             "warnings": [],
-            "route": "Self-care guidance",
-            "counselling_recommendation": false,
+            "route": "Urgent support",
+            "counselling_recommendation": true,
             "display_messages": [
                 "You slept less than 7 hours. Try to get more sleep."
             ]
         }
     },
     {
-        "record_id": "3ea9b761-81e1-448e-b577-ffb0604e5f32",
-        "date": "12-10-2026",
-        "time": "21:11:04",
+        "record_id": "d04e2a10-9be4-4e80-8b84-b7b939c4370f",
+        "date": "13-10-2026",
+        "time": "22:12:34",
         "user_input": {
-            "user_id": "d5d4c2ee-9ec7-404e-b00b-be9701e9349f",
-            "sleep_duration": 3.0,
-            "stress_level": 3,
-            "focus_level": 3,
-            "academic_workload": 3,
+            "user_id": "088c5abb-18d7-44d9-888b-2abca870e6bd",
+            "sleep_duration": 7.0,
+            "stress_level": 6,
+            "focus_level": 5,
+            "academic_workload": 4,
             "mood": "Anxious",
-            "social_activity_level": 3,
-            "reflection": "im ok"
-        },
-        "ai_output": {
-            "burnout_risk_score": 45,
-            "crisis_alert": false,
-            "mental_wellness_risk_score": 55,
-            "personalized_recommendations": "It is concerning to see that your sleep duration is quite low, which can often fuel feelings of anxiety. Please prioritize establishing a consistent bedtime routine tonight to help your body rest, and consider reaching out to a friend for a short, low-pressure conversation to help ground your mood.",
-            "primary_stressor": "Sleep Deprivation",
-            "sentiment": "Neutral"
-        },
-        "logic_output": [
-            "You slept less than 7 hours. Try to get more sleep.",
-            "You slept the same number of hours as your average."
-        ]
-    },
-    {
-        "record_id": "ed98a090-32dd-4323-bc3b-7a03bec5e692",
-        "date": "12-10-2026",
-        "time": "21:12:53",
-        "user_input": {
-            "user_id": "d5d4c2ee-9ec7-404e-b00b-be9701e9349f",
-            "sleep_duration": 3.0,
-            "stress_level": 3,
-            "focus_level": 3,
-            "academic_workload": 3,
-            "mood": "Anxious",
-            "social_activity_level": 3,
-            "reflection": "imok"
+            "social_activity_level": 2,
+            "reflection": "third"
         },
         "ai_output": {
             "burnout_risk_score": 35,
             "crisis_alert": false,
             "mental_wellness_risk_score": 45,
-            "personalized_recommendations": "It's concerning to see that your sleep duration is quite low, which can significantly impact your anxiety levels even when your workload feels manageable. Please prioritize establishing a consistent sleep routine tonight, as getting more restorative rest is the most effective way to help settle your mood.",
-            "primary_stressor": "Sleep Deprivation",
-            "sentiment": "Neutral"
-        },
-        "logic_output": [
-            "You slept less than 7 hours. Try to get more sleep.",
-            "You slept the same number of hours as your average.",
-            "Your mental wellness risk score has improved since your last attempt. Keep it up!",
-            "Your burnout risk score has improved since your last attempt. Keep it up!"
-        ]
-    },
-    {
-        "record_id": "8d2d969d-d0d7-4542-ae59-68595815deb4",
-        "date": "12-10-2026",
-        "time": "21:16:46",
-        "user_input": {
-            "user_id": "d5d4c2ee-9ec7-404e-b00b-be9701e9349f",
-            "sleep_duration": 3.0,
-            "stress_level": 3,
-            "focus_level": 3,
-            "academic_workload": 3,
-            "mood": "Anxious",
-            "social_activity_level": 3,
-            "reflection": "im ok"
-        },
-        "ai_output": {
-            "burnout_risk_score": 45,
-            "crisis_alert": false,
-            "mental_wellness_risk_score": 55,
-            "personalized_recommendations": "It sounds like you are feeling anxious despite a manageable workload, which may be linked to your low sleep duration of 3 hours. Please prioritize getting to bed earlier tonight to help your nervous system recover, and consider practicing a brief 5-minute breathing exercise when you notice that anxious feeling rising.",
-            "primary_stressor": "Sleep Deprivation",
-            "sentiment": "Neutral"
-        },
-        "logic_output": {
-            "mental_wellness_risk_tier": "Medium",
-            "warnings": [],
-            "route": "Self-care guidance",
-            "counselling_recommendation": false,
-            "display_messages": [
-                "You slept less than 7 hours. Try to get more sleep.",
-                "You slept the same number of hours as your average."
-            ]
-        }
-    },
-    {
-        "record_id": "a952e859-193d-446e-9111-c9b2176460b6",
-        "date": "12-10-2026",
-        "time": "21:49:45",
-        "user_input": {
-            "user_id": "d5d4c2ee-9ec7-404e-b00b-be9701e9349f",
-            "sleep_duration": 3.0,
-            "stress_level": 3,
-            "focus_level": 3,
-            "academic_workload": 3,
-            "mood": "Anxious",
-            "social_activity_level": 3,
-            "reflection": "hahahahahaha"
-        },
-        "ai_output": {
-            "burnout_risk_score": 45,
-            "crisis_alert": false,
-            "mental_wellness_risk_score": 65,
-            "personalized_recommendations": "It sounds like you are going through a difficult time; please consider prioritizing your sleep, as 3 hours is not enough for your mind to recover. Try to step away from your screens and reach out to a trusted peer or counselor to talk about what is causing your anxiety.",
-            "primary_stressor": "Sleep Deprivation",
+            "personalized_recommendations": "It sounds like you're experiencing some underlying anxiety despite manageable workload and good sleep. I encourage you to consider reaching out to a friend or mentor, as your current social activity level is quite low; connecting with others can often help alleviate feelings of anxiety.",
+            "primary_stressor": "Social Isolation",
             "sentiment": "Negative"
         },
         "logic_output": {
             "mental_wellness_risk_tier": "Medium",
             "warnings": [
-                "social withdrawal risk",
-                "cognitive fatigue risk"
+                "social withdrawal risk"
             ],
-            "route": "Counsellor follow-up",
-            "counselling_recommendation": true
-        }
-    },
-    {
-        "record_id": "bcc0578d-9a71-4f52-a1b4-808ebbb0d16d",
-        "date": "13-10-2026",
-        "time": "11:22:31",
-        "user_input": {
-            "user_id": "890a9fba-1f46-426c-8d18-a95538191917",
-            "sleep_duration": 1.0,
-            "stress_level": 1,
-            "focus_level": 1,
-            "academic_workload": 1,
-            "mood": "Motivated",
-            "social_activity_level": 1,
-            "reflection": "haha"
-        },
-        "ai_output": {
-            "burnout_risk_score": 45,
-            "crisis_alert": false,
-            "mental_wellness_risk_score": 35,
-            "personalized_recommendations": "It is concerning to see your sleep duration at only one hour, as this is physically unsustainable regardless of your current motivation. Please prioritize getting a full night of rest tonight to protect your cognitive health, and consider reaching out to a campus health professional to discuss these extreme sleep patterns.",
-            "primary_stressor": "Sleep Deprivation",
-            "sentiment": "Neutral"
-        },
-        "logic_output": {
-            "mental_wellness_risk_tier": "Low",
-            "warnings": [],
             "route": "Self-care guidance",
-            "counselling_recommendation": false
-        }
-    },
-    {
-        "record_id": "ad86547c-9983-49fc-bb90-2810dce90882",
-        "date": "13-10-2026",
-        "time": "11:22:57",
-        "user_input": {
-            "user_id": "890a9fba-1f46-426c-8d18-a95538191917",
-            "sleep_duration": 1.0,
-            "stress_level": 1,
-            "focus_level": 1,
-            "academic_workload": 1,
-            "mood": "Motivated",
-            "social_activity_level": 1,
-            "reflection": "1"
-        },
-        "ai_output": {
-            "burnout_risk_score": 50,
-            "crisis_alert": false,
-            "mental_wellness_risk_score": 55,
-            "personalized_recommendations": "It is concerning to see your sleep duration is currently at 1 hour; prioritizing immediate restorative rest is essential for your long-term health and focus. Even if you feel motivated, please consider adjusting your schedule to allow for at least 7 hours of sleep to avoid severe physiological strain.",
-            "primary_stressor": "Sleep Deprivation",
-            "sentiment": "Neutral"
-        },
-        "logic_output": {
-            "mental_wellness_risk_tier": "Medium",
-            "warnings": [],
-            "route": "Self-care guidance",
-            "counselling_recommendation": false
-        }
-    },
-    {
-        "record_id": "d7057e28-74d9-4a8c-aff5-599ef12bea4d",
-        "date": "13-10-2026",
-        "time": "21:47:31",
-        "user_input": {
-            "user_id": "dae02ec0-1e70-4f9a-99db-19881d690d12",
-            "sleep_duration": 5.0,
-            "stress_level": 5,
-            "focus_level": 5,
-            "academic_workload": 5,
-            "mood": "Anxious",
-            "social_activity_level": 3,
-            "reflection": "ok"
-        },
-        "ai_output": {
-            "burnout_risk_score": 45,
-            "crisis_alert": false,
-            "mental_wellness_risk_score": 45,
-            "personalized_recommendations": "It sounds like you're feeling a bit anxious despite your manageable workload. Prioritize adding an extra hour of sleep tonight to support your emotional regulation, and try incorporating a brief 10-minute mindfulness break to lower your baseline stress.",
-            "primary_stressor": "Anxiety",
-            "sentiment": "Neutral"
-        },
-        "logic_output": {
-            "mental_wellness_risk_tier": "Medium",
-            "warnings": [],
-            "route": "Self-care guidance",
-            "counselling_recommendation": false
+            "counselling_recommendation": false,
+            "display_messages": [
+                "You slept 6.00 hours more than your average.",
+                "Your focus level has improved since your last attempt. Keep it up!",
+                "Your mental wellness risk score has improved since your last attempt. Keep it up!",
+                "Your burnout risk score has improved since your last attempt. Keep it up!"
+            ]
         }
     }
 ]
