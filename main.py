@@ -121,7 +121,7 @@ def main():
         if func == io_manager.handle_survey:
             run_real_survey(state["uid"])
         elif func == io_manager.handle_history:
-            history.view_assessment_history(state["uid"], DATABASE_FILE)
+            io_manager.handle_history(state, DATABASE_FILE)
             io_manager.pause()
         else:
             # Executes Login, Register, Exit, Change Username/Password, or Logout
