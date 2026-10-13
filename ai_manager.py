@@ -74,13 +74,13 @@ def failed_api_key_handler(base_api_call_func):
         
     return api_key_fallback
 
-@error_exit_program
+# @error_exit_program
 @general_error_handler
 @failed_api_key_handler
 def connect_client():
     return genai.Client()
 
-@error_exit_program
+# @error_exit_program
 @general_error_handler
 @backup_model_retry
 @failed_api_key_handler
