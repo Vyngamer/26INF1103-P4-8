@@ -27,7 +27,6 @@ def view_assessment_details(record, title="ASSESSMENT DETAILS"):
     width = 50
     print_title(title,width)
 
-    print(f"Record ID : {record['record_id']}")
     print(f"Date      : {record['date']}")
     print(f"Time      : {record['time']}")
 
@@ -47,7 +46,7 @@ def view_assessment_details(record, title="ASSESSMENT DETAILS"):
     print(f"Crisis Alert         : {ai_output['crisis_alert']}")
     print(f"Primary Stressor     : {ai_output['primary_stressor']}")
 
-    print("\n--- Business Rule Results ---")
+    print("\n--- Risk Evaluation & Support Guidance ---")
     print(f"Risk Tier            : {logic_output['mental_wellness_risk_tier']}")
     print(f"Route                : {logic_output['route']}")
 
@@ -60,11 +59,12 @@ def view_assessment_details(record, title="ASSESSMENT DETAILS"):
     else:
         print("  - No warnings triggered")
 
-    print(f"Counselling Required : {logic_output['counselling_recommendation']}")
+    print(f"Counselling Required : {"Yes" if logic_output['counselling_recommendation'] else "No"}")
 
     print("\n--- Personalised Recommendations ---")
     print(ai_output["personalized_recommendations"])
 
+    print("\n--- Historical Insights ---")
     messages = logic_output.get("display_messages", [])
     if messages:
         for msg in messages:
