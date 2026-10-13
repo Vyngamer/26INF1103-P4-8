@@ -71,6 +71,7 @@ def pw_validation(password):
 
 #Ask for a new password twice. Success result carries the password in "password"
 def prompt_new_password(noun="Password"):
+    print(f"Password must:\n1. Be at least {MIN_PASSWORD_LENGTH} characters long\n2. Contain at least one number & one special character (e.g. ! @ # $ %)\n3. Have no spaces at the start or end")
     password = prompt_password(f"Please Enter A {noun}: ")
     problems = pw_validation(password)
     if problems:
