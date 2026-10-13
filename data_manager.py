@@ -75,18 +75,6 @@ def save(record, filename):
         logging.error("Failed to save database %s: %s", filename, error)
         return False
 
-# query function that can be used for filtering rows
-def query(filter, filename):
-    records = load(filename)
-
-    matching_records = []
-
-    for record in records:
-        if filter(record):
-            matching_records.append(record)
-
-    return matching_records
-
 # Back up the database before saving and keep the latest 3 backups
 def backup_json_file(file_path: str) -> str:
     path = Path(file_path)
@@ -123,7 +111,7 @@ def get_user_int_records(records, user_id):
             history.append({
                 "sleep_duration": record["user_input"]["sleep_duration"],
                 "focus_level": record["user_input"]["focus_level"],
-                "social_activity_level": record["user_input"]["social_activity_level"],
+                "stress_level": record["user_input"]["stress_level"],
                 "mental_wellness_risk_score": record["ai_output"]["mental_wellness_risk_score"],
                 "burnout_risk_score": record["ai_output"]["burnout_risk_score"]
             })
@@ -191,13 +179,36 @@ def get_user_records_by_columns(user_id, filename, columns):
 
     return selected_records
 
+# Replaces a record from user from the same date
+def replace_user_record(user_id, record, filename):
+    records = load(filename)
+    today = datetime.now().strftime("%d-%m-%Y")
+
+    # Keep records belonging to other users and other dates
+    updated_records = []
+
+    for existing_record in records:
+        same_user = existing_record["user_input"]["user_id"] == user_id
+        same_date = existing_record["date"] == today
+
+        if same_user and same_date:
+            continue
+
+        updated_records.append(existing_record)
+
+    # Save the records after removing today's old record
+    with open(filename, "w", encoding="utf-8") as file:
+        json.dump(updated_records, file, indent=4, ensure_ascii=False)
+
+    # Create the new record
+    save(record, filename)
+
 
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
-
 '''user_input = {
     "user_id": 1,
-    "sleep_duration": 8,
+    "sleep_duration": 7,
     "stress_level": 2,
     "focus_level": 2,
     "academic_workload": 9,
@@ -208,7 +219,7 @@ def get_user_records_by_columns(user_id, filename, columns):
 
 ai_output = {
     "conversation_id": 10,
-    "mental_wellness_risk_score": 98,
+    "mental_wellness_risk_score": 1,
     "sentiment": "Negative",
     "burnout_risk_score": 82,
     "crisis_alert": False,
@@ -222,7 +233,6 @@ logic_output = {
     "route": "Urgent support",
     "counselling_recommendation": True
     }'''
-
 #------------------------------------------------------------------------------
 
 # Main Function
@@ -230,8 +240,6 @@ if __name__ == "__main__":
     filename = "records.json"
     records = load(filename)
 
-    record = merge_record(user_input, ai_output, logic_output)
-
-    #save(record, filename)
-    #get_user_history(records, user_id)
+    #record = merge_record(user_input, ai_output, logic_output)
+    #replace_user_record(1, record, filename)
     
