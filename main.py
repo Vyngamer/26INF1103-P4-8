@@ -123,12 +123,6 @@ def main():
             # Executes Login, Register, Exit, Change Username/Password, or Logout
             func(state)
 
-if __name__ == "__main__":
-    try:
-        main()
-    except (KeyboardInterrupt, EOFError):
-        print("\n\nProgram terminated. Thank You!")
-
 def survey():
     user_id = 'user1'
     database_file = 'records.json'
@@ -151,9 +145,9 @@ def survey():
 
     data_manager.save(record, database_file)
 
-
 if __name__ == "__main__":
     try:
+        main()
         survey()
     except (KeyboardInterrupt, EOFError):
             print("\n\nProgram terminated. Thank You!")
