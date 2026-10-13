@@ -1,6 +1,6 @@
 import pytest
 import os
-from ai_manager import valid_survey, call_api
+from ai_manager import valid_survey, call_api, generate_survey_response
 
 valid_survey_false = [
     {},
@@ -42,10 +42,31 @@ def test_valid_survey_true(survey_data):
 def test_api_key_exists():
     assert len(os.environ["GEMINI_API_KEY"]) != 0
 
+
 call_api_test_data = [
-        ("", "", {}, None, "gemini-3.1-flash-lite")
+    ("Hello!", "", {}, None )
 ]
 # test if the call_api function works
-@pytest.mark.parametrize('prompt, system_instruction, response_output_format, previous_interaction_id, model', call_api_test_data)
-def test_call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model):
-    assert not isinstance(call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model), Exception)
+@pytest.mark.parametrize('prompt, system_instruction, response_output_format, previous_interaction_id', call_api_test_data)
+def test_call_api(prompt, system_instruction, response_output_format, previous_interaction_id):
+    try:
+        interaction = call_api(prompt, system_instruction, response_output_format, previous_interaction_id)
+        assert True
+    except SystemExit:
+        assert False
+
+call_api_test_data_xfail = [
+    ("Hello!", "", {}, None, None)
+]
+@pytest.mark.parametrize('prompt, system_instruction, response_output_format, previous_interaction_id, model', call_api_test_data_xfail)
+def test_call_api_xfail(prompt, system_instruction, response_output_format, previous_interaction_id, model):
+    try:
+        interaction = call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model)
+        assert False 
+    except SystemExit:
+        assert True 
+
+
+def test_generate_survey_response():
+    assert generate_survey_response({}, None) == "Survey data is invalid!"
+
