@@ -80,7 +80,7 @@ def run_real_survey(user_id):
     print("\nAnalyzing your responses with AI. Please wait...")
     try:
         interaction = ai_manager.generate_survey_response(user_input, None)
-        ai_output = json.loads(interaction.output_text)
+        ai_output = ai_manager.parse_response(interaction)
     except Exception as e:
         print(f"\nError communicating with the AI or parsing response: {e}")
         return
