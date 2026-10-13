@@ -148,6 +148,7 @@ def view_assessment_history(user_id, filename):
     print(f"Total assessments: {len(records)}")
     print("=" * width)
 
+'''
 #Compare 2 most recent records and show changes in mental wellness risk score & burnout risk score
 def compare_assessments(user_id, filename):
     records = get_user_records(user_id, filename)
@@ -356,17 +357,18 @@ def view_wellbeing_summary(user_id, filename):
             - previous_ai["burnout_risk_score"]
         )
 
-        print(f"Mental Wellness Risk   : {risk_change:+} points")
-        print(f"Burnout Risk           : {burnout_change:+} points")
+        print(f"Mental Wellness Risk         : {risk_change:+} points")
+        print(f"Burnout Risk                 : {burnout_change:+} points")
 
         if risk_change > 0:
-            print("Risk Trend             : Increasing")
+            print("Mental Wellness Risk Trend       : Increasing")
         elif risk_change < 0:
-            print("Risk Trend             : Decreasing")
+            print("Mental Wellness Risk Trend       : Decreasing")
         else:
-            print("Risk Trend             : Unchanged")
+            print("Mental Wellness Risk Trend       : Unchanged")
 
     print("=" * width)
+'''
 
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
