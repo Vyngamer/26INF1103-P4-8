@@ -95,10 +95,8 @@ def run_real_survey(user_id):
     # Process business rules
     logic_output = logic_manager.assess(user_input, ai_output, previous_attempts)
 
-    savable_data = logic_manager.get_saveable_output(logic_output)
-    display_messages = logic_manager.get_display_messages(logic_output)
     # Merge and save the record to the database
-    record = data_manager.merge_record(user_input, ai_output, savable_data)
+    record = data_manager.merge_record(user_input, ai_output, logic_output)
     data_manager.replace_user_record(user_id, record, DATABASE_FILE)
 
     # Display the final assessment to the user

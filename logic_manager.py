@@ -46,17 +46,12 @@ def decide_route(ai_output, tier, warnings):
     return "Self-care guidance"
 
 # Calculate the average of a field across previous attempts.
+# Calculate the average of a field from a non-empty history.
 def get_average(previous_attempts, field):
-    sum=0
-    for attempt in previous_attempts:
-        if field not in ['mental_wellness_risk_score','burnout_risk_score']:
-            sum += attempt["user_input"][field]
-        else:
-            sum += attempt["ai_output"][field]
-    return sum/len(previous_attempts)
-    
-    # average = sum(attempt[field] for attempt in previous_attempts) / len(previous_attempts)
-    # return average
+    return (
+        sum(attempt[field] for attempt in previous_attempts)
+        / len(previous_attempts)
+    )
 
 # Remind the user to sleep more if sleep is below 7 hours.
 def check_sleep(sleep_duration):
@@ -86,9 +81,9 @@ def compare_social(previous_attempts, social_activity_level):
 
     # Check for three drops of at least 1 point across four consecutive attempts.
     if len(previous_attempts) >= 3:
-        first = previous_attempts[-3]["user_input"]["social_activity_level"]
-        second = previous_attempts[-2]["user_input"]["social_activity_level"]
-        third = previous_attempts[-1]["user_input"]["social_activity_level"]
+        first = previous_attempts[-3]["social_activity_level"]
+        second = previous_attempts[-2]["social_activity_level"]
+        third = previous_attempts[-1]["social_activity_level"]
 
         consecutive_drop = (
             first - second >= 1
@@ -111,7 +106,7 @@ def compare_focus(previous_attempts, focus_level):
     if not previous_attempts:
         return []
 
-    previous = previous_attempts[-1]["user_input"]["focus_level"]
+    previous = previous_attempts[-1]["focus_level"]
 
     # Show a negative message for a drop of at least 2 from the latest attempt.
     if previous - focus_level >= 2:
@@ -137,7 +132,7 @@ def compare_risk_score(previous_attempts, risk_score, field, label):
     if not previous_attempts:
         return []
 
-    previous = previous_attempts[-1]["ai_output"][field]
+    previous = previous_attempts[-1][field]
 
     # No improvement messages if risk increased since the latest attempt.
     if risk_score > previous:
@@ -175,8 +170,6 @@ def compare_burnout(previous_attempts, burnout_risk_score):
 # Apply business rules to user input and AI output, then return the assessment outcome.
 def assess(user_input, ai_output, previous_attempts):
     tier = get_risk_tier(ai_output["mental_wellness_risk_score"])
-
-    print(previous_attempts)
     warnings = get_warnings(
         ai_output["sentiment"],
         ai_output["burnout_risk_score"],
@@ -213,18 +206,4 @@ def assess(user_input, ai_output, previous_attempts):
         "route": route,
         "counselling_recommendation": route in ("Urgent support", "Counsellor follow-up"),
         "display_messages": display_messages
-    }
-
-def get_saveable_output(logic_output):
-    return {
-        key: value
-        for key, value in logic_output.items()
-        if key != "display_messages"
-    }
-
-def get_display_messages(logic_output):
-    return {
-        key: value
-        for key, value in logic_output.items()
-        if key == "display_messages"
     }
