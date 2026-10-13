@@ -193,7 +193,7 @@ def generate_prompt(survey_data):
 
     return system_instruction, prompt
 
-def valid_survey(survey_data):
+def validate_response(survey_data):
     survey_key_list = [
         "sleep_duration",
         "stress_level",
@@ -208,6 +208,9 @@ def valid_survey(survey_data):
         if key not in survey_data:
             return False
     return True
+
+def parse_response(raw_interaction_object):
+    return json.loads(raw.output_text)
 
 def generate_survey_response(survey_data, previous_interaction_id=None):
     """
@@ -226,8 +229,8 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
         contains the interactions.text_output property which is the response from the chosen chatbot
         contains the interactions.id property which shows the interaction id for stateful conversations.
     """
-#    if not valid_survey(survey_data):
-#        return "Survey data is invalid!"
+    if not validate_response(survey_data):
+        return "Survey data is invalid!"
 
     system_instruction, prompt = generate_prompt(survey_data)
 
