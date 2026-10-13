@@ -210,11 +210,11 @@ Assessment History
 '''
 
 #Assessment history: Show assessment history, then secondary menu for further details
-def handle_history(state):
+def handle_history(state,db=RECORDS):
     while True:
         #Show the table again after every action, so it is always up to date
-        view_assessment_history(state["uid"], RECORDS)
-        if not get_user_records(state["uid"], RECORDS):
+        view_assessment_history(state["uid"], db)
+        if not get_user_records(state["uid"], db):
             pause()
             return
         option, func = choose_option(HISTORY_MENU)
