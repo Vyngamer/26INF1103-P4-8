@@ -184,7 +184,7 @@ def generate_prompt(survey_data):
     return system_instruction, prompt
 
 def check_int(raw):
-    return raw.isdigit()
+    return isinstance(raw, int)
 
 def check_str(raw):
     return isinstance(raw, str)
