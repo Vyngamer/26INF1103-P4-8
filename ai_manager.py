@@ -8,16 +8,6 @@ from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundErr
 backup_model = "gemini-3.8-flash"
 primary_model = "gemini-3.1-flash-lite"
 
-# decorator which exits the program if an error is detected
-def error_exit_program(base_api_call_func):
-    def exit_program(*args, **kwargs):
-        ret = base_api_call_func(*args, **kwargs)
-        if isinstance(ret, Exception):
-            exit()
-        return base_api_call_func(*args, **kwargs)
-
-    return exit_program
-
 # decorator which handles general errors after all other error handlers
 def general_error_handler(base_api_call_func):
     def catch_general_error(*args, **kwargs):
@@ -25,7 +15,7 @@ def general_error_handler(base_api_call_func):
             return base_api_call_func(*args, **kwargs)
         except Exception as e:
             print("Try again later.")
-            return e
+            raise e
 
     return catch_general_error
 
@@ -42,7 +32,7 @@ def backup_model_retry(base_api_call_func):
                 return base_api_call_func(*args, **kwargs, model=backup_model)
             except NotFoundError as e: 
                 print("Both models unavailable.")
-                return e
+                raise e
     
     return retry_api_call
 
@@ -54,7 +44,7 @@ def failed_network_handler(base_api_call_func):
         except APIConnectionError as e:
 
             print("Network connection error. Please check that you are connected to the internet.")
-            return e
+            raise e
     return failed_network_notice
 
 # decorator for when the primary api key fails
@@ -70,7 +60,7 @@ def failed_api_key_handler(base_api_call_func):
                 return base_api_call_func(*args, **kwargs) 
             except ValueError as e:
                 print("Both API keys unavailable...")
-                return e
+                raise e
         
     return api_key_fallback
 
