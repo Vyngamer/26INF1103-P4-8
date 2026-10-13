@@ -141,7 +141,7 @@ Below are some useful functions that can be used for
 3. Compare Assessments
 4. Overall Well-being summary
 '''
-
+'''
 
 # function that will display out the latest record on the screen nicely
 def view_latest_assessment(user_id, filename):
@@ -463,6 +463,8 @@ def view_wellbeing_summary(user_id, filename):
             print("Risk Trend             : Unchanged")
 
     print("=" * 55)
+
+'''
 
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
