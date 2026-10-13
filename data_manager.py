@@ -184,7 +184,7 @@ def replace_user_record(user_id, record, filename):
     records = load(filename)
     today = datetime.now().strftime("%d-%m-%Y")
 
-    # Keep records belonging to other users and other dates
+    has_record_today = False
     updated_records = []
 
     for existing_record in records:
@@ -192,16 +192,21 @@ def replace_user_record(user_id, record, filename):
         same_date = existing_record["date"] == today
 
         if same_user and same_date:
+            has_record_today = True
             continue
 
         updated_records.append(existing_record)
 
-    # Save the records after removing today's old record
-    with open(filename, "w", encoding="utf-8") as file:
-        json.dump(updated_records, file, indent=4, ensure_ascii=False)
+    if has_record_today:
+        # Remove today's old record
+        with open(filename, "w", encoding="utf-8") as file:
+            json.dump(updated_records, file, indent=4, ensure_ascii=False)
 
-    # Create the new record
-    save(record, filename)
+        # Save the replacement record
+        save(record, filename)
+    else:
+        # No record exists for today, so save a new one
+        save(record, filename)
 
 
 #Note that below is the required format for the return value for each of the 3 layers
@@ -219,7 +224,7 @@ def replace_user_record(user_id, record, filename):
 
 ai_output = {
     "conversation_id": 10,
-    "mental_wellness_risk_score": 1,
+    "mental_wellness_risk_score": 10,
     "sentiment": "Negative",
     "burnout_risk_score": 82,
     "crisis_alert": False,
