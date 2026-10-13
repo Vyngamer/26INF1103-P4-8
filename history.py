@@ -69,6 +69,8 @@ def view_assessment_details(record, title="ASSESSMENT DETAILS"):
     if messages:
         for msg in messages:
             print(f"  - {msg}")
+    else:
+        print("  - No historical insights available.")
 
     print("=" * width)
 
