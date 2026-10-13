@@ -251,8 +251,8 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
         contains the interactions.text_output property which is the response from the chosen chatbot
         contains the interactions.id property which shows the interaction id for stateful conversations.
     """
-    if not validate_response(survey_data):
-        return "Survey data is invalid!"
+    # if not validate_response(survey_data):
+    #     return "Survey data is invalid!"
 
     system_instruction, prompt = generate_prompt(survey_data)
 
