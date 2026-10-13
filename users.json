@@ -8,5 +8,10 @@
         "user_id": "890a9fba-1f46-426c-8d18-a95538191917",
         "username": "user2",
         "password": "pbkdf2$600000$4ded60bdd20b20116de099cf92c1692a$8b410bfd05ebba6bd8fc8badc4a5468fca27a401f755ee437e277480e6c61faa"
+    },
+    {
+        "user_id": "dae02ec0-1e70-4f9a-99db-19881d690d12",
+        "username": "Marcus",
+        "password": "pbkdf2$600000$1f53a4d839622009b20b5771c38b3f6c$d80ae14495c5d87f566c90f4c197445c7e51e47bdc87945c2e4ef04290cc18d6"
     }
 ]

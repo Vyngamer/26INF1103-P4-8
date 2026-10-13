@@ -209,5 +209,34 @@
             "route": "Self-care guidance",
             "counselling_recommendation": false
         }
+    },
+    {
+        "record_id": "d7057e28-74d9-4a8c-aff5-599ef12bea4d",
+        "date": "13-10-2026",
+        "time": "21:47:31",
+        "user_input": {
+            "user_id": "dae02ec0-1e70-4f9a-99db-19881d690d12",
+            "sleep_duration": 5.0,
+            "stress_level": 5,
+            "focus_level": 5,
+            "academic_workload": 5,
+            "mood": "Anxious",
+            "social_activity_level": 3,
+            "reflection": "ok"
+        },
+        "ai_output": {
+            "burnout_risk_score": 45,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 45,
+            "personalized_recommendations": "It sounds like you're feeling a bit anxious despite your manageable workload. Prioritize adding an extra hour of sleep tonight to support your emotional regulation, and try incorporating a brief 10-minute mindfulness break to lower your baseline stress.",
+            "primary_stressor": "Anxiety",
+            "sentiment": "Neutral"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "Medium",
+            "warnings": [],
+            "route": "Self-care guidance",
+            "counselling_recommendation": false
+        }
     }
 ]
