@@ -65,6 +65,11 @@ def view_assessment_details(record, title="ASSESSMENT DETAILS"):
     print("\n--- Personalised Recommendations ---")
     print(ai_output["personalized_recommendations"])
 
+    messages = logic_output.get("display_messages", [])
+    if messages:
+        for msg in messages:
+            print(f"  - {msg}")
+
     print("=" * width)
 
 #Return all of the user's records dated today (newest first)
