@@ -86,11 +86,11 @@ def get_user_int_records(records, user_id):
     history = []
 
     for record in records:
-        if record["user_id"] == user_id:
+        if record["user_input"]["user_id"] == user_id:
             history.append({
                 "sleep_duration": record["user_input"]["sleep_duration"],
                 "focus_level": record["user_input"]["focus_level"],
-                "social_activity_level": record["user_input"]["social_activity_level"],
+                "stress_level": record["user_input"]["stress_level"],
                 "mental_wellness_risk_score": record["ai_output"]["mental_wellness_risk_score"],
                 "burnout_risk_score": record["ai_output"]["burnout_risk_score"]
             })

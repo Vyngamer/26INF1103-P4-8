@@ -86,5 +86,70 @@
             "Your mental wellness risk score has improved since your last attempt. Keep it up!",
             "Your burnout risk score has improved since your last attempt. Keep it up!"
         ]
+    },
+    {
+        "record_id": "8d2d969d-d0d7-4542-ae59-68595815deb4",
+        "date": "12-10-2026",
+        "time": "21:16:46",
+        "user_input": {
+            "user_id": "d5d4c2ee-9ec7-404e-b00b-be9701e9349f",
+            "sleep_duration": 3.0,
+            "stress_level": 3,
+            "focus_level": 3,
+            "academic_workload": 3,
+            "mood": "Anxious",
+            "social_activity_level": 3,
+            "reflection": "im ok"
+        },
+        "ai_output": {
+            "burnout_risk_score": 45,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 55,
+            "personalized_recommendations": "It sounds like you are feeling anxious despite a manageable workload, which may be linked to your low sleep duration of 3 hours. Please prioritize getting to bed earlier tonight to help your nervous system recover, and consider practicing a brief 5-minute breathing exercise when you notice that anxious feeling rising.",
+            "primary_stressor": "Sleep Deprivation",
+            "sentiment": "Neutral"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "Medium",
+            "warnings": [],
+            "route": "Self-care guidance",
+            "counselling_recommendation": false,
+            "display_messages": [
+                "You slept less than 7 hours. Try to get more sleep.",
+                "You slept the same number of hours as your average."
+            ]
+        }
+    },
+    {
+        "record_id": "a952e859-193d-446e-9111-c9b2176460b6",
+        "date": "12-10-2026",
+        "time": "21:49:45",
+        "user_input": {
+            "user_id": "d5d4c2ee-9ec7-404e-b00b-be9701e9349f",
+            "sleep_duration": 3.0,
+            "stress_level": 3,
+            "focus_level": 3,
+            "academic_workload": 3,
+            "mood": "Anxious",
+            "social_activity_level": 3,
+            "reflection": "hahahahahaha"
+        },
+        "ai_output": {
+            "burnout_risk_score": 45,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 65,
+            "personalized_recommendations": "It sounds like you are going through a difficult time; please consider prioritizing your sleep, as 3 hours is not enough for your mind to recover. Try to step away from your screens and reach out to a trusted peer or counselor to talk about what is causing your anxiety.",
+            "primary_stressor": "Sleep Deprivation",
+            "sentiment": "Negative"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "Medium",
+            "warnings": [
+                "social withdrawal risk",
+                "cognitive fatigue risk"
+            ],
+            "route": "Counsellor follow-up",
+            "counselling_recommendation": true
+        }
     }
 ]

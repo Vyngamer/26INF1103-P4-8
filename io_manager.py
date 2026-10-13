@@ -1,11 +1,11 @@
 '''
 Main I/O Layer
 '''
-
+import matplotlib.pyplot as plt
 from questionnaire import full_survey
 from prompts import prompt_choice, prompt_range, prompt_yes_no
 from user import user_login, user_register, change_username, change_password
-from data_manager import get_user_records
+from data_manager import get_user_records, get_user_int_records, get_user_records
 from history import view_assessment_history, view_assessment_details, view_wellbeing_summary, get_todays_records, delete_records
 from title import print_title
 
@@ -112,6 +112,88 @@ def handle_logout(state):
     set_logged_out(state)
     print("\nSuccessfully Logged Out.")
 
+# graph
+def show_graph(state):
+    user_records = get_user_records(state["uid"], RECORDS)
+    required_data = get_user_int_records(user_records, state["uid"])
+    index = 1
+    x_axis = []
+    while index <= len(required_data):
+        x_axis.append(index)
+        index += 1
+    sleep_duration = []
+    for sleep in required_data:
+        sleep_duration.append(sleep["sleep_duration"])
+    focus_level = []
+    for focus in required_data:
+        focus_level.append(focus["sleep_duration"])
+    stress_level = []
+    for stress in required_data:
+        stress_level.append(stress["stress_level"])
+    wellness_score = []
+    for wellness in required_data:
+        wellness_score.append(wellness["mental_wellness_risk_score"])
+    burnout_risk_score = []
+    for burnout in required_data:
+        burnout_risk_score.append(burnout["burnout_risk_score"])
+
+    # initialising the graph
+    figure = plt.figure(figsize=(12, 8))
+    figure.suptitle('Personal Wellness Tracking Dashboard', fontsize=16, fontweight='bold')
+    grid_space = figure.add_gridspec(2, 6)
+
+
+    # create graph 1 (sleep)
+    ax1 = figure.add_subplot(grid_space[0, 0:2])
+    ax1.set(xlabel='Attemps', ylabel='Hours (H)', title='Hours of Sleep')
+    ax1.set_xticks(x_axis)
+    ax1.set_ylim(0, 10)
+    ax1.plot(x_axis, sleep_duration, marker='o', color='#1f77b4', linewidth=2)
+    ax1.fill_between(x_axis, sleep_duration, color='#1f77b4', alpha=0.15)
+
+    # create graph 2 (focus level)
+    ax2 = figure.add_subplot(grid_space[0, 2:4])
+    ax2.set(xlabel='Attemps', ylabel='Focus Level (1-10)', title='Your Focus Level')
+    ax2.set_xticks(x_axis)
+    ax2.set_ylim(0, 10)
+    ax2.plot(x_axis, focus_level, marker='o', color='#ff7f0e', linewidth=2)
+    ax2.fill_between(x_axis, focus_level, color='#ff7f0e', alpha=0.15)
+
+    # create graph 3 (stress level)
+    ax3 = figure.add_subplot(grid_space[0, 4:6])
+    ax3.set(xlabel='Attemps', ylabel='Stress Level (1-10)', title='Your Stress Level')
+    ax3.set_xticks(x_axis)
+    ax3.set_ylim(0, 10)
+    ax3.plot(x_axis, stress_level, marker='o', color='#d62728', linewidth=2)
+    ax3.fill_between(x_axis, stress_level, color='#d62728', alpha=0.15)
+
+    # create graph 4 (mental wellness score)
+    ax4 = figure.add_subplot(grid_space[1, 0:3])
+    ax4.set(xlabel='Attemps', ylabel='Mental wellness score (0-100)', title='Your Mental Wellness Scores')
+    ax4.set_xticks(x_axis)
+    ax4.set_ylim(0, 100)
+    ax4.plot(x_axis, wellness_score, marker='o', color='#2ca02c', linewidth=2)
+    ax4.fill_between(x_axis, wellness_score, color='#2ca02c', alpha=0.15)
+
+    # create graph 5 (burnout risk score)
+    ax5 = figure.add_subplot(grid_space[1, 3:6])
+    ax5.set(xlabel='Attemps', ylabel='Burnout Risk Score (0-100)', title='Your Burnout Risk Scores')
+    ax5.set_xticks(x_axis)
+    ax5.set_ylim(0, 100)
+    ax5.plot(x_axis, burnout_risk_score, marker='o', color='#9467bd', linewidth=2)
+    ax5.fill_between(x_axis, burnout_risk_score, color='#9467bd', alpha=0.15)
+
+    # displaying the graph
+    plt.tight_layout()
+    plt.show()
+    pause()
+
+'''
+Graph
+'''
+def graph(user_id, records):
+    pass
+
 '''
 Assessment History
 '''
@@ -147,6 +229,15 @@ def handle_history_summary(state):
     view_wellbeing_summary(state["uid"], RECORDS)
     pause()
 
+
+'''
+Graph functions
+'''
+def handle_graph(state, RECORDS):
+    full_record = get_user_records(state["uid"], RECORDS)
+    required_information = get_user_int_records(full_record, state["uid"])
+    print(required_information)
+
 '''
 MENUS
 '''
@@ -162,7 +253,8 @@ USER_MENU = {
     "View History": handle_history,
     "Change Username": handle_change_username,
     "Change Password": handle_change_password,
-    "Logout": handle_logout
+    "Logout": handle_logout,
+    "View Graph": show_graph
 }
 
 HISTORY_MENU = {

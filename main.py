@@ -104,7 +104,7 @@ def run_real_survey(user_id):
 def main():
     # Initialize the session state to track the active user
     state = io_manager.new_state()
-    io_manager.print_title()
+    io_manager.print_title("Welcome To Our Wellness Checker")
 
     # Main application loop that dynamically switches menus based on login state
     while state["running"]:

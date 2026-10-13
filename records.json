@@ -151,5 +151,63 @@
             "route": "Counsellor follow-up",
             "counselling_recommendation": true
         }
+    },
+    {
+        "record_id": "bcc0578d-9a71-4f52-a1b4-808ebbb0d16d",
+        "date": "13-10-2026",
+        "time": "11:22:31",
+        "user_input": {
+            "user_id": "890a9fba-1f46-426c-8d18-a95538191917",
+            "sleep_duration": 1.0,
+            "stress_level": 1,
+            "focus_level": 1,
+            "academic_workload": 1,
+            "mood": "Motivated",
+            "social_activity_level": 1,
+            "reflection": "haha"
+        },
+        "ai_output": {
+            "burnout_risk_score": 45,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 35,
+            "personalized_recommendations": "It is concerning to see your sleep duration at only one hour, as this is physically unsustainable regardless of your current motivation. Please prioritize getting a full night of rest tonight to protect your cognitive health, and consider reaching out to a campus health professional to discuss these extreme sleep patterns.",
+            "primary_stressor": "Sleep Deprivation",
+            "sentiment": "Neutral"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "Low",
+            "warnings": [],
+            "route": "Self-care guidance",
+            "counselling_recommendation": false
+        }
+    },
+    {
+        "record_id": "ad86547c-9983-49fc-bb90-2810dce90882",
+        "date": "13-10-2026",
+        "time": "11:22:57",
+        "user_input": {
+            "user_id": "890a9fba-1f46-426c-8d18-a95538191917",
+            "sleep_duration": 1.0,
+            "stress_level": 1,
+            "focus_level": 1,
+            "academic_workload": 1,
+            "mood": "Motivated",
+            "social_activity_level": 1,
+            "reflection": "1"
+        },
+        "ai_output": {
+            "burnout_risk_score": 50,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 55,
+            "personalized_recommendations": "It is concerning to see your sleep duration is currently at 1 hour; prioritizing immediate restorative rest is essential for your long-term health and focus. Even if you feel motivated, please consider adjusting your schedule to allow for at least 7 hours of sleep to avoid severe physiological strain.",
+            "primary_stressor": "Sleep Deprivation",
+            "sentiment": "Neutral"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "Medium",
+            "warnings": [],
+            "route": "Self-care guidance",
+            "counselling_recommendation": false
+        }
     }
 ]
