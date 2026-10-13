@@ -13,18 +13,18 @@ def get_warnings(sentiment_analysis, burnout_risk_score, sleep, workload, social
     warnings = []
     # check for high burnout warning due to sleep
     if burnout_risk_score > 75 and sleep < 6:
-        warnings.append("High burnout warning (Sleep)")
+        warnings.append("High Burnout Warning (Sleep)")
     # check for burnout warning due to workload
     if burnout_risk_score > 60 and workload >= 7:
-        warnings.append("Burnout warning (Workload)")
+        warnings.append("Burnout Warning (Workload)")
 
     # check for social withdrawal risk
     if social_activity_level <= 3 and sentiment_analysis == "Negative":
-        warnings.append("social withdrawal risk")
+        warnings.append("Social Withdrawal Risk")
 
     # check for cognitive fatigue risk
     if focus <= 4 and sentiment_analysis == "Negative":
-        warnings.append("cognitive fatigue risk")
+        warnings.append("Cognitive Fatigue Risk")
     return warnings
 
 # Choose a support route based on AI results, risk tier, and warnings.
