@@ -73,7 +73,10 @@ def run_real_survey(user_id):
     print("\n--- Starting Wellness Survey ---")
     
     # Prompt questionnaire and assign the active user's ID
-    user_input = questionnaire.prompt_questionnaire()
+    #user_input = questionnaire.prompt_questionnaire()
+    user_input = io_manager.handle_survey(user_id)
+    if user_input is None:
+        return
     user_input["user_id"] = user_id
 
     # Call the AI Manager
