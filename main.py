@@ -99,7 +99,7 @@ def run_real_survey(user_id):
     display_messages = logic_manager.get_display_messages(logic_output)
     # Merge and save the record to the database
     record = data_manager.merge_record(user_input, ai_output, savable_data)
-    data_manager.save(record, DATABASE_FILE)
+    data_manager.replace_user_record(record, DATABASE_FILE)
 
     # Display the final assessment to the user
     history.view_latest_assessment(user_id, DATABASE_FILE)
@@ -147,7 +147,7 @@ def survey():
         "logic_output": logic_output
     }
 
-    data_manager.replace_user_record(record, database_file)
+    data_manager.save(record, database_file)
 
 if __name__ == "__main__":
     try:
