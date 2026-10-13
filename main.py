@@ -80,10 +80,11 @@ def run_real_survey(user_id):
     print("\nAnalyzing your responses with AI. Please wait...")
     try:
         interaction = ai_manager.generate_survey_response(user_input, None)
-        ai_output = ai_manager.parse_response(interaction)
     except Exception as e:
         print(f"\nError communicating with the AI or parsing response: {e}")
         return
+
+    ai_output = ai_manager.parse_response(interaction)
 
     # Retrieve previous attempts required for logic assessment
     previous_attempts = data_manager.get_user_records(user_id, DATABASE_FILE)
