@@ -147,7 +147,7 @@ def survey():
         "logic_output": logic_output
     }
 
-    data_manager.save(record, database_file)
+    data_manager.replace_user_record(record, database_file)
 
 if __name__ == "__main__":
     try:
