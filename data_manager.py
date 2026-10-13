@@ -4,41 +4,76 @@ import os
 import uuid
 from pathlib import Path
 import shutil
+import logging
 
-# load function will read the data from the json database and load it into records
+# Load data from the JSON database into records
 def load(filename):
-    if os.path.exists(filename): 
-        try:
-            with open(filename,"r") as file:
+    try:
+        if os.path.exists(filename): 
+            with open(filename, "r", encoding="utf-8") as file:
                 records = json.load(file)
-        except json.JSONDecodeError:
-            records = []
-    else:
+        
+            if not isinstance(records, list):
+                raise ValueError("Database must contain a list of records.")
+
+            return records
+
+        # Create a new database if the file does not exist
         records = []
-        with open(filename,"w") as file:
-            json.dump(records, file)
-    return records
+        with open(filename, "w", encoding="utf-8") as file:
+            json.dump(records, file, indent=4)
+        
+        return records
+    
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+        logging.error("Failed to load database %s : %s", filename, error)
+        return []
 
-# save function will save the user_input, ai_ouput and logic_output into database as a single record
+# Save data into database as a single record
 def save(record, filename):
+    try:
+        # Validate the record
+        if not isinstance(record, dict):
+            raise ValueError("Record must be a dictionary.")
 
-    if Path(filename).is_file():
-        backup_path = backup_json_file(filename)
-    records = load(filename)
-    now = datetime.now()
+        required_keys = ["user_input", "ai_output", "logic_output"]
 
-    new_record = {
-        "record_id": str(uuid.uuid4()),
-        "date": now.strftime("%d-%m-%Y"),
-        "time": now.strftime("%H:%M:%S"),
-        "user_input": record["user_input"],
-        "ai_output": record["ai_output"],
-        "logic_output": record["logic_output"]
-    }
-    records.append(new_record)
+        for key in required_keys:
+            if key not in record:
+                raise ValueError(f"Missing required key: {key}")
 
-    with open(filename, "w") as file:
-        json.dump(records, file, indent=4)
+        # Back up the existing database
+        if Path(filename).is_file():
+            backup_json_file(filename)
+    
+        records = load(filename)
+
+        if not isinstance(records, list):
+            raise ValueError("Database must contain a list of records.")
+
+        # Create a new record
+        now = datetime.now()
+
+        new_record = {
+            "record_id": str(uuid.uuid4()),
+            "date": now.strftime("%d-%m-%Y"),
+            "time": now.strftime("%H:%M:%S"),
+            "user_input": record["user_input"],
+            "ai_output": record["ai_output"],
+            "logic_output": record["logic_output"]
+        }
+        
+        records.append(new_record)
+
+        # Write the updated database
+        with open(filename, "w", encoding="utf-8") as file:
+            json.dump(records, file, indent=4, ensure_ascii=False)
+
+        return True
+
+    except (OSError, TypeError, ValueError) as error:
+        logging.error("Failed to save database %s: %s", filename, error)
+        return False
 
 # query function that can be used for filtering rows
 def query(filter, filename):
@@ -52,22 +87,20 @@ def query(filter, filename):
 
     return matching_records
 
-# function will backup the JSON file into a folder and keep the latest 3 files
-def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
+# Back up the database before saving and keep the latest 3 backups
+def backup_json_file(file_path: str) -> str:
     path = Path(file_path)
 
     if not path.is_file():
         raise FileNotFoundError(f"Source file not found: {file_path}")
 
+    # Create the backup folder
     backup_folder = path.parent / "Backup"
     backup_folder.mkdir(parents=True, exist_ok=True)
 
-    if add_timestamp:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_name = f"{path.stem}_backup_{timestamp}{path.suffix}"
-    else:
-        backup_name = f"{path.stem}_backup{path.suffix}"
-
+    # Create a timestamp backup filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_name = f"{path.stem}_backup_{timestamp}{path.suffix}"
     backup_path = backup_folder / backup_name
 
     shutil.copy2(path, backup_path)
@@ -81,12 +114,12 @@ def backup_json_file(file_path: str, add_timestamp: bool=True) -> str:
 
     return str(backup_path)
 
-# get_user_history function will retrieve past records for selected columns for the current user
+# Retrieves past records for selected columns for analysis
 def get_user_int_records(records, user_id):
     history = []
 
     for record in records:
-        if record["user_id"] == user_id:
+        if record["user_input"]["user_id"] == user_id:
             history.append({
                 "sleep_duration": record["user_input"]["sleep_duration"],
                 "focus_level": record["user_input"]["focus_level"],
@@ -97,7 +130,7 @@ def get_user_int_records(records, user_id):
 
     return history
 
-# merge_record function combine data from other layers to form 1 record
+# Combine data from other layers to form a single record
 def merge_record(user_input, ai_output, logic_output):
     record = {
     "user_input": user_input,
@@ -106,7 +139,7 @@ def merge_record(user_input, ai_output, logic_output):
     }
     return record
 
-# function that will be return all records from that user in order
+# Retrieves all past records for the user in order
 def get_user_records(user_id, filename):
     records = load(filename)
     user_records = []
@@ -125,7 +158,7 @@ def get_user_records(user_id, filename):
 
     return user_records
 
-# function that retrieves the latest record from the user
+# Retrieves the latest record from the user
 def get_latest_user_record(user_id, filename):
     user_records = get_user_records(user_id, filename)
 
@@ -133,6 +166,8 @@ def get_latest_user_record(user_id, filename):
         return None
 
     return user_records[0]
+
+
 
 '''
 Below are some useful functions that can be used for
@@ -503,7 +538,7 @@ if __name__ == "__main__":
 
     record = merge_record(user_input, ai_output, logic_output)
 
-    #save(record, filename)
+    save(record, filename)
     #query(lambda record: record["user_input"]["stress"] > 8, filename)
     #get_user_history(records, user_id)
     #view_assessment_history(1, filename)
