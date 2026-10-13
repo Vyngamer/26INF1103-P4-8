@@ -210,7 +210,7 @@ def validate_response(survey_data):
     return True
 
 def parse_response(raw_interaction_object):
-    return json.loads(raw.output_text)
+    return json.loads(raw_interaction_object.output_text)
 
 def generate_survey_response(survey_data, previous_interaction_id=None):
     """
