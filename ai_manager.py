@@ -14,7 +14,7 @@ def general_error_handler(base_api_call_func):
         try:
             return base_api_call_func(*args, **kwargs)
         except Exception as e:
-            print("Try again later.")
+            print("No AI functionality.")
             raise e
 
     return catch_general_error
@@ -183,20 +183,52 @@ def generate_prompt(survey_data):
 
     return system_instruction, prompt
 
-def validate_response(survey_data):
-    survey_key_list = [
-        "sleep_duration",
-        "stress_level",
-        "focus_level",
-        "academic_workload",
-        "mood",
-        "social_activity_level",
-        "reflection"
-    ]
+def check_int(raw):
+    return raw.isdigit()
 
-    for key in survey_key_list:
+def check_str(raw):
+    return isinstance(raw, str)
+
+def check_str_len(raw):
+    return len(raw) > 0
+
+def check_range(raw, min, max):
+    return min <= raw <= max
+
+def check_choice(raw, choice_list):
+    return raw in choice_list
+
+def check_level_rating(raw):
+    return check_int(raw) and check_range(raw, 1, 10)
+
+def check_sleep_duration(raw):
+    return check_int(raw) and check_range(raw, 0, 24)
+
+def check_mood(raw):
+    mood_list = ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]
+    return check_str(raw) and check_choice(raw, mood_list)
+
+def check_reflection(raw):
+    return check_str(raw) and check_str_len(raw)
+
+def validate_response(survey_data):
+    survey_validation_mapping = {
+        "sleep_duration": check_sleep_duration,
+        "stress_level": check_level_rating,
+        "focus_level": check_level_rating,
+        "academic_workload": check_level_rating,
+        "mood": check_mood,
+        "social_activity_level": check_level_rating,
+        "reflection": check_reflection 
+    }
+
+    for key, validation_func in survey_validation_mapping.items():
         if key not in survey_data:
             return False
+        
+        if not validation_func(survey_data[key]):
+            return False
+
     return True
 
 def parse_response(raw_interaction_object):
@@ -244,7 +276,10 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
 
     return interaction
 
-client = connect_client()
+try:
+    client = connect_client()
+except ValueError as e:
+    pass
 
 if __name__ == "__main__":
     variable = input('enter something')
