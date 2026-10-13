@@ -7,7 +7,7 @@ from questionnaire import full_survey, prompt_questionnaire
 from prompts import prompt_choice, prompt_range, prompt_yes_no
 from user import user_login, user_register, change_username, change_password
 from data_manager import get_user_records, get_user_int_records, get_user_records, replace_user_record
-from history import view_assessment_history, view_assessment_details, view_wellbeing_summary, get_todays_records, delete_records
+from history import view_assessment_history, view_assessment_details, get_todays_records, delete_records
 from title import print_title
 
 #I/O Files
@@ -120,8 +120,6 @@ def handle_logout(state):
 '''
 Graph
 '''
-def graph(user_id, records):
-    pass
 
 # graph
 def show_graph(state):
@@ -141,10 +139,13 @@ def show_graph(state):
             sleep_duration.append(sleep["sleep_duration"])
         focus_level = []
         for focus in required_data:
-            focus_level.append(focus["sleep_duration"])
+            focus_level.append(focus["focus_level"])
         stress_level = []
         for stress in required_data:
             stress_level.append(stress["stress_level"])
+        social_level =[]
+        for social in required_data:
+            social_level.append(social["social_activity_level"])
         wellness_score = []
         for wellness in required_data:
             wellness_score.append(wellness["mental_wellness_risk_score"])
@@ -155,7 +156,7 @@ def show_graph(state):
         # initialising the graph
         figure = plt.figure(figsize=(12, 8))
         figure.suptitle('Personal Wellness Tracking Dashboard', fontsize=16, fontweight='bold')
-        grid_space = figure.add_gridspec(2, 6)
+        grid_space = figure.add_gridspec(2, 8)
 
 
         # create graph 1 (sleep)
@@ -163,47 +164,53 @@ def show_graph(state):
         ax1.set(xlabel='Attempts', ylabel='Hours (H)', title='Hours of Sleep')
         ax1.set_xticks(x_axis)
         ax1.set_ylim(0, 10)
-        ax1.plot(x_axis, sleep_duration, marker='o', color='#1f77b4', linewidth=2)
-        ax1.fill_between(x_axis, sleep_duration, color='#1f77b4', alpha=0.15)
+        ax1.plot(x_axis, sleep_duration[::-1], marker='o', color='#1f77b4', linewidth=2)
+        ax1.fill_between(x_axis, sleep_duration[::-1], color='#1f77b4', alpha=0.15)
 
         # create graph 2 (focus level)
         ax2 = figure.add_subplot(grid_space[0, 2:4])
         ax2.set(xlabel='Attempts', ylabel='Focus Level (1-10)', title='Your Focus Level')
         ax2.set_xticks(x_axis)
         ax2.set_ylim(0, 10)
-        ax2.plot(x_axis, focus_level, marker='o', color='#ff7f0e', linewidth=2)
-        ax2.fill_between(x_axis, focus_level, color='#ff7f0e', alpha=0.15)
+        ax2.plot(x_axis, focus_level[::-1], marker='o', color='#ff7f0e', linewidth=2)
+        ax2.fill_between(x_axis, focus_level[::-1], color='#ff7f0e', alpha=0.15)
 
         # create graph 3 (stress level)
         ax3 = figure.add_subplot(grid_space[0, 4:6])
         ax3.set(xlabel='Attempts', ylabel='Stress Level (1-10)', title='Your Stress Level')
         ax3.set_xticks(x_axis)
         ax3.set_ylim(0, 10)
-        ax3.plot(x_axis, stress_level, marker='o', color='#d62728', linewidth=2)
-        ax3.fill_between(x_axis, stress_level, color='#d62728', alpha=0.15)
+        ax3.plot(x_axis, stress_level[::-1], marker='o', color='#d62728', linewidth=2)
+        ax3.fill_between(x_axis, stress_level[::-1], color='#d62728', alpha=0.15)
 
-        # create graph 4 (mental wellness score)
-        ax4 = figure.add_subplot(grid_space[1, 0:3])
-        ax4.set(xlabel='Attempts', ylabel='Mental wellness score (0-100)', title='Your Mental Wellness Scores')
+        # create graph 4 (social level)
+        ax4 = figure.add_subplot(grid_space[0, 6:8])
+        ax4.set(xlabel='Attempts', ylabel='Social Activity Level (0-10)', title='Your Social Activity Level')
         ax4.set_xticks(x_axis)
-        ax4.set_ylim(0, 100)
-        ax4.plot(x_axis, wellness_score, marker='o', color='#2ca02c', linewidth=2)
-        ax4.fill_between(x_axis, wellness_score, color='#2ca02c', alpha=0.15)
+        ax4.set_ylim(0, 10)
+        ax4.plot(x_axis, social_level[::-1], marker='o', color='#b1bd22', linewidth=2)
+        ax4.fill_between(x_axis, social_level[::-1], color="#b1bd22", alpha=0.15)
 
-        # create graph 5 (burnout risk score)
-        ax5 = figure.add_subplot(grid_space[1, 3:6])
-        ax5.set(xlabel='Attempts', ylabel='Burnout Risk Score (0-100)', title='Your Burnout Risk Scores')
+        # create graph 5 (mental wellness score)
+        ax5 = figure.add_subplot(grid_space[1, 0:4])
+        ax5.set(xlabel='Attempts', ylabel='Mental wellness score (0-100)', title='Your Mental Wellness Scores')
         ax5.set_xticks(x_axis)
         ax5.set_ylim(0, 100)
-        ax5.plot(x_axis, burnout_risk_score, marker='o', color='#9467bd', linewidth=2)
-        ax5.fill_between(x_axis, burnout_risk_score, color='#9467bd', alpha=0.15)
+        ax5.plot(x_axis, wellness_score[::-1], marker='o', color='#2ca02c', linewidth=2)
+        ax5.fill_between(x_axis, wellness_score[::-1], color='#2ca02c', alpha=0.15)
+
+        # create graph 6 (burnout risk score)
+        ax6 = figure.add_subplot(grid_space[1, 4:8])
+        ax6.set(xlabel='Attempts', ylabel='Burnout Risk Score (0-100)', title='Your Burnout Risk Scores')
+        ax6.set_xticks(x_axis)
+        ax6.set_ylim(0, 100)
+        ax6.plot(x_axis, burnout_risk_score[::-1], marker='o', color='#9467bd', linewidth=2)
+        ax6.fill_between(x_axis, burnout_risk_score[::-1], color='#9467bd', alpha=0.15)
 
         # displaying the graph
         plt.tight_layout()
         plt.show()
         pause()
-
-
 
 '''
 Assessment History
@@ -235,11 +242,12 @@ def handle_history_details(state):
     view_assessment_details(get_user_records(state["uid"], RECORDS)[number - 1])
     pause()
 
+'''
 #View the well-being summary
 def handle_history_summary(state):
     view_wellbeing_summary(state["uid"], RECORDS)
     pause()
-
+'''
 
 '''
 Graph functions
@@ -264,13 +272,13 @@ USER_MENU = {
     "View History": handle_history,
     "Change Username": handle_change_username,
     "Change Password": handle_change_password,
-    "View Graph": show_graph,
+    "View Assessment Trends": show_graph,
     "Logout": handle_logout
 }
 
 HISTORY_MENU = {
     "View Assessment Details": handle_history_details,
-    "View Summary": handle_history_summary,
+    #"View Summary": handle_history_summary,
     "Back": None
 }
 
