@@ -3,10 +3,10 @@ Main I/O Layer
 '''
 import matplotlib.pyplot as plt
 import sys
-from questionnaire import full_survey
+from questionnaire import full_survey, prompt_questionnaire
 from prompts import prompt_choice, prompt_range, prompt_yes_no
 from user import user_login, user_register, change_username, change_password
-from data_manager import get_user_records, get_user_int_records, get_user_records
+from data_manager import get_user_records, get_user_int_records, get_user_records, replace_user_record
 from history import view_assessment_history, view_assessment_details, view_wellbeing_summary, get_todays_records, delete_records
 from title import print_title
 
@@ -75,9 +75,9 @@ USER MENU HANDLERS
 '''
 
 #Handles survey and assessment
-def handle_survey(state):
+def handle_survey(uid):
     #If the user already has an assessment today, ask before replacing it
-    todays = get_todays_records(state["uid"], RECORDS)
+    todays = get_todays_records(uid, RECORDS)
     if todays:
         print(f"\nYou have already completed an assessment today (at {todays[0]['time']}).")
 
@@ -87,13 +87,16 @@ def handle_survey(state):
             pause()
             return
 
-    full_survey(LOGIC_FILE, AI_FILE, state["uid"])
+    #full_survey(LOGIC_FILE, AI_FILE, state["uid"])
+    survey = prompt_questionnaire()
 
     #Replace the old record AFTER the new survey is finished,
     #so quitting/crashing halfway through keeps the existing assessment
-    if todays:
-        delete_records([record["record_id"] for record in todays], state["uid"], RECORDS)
-    pause()
+    #if todays:
+        #delete_records([record["record_id"] for record in todays], state["uid"], RECORDS)
+    #    pass
+    #pause()
+    return survey
 
 #Change username
 def handle_change_username(state):
