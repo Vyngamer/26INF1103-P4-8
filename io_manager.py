@@ -2,6 +2,7 @@
 Main I/O Layer
 '''
 import matplotlib.pyplot as plt
+import sys
 from questionnaire import full_survey
 from prompts import prompt_choice, prompt_range, prompt_yes_no
 from user import user_login, user_register, change_username, change_password
@@ -67,6 +68,7 @@ def handle_login(state):
 def handle_exit(state):
     print("\nProgram terminated. Thank You!")
     state["running"] = False
+    sys.exit()
 
 '''
 USER MENU HANDLERS
@@ -112,6 +114,12 @@ def handle_logout(state):
     set_logged_out(state)
     print("\nSuccessfully Logged Out.")
 
+'''
+Graph
+'''
+def graph(user_id, records):
+    pass
+
 # graph
 def show_graph(state):
     user_records = get_user_records(state["uid"], RECORDS)
@@ -145,7 +153,7 @@ def show_graph(state):
 
     # create graph 1 (sleep)
     ax1 = figure.add_subplot(grid_space[0, 0:2])
-    ax1.set(xlabel='Attemps', ylabel='Hours (H)', title='Hours of Sleep')
+    ax1.set(xlabel='Attempts', ylabel='Hours (H)', title='Hours of Sleep')
     ax1.set_xticks(x_axis)
     ax1.set_ylim(0, 10)
     ax1.plot(x_axis, sleep_duration, marker='o', color='#1f77b4', linewidth=2)
@@ -153,7 +161,7 @@ def show_graph(state):
 
     # create graph 2 (focus level)
     ax2 = figure.add_subplot(grid_space[0, 2:4])
-    ax2.set(xlabel='Attemps', ylabel='Focus Level (1-10)', title='Your Focus Level')
+    ax2.set(xlabel='Attempts', ylabel='Focus Level (1-10)', title='Your Focus Level')
     ax2.set_xticks(x_axis)
     ax2.set_ylim(0, 10)
     ax2.plot(x_axis, focus_level, marker='o', color='#ff7f0e', linewidth=2)
@@ -161,7 +169,7 @@ def show_graph(state):
 
     # create graph 3 (stress level)
     ax3 = figure.add_subplot(grid_space[0, 4:6])
-    ax3.set(xlabel='Attemps', ylabel='Stress Level (1-10)', title='Your Stress Level')
+    ax3.set(xlabel='Attempts', ylabel='Stress Level (1-10)', title='Your Stress Level')
     ax3.set_xticks(x_axis)
     ax3.set_ylim(0, 10)
     ax3.plot(x_axis, stress_level, marker='o', color='#d62728', linewidth=2)
@@ -169,7 +177,7 @@ def show_graph(state):
 
     # create graph 4 (mental wellness score)
     ax4 = figure.add_subplot(grid_space[1, 0:3])
-    ax4.set(xlabel='Attemps', ylabel='Mental wellness score (0-100)', title='Your Mental Wellness Scores')
+    ax4.set(xlabel='Attempts', ylabel='Mental wellness score (0-100)', title='Your Mental Wellness Scores')
     ax4.set_xticks(x_axis)
     ax4.set_ylim(0, 100)
     ax4.plot(x_axis, wellness_score, marker='o', color='#2ca02c', linewidth=2)
@@ -177,7 +185,7 @@ def show_graph(state):
 
     # create graph 5 (burnout risk score)
     ax5 = figure.add_subplot(grid_space[1, 3:6])
-    ax5.set(xlabel='Attemps', ylabel='Burnout Risk Score (0-100)', title='Your Burnout Risk Scores')
+    ax5.set(xlabel='Attempts', ylabel='Burnout Risk Score (0-100)', title='Your Burnout Risk Scores')
     ax5.set_xticks(x_axis)
     ax5.set_ylim(0, 100)
     ax5.plot(x_axis, burnout_risk_score, marker='o', color='#9467bd', linewidth=2)
@@ -188,11 +196,7 @@ def show_graph(state):
     plt.show()
     pause()
 
-'''
-Graph
-'''
-def graph(user_id, records):
-    pass
+
 
 '''
 Assessment History
@@ -253,8 +257,8 @@ USER_MENU = {
     "View History": handle_history,
     "Change Username": handle_change_username,
     "Change Password": handle_change_password,
-    "Logout": handle_logout,
-    "View Graph": show_graph
+    "View Graph": show_graph,
+    "Logout": handle_logout
 }
 
 HISTORY_MENU = {
