@@ -2,7 +2,7 @@
 Survey Questions and File I/O
 '''
 
-import json
+import json, sys
 from prompts import prompt_range, prompt_choice, prompt_text
 
 '''
@@ -48,10 +48,14 @@ def prompt_questionnaire() -> dict:
     responses = {
         "user_id": None
     }
-    for i, (question, func) in enumerate(questionnaire.items(), start=1):
-        print(f"\n{i}. {question.replace('_', ' ').title()}")
-        responses[question] = func()
-    return responses
+    try:
+        for i, (question, func) in enumerate(questionnaire.items(), start=1):
+            print(f"\n{i}. {question.replace('_', ' ').title()}")
+            responses[question] = func()
+        return responses
+    except (KeyboardInterrupt, EOFError):
+            print("\n\nProgram terminated. Thank You!")
+            sys.exit()
 
 '''
 OUTPUT LOGIC

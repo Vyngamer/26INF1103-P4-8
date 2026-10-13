@@ -153,4 +153,7 @@ def survey():
 
 
 if __name__ == "__main__":
-    survey()
+    try:
+        survey()
+    except (KeyboardInterrupt, EOFError):
+            print("\n\nProgram terminated. Thank You!")
