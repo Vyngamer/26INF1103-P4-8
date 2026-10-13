@@ -64,6 +64,7 @@ import questionnaire
 import ai_manager
 import logic_manager
 import data_manager
+import history
 
 DATABASE_FILE = 'records.json'
 
@@ -97,7 +98,7 @@ def run_real_survey(user_id):
     data_manager.save(record, DATABASE_FILE)
 
     # Display the final assessment to the user
-    data_manager.view_latest_assessment(user_id, DATABASE_FILE)
+    history.view_latest_assessment(user_id, DATABASE_FILE)
     
     io_manager.pause()
 
@@ -116,7 +117,7 @@ def main():
         if func == io_manager.handle_survey:
             run_real_survey(state["uid"])
         elif func == io_manager.handle_history:
-            data_manager.view_assessment_history(state["uid"], DATABASE_FILE)
+            history.view_assessment_history(state["uid"], DATABASE_FILE)
             io_manager.pause()
         else:
             # Executes Login, Register, Exit, Change Username/Password, or Logout
