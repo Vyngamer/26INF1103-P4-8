@@ -208,6 +208,28 @@ def replace_user_record(user_id, record, filename):
         # No record exists for today, so save a new one
         save(record, filename)
 
+# gets previous attempts of user
+def get_previous_attempts(user_id, filename):
+    today = datetime.now().date()
+    user_records = get_user_records(user_id, filename)
+    previous_attempts = []
+
+    # Reverse the newest-first records into oldest-first order.
+    for record in reversed(user_records):
+        record_date = datetime.strptime(
+            record["date"], "%d-%m-%Y"
+        ).date()
+
+        # Exclude today's old entry from comparisons.
+        if record_date < today:
+            previous_attempts.append({
+                **record["user_input"],
+                **record["ai_output"],
+            })
+
+    return previous_attempts
+
+
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
 '''user_input = {
