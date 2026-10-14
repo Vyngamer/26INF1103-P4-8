@@ -209,7 +209,10 @@ def show_graph(state):
 
         # displaying the graph
         plt.tight_layout()
-        plt.show()
+        plt.savefig('graph.png')
+
+        print('Graph saved as graph.png.')
+
         pause()
 
 '''
