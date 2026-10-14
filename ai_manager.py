@@ -1,4 +1,5 @@
 from google import genai
+from io_manager import print_error, print_notice
 import sys
 import os
 import json
@@ -16,7 +17,7 @@ def general_error_handler(base_api_call_func):
         try:
             return base_api_call_func(*args, **kwargs)
         except Exception as e:
-            print("No AI functionality.")
+            print_error("No AI functionality.")
             raise e
 
     return catch_general_error
@@ -27,14 +28,14 @@ def backup_model_retry(base_api_call_func):
         try: 
             return base_api_call_func(*args, **kwargs)
         except NotFoundError as e:
-            print("An error occured.")
-            print("Retrying with secondary model...")
+            print_error("An error occured.")
+            print_notice("Retrying with secondary model...")
 
             try:
                 kwargs['model'] = backup_model
                 return base_api_call_func(*args, **kwargs)
             except NotFoundError as e: 
-                print("Both models unavailable.")
+                print_error("Both models unavailable.")
                 raise e
     
     return retry_api_call
@@ -46,7 +47,7 @@ def failed_network_handler(base_api_call_func):
             return base_api_call_func(*args, **kwargs)
         except APIConnectionError as e:
 
-            print("Network connection error. Please check that you are connected to the internet.")
+            print_error("Network connection error. Please check that you are connected to the internet.")
             raise e
     return failed_network_notice
 
@@ -56,13 +57,13 @@ def failed_api_key_handler(base_api_call_func):
         try:
             return base_api_call_func(*args, **kwargs)    
         except ValueError as e:
-            print("Primary key failed... Switching to alternate key")
+            print_error("Primary key failed... Switching to alternate key")
             
             os.environ["GEMINI_API_KEY"] = os.getenv("BACKUP_GEMINI_API_KEY")
             try:
                 return base_api_call_func(*args, **kwargs) 
             except ValueError as e:
-                print("Both API keys unavailable...")
+                print_error("Both API keys unavailable...")
                 raise e
         
     return api_key_fallback
@@ -280,11 +281,3 @@ try:
 except Exception as e:
     client = None
 
-if __name__ == "__main__":
-    variable = input('enter something')
-    print(generate_survey_response({}, None))
-
-    # develop error handling
-    # develop test cases
-    # explore file input functionality
-    # if the user enters in rubbish, find a way to reject the prompt and re-prompt
