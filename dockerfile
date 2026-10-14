@@ -1,12 +1,12 @@
 FROM python:3.14-slim
 
-WORKDIR /app
-
 ARG GEMINI_API_KEY
-ARG BACKUP_GEMINI_API_KEY
-
 ENV GEMINI_API_KEY=$GEMINI_API_KEY
+
+ARG BACKUP_GEMINI_API_KEY
 ENV BACKUP_GEMINI_API_KEY=$BACKUP_GEMINI_API_KEY
+
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends libtk8.6 \
     && rm -rf /var/lib/apt/lists/*

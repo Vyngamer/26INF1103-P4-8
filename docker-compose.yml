@@ -1,11 +1,14 @@
 services:
   ai-counsellor:
-    image: ai-counsellor
+    env_file: ".env"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - BACKUP_GEMINI_API_KEY=${BACKUP_GEMINI_API_KEY}
     build:
-      args:
-        - GEMINI_API_KEY
-        - BACKUP_GEMINI_API_KEY
       context: .
+      args:
+        - GEMINI_API_KEY=${GEMINI_API_KEY}
+        - BACKUP_GEMINI_API_KEY=${BACKUP_GEMINI_API_KEY}
       no_cache: true
     stdin_open: true
     tty: true
