@@ -1,0 +1,8 @@
+services:
+  ai-counsellor:
+    image: ai-counsellor
+    build:
+      args:
+        - GEMINI_API_KEY
+      context: .
+      no_cache: true
