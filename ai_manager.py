@@ -186,6 +186,9 @@ def generate_prompt(survey_data):
 def check_int(raw):
     return isinstance(raw, int)
 
+def check_float(raw):
+    return isinstance(raw, float)
+
 def check_str(raw):
     return isinstance(raw, str)
 
@@ -202,7 +205,7 @@ def check_level_rating(raw):
     return check_int(raw) and check_range(raw, 1, 10)
 
 def check_sleep_duration(raw):
-    return check_int(raw) and check_range(raw, 0, 24)
+    return check_float(raw) and check_range(raw, 0, 24)
 
 def check_mood(raw):
     mood_list = ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]
@@ -222,11 +225,13 @@ def validate_response(survey_data):
         "reflection": check_reflection 
     }
 
+
     for key, validation_func in survey_validation_mapping.items():
         if key not in survey_data:
             return False
         
-        if not validation_func(survey_data[key]):
+        check = validation_func(survey_data[key])
+        if not check:
             return False
 
     return True
@@ -251,8 +256,8 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
         contains the interactions.text_output property which is the response from the chosen chatbot
         contains the interactions.id property which shows the interaction id for stateful conversations.
     """
-    # if not validate_response(survey_data):
-    #     return "Survey data is invalid!"
+    if not validate_response(survey_data):
+        return "Survey data is invalid!"
 
     system_instruction, prompt = generate_prompt(survey_data)
 
