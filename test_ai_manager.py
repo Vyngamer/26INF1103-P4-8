@@ -1,13 +1,13 @@
 import pytest
 import os
-from ai_manager import valid_survey, call_api, generate_survey_response
+from ai_manager import validate_response, call_api, generate_survey_response
 
 valid_survey_false = [
     {},
     {'asdfasd':'asdfasdf'},
     {
     "user_id": 1,
-    "sleep_duration": 9,
+    "sleep_duration": 9.0,
     "stress_level": 2,
     "focus_level": 2,
     "academic_workload": 9,
@@ -19,12 +19,12 @@ valid_survey_false = [
 # test valid_survey false cases
 @pytest.mark.parametrize('survey_data', valid_survey_false)
 def test_valid_survey_false(survey_data):
-    assert valid_survey(survey_data) is False
+    assert validate_response(survey_data) is False
 
 valid_survey_true = [
     {
         "user_id": 1,
-        "sleep_duration": 9,
+        "sleep_duration": 9.0,
         "stress_level": 2,
         "focus_level": 2,
         "academic_workload": 9,
@@ -36,7 +36,7 @@ valid_survey_true = [
 # test valid_survey true cases
 @pytest.mark.parametrize('survey_data', valid_survey_true)
 def test_valid_survey_true(survey_data):
-    assert valid_survey(survey_data) is True 
+    assert validate_response(survey_data) is True 
 
 # check if the Gemini API key exists
 def test_api_key_exists():
@@ -61,10 +61,10 @@ call_api_test_data_xfail = [
 @pytest.mark.parametrize('prompt, system_instruction, response_output_format, previous_interaction_id, model', call_api_test_data_xfail)
 def test_call_api_xfail(prompt, system_instruction, response_output_format, previous_interaction_id, model):
     try:
-        interaction = call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model)
-        assert False 
-    except SystemExit:
+        interaction = call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model=model)
+    except:
         assert True 
+    assert False 
 
 
 def test_generate_survey_response():

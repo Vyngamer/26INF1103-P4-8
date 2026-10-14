@@ -5,7 +5,7 @@ import json
 import google
 from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
 
-backup_model = "gemini-3.8-flash"
+backup_model = "gemini-3.5-flash-lite"
 primary_model = "gemini-3.1-flash-lite"
 
 # decorator which handles general errors after all other error handlers
@@ -29,7 +29,8 @@ def backup_model_retry(base_api_call_func):
             print("Retrying with secondary model...")
 
             try:
-                return base_api_call_func(*args, **kwargs, model=backup_model)
+                kwargs['model'] = backup_model
+                return base_api_call_func(*args, **kwargs)
             except NotFoundError as e: 
                 print("Both models unavailable.")
                 raise e
@@ -186,6 +187,9 @@ def generate_prompt(survey_data):
 def check_int(raw):
     return isinstance(raw, int)
 
+def check_float(raw):
+    return isinstance(raw, float)
+
 def check_str(raw):
     return isinstance(raw, str)
 
@@ -202,7 +206,7 @@ def check_level_rating(raw):
     return check_int(raw) and check_range(raw, 1, 10)
 
 def check_sleep_duration(raw):
-    return check_int(raw) and check_range(raw, 0, 24)
+    return check_float(raw) and check_range(raw, 0, 24)
 
 def check_mood(raw):
     mood_list = ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]
@@ -222,11 +226,13 @@ def validate_response(survey_data):
         "reflection": check_reflection 
     }
 
+
     for key, validation_func in survey_validation_mapping.items():
         if key not in survey_data:
             return False
         
-        if not validation_func(survey_data[key]):
+        check = validation_func(survey_data[key])
+        if not check:
             return False
 
     return True
@@ -251,8 +257,8 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
         contains the interactions.text_output property which is the response from the chosen chatbot
         contains the interactions.id property which shows the interaction id for stateful conversations.
     """
-    # if not validate_response(survey_data):
-    #     return "Survey data is invalid!"
+    if not validate_response(survey_data):
+        return "Survey data is invalid!"
 
     system_instruction, prompt = generate_prompt(survey_data)
 
