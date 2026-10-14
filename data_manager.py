@@ -102,7 +102,7 @@ def backup_json_file(file_path: str) -> str:
 
     return str(backup_path)
 
-# Retrieves past records for selected columns for analysis
+# Retrieves past records for selected columns for logic assessment
 def get_user_int_records(records, user_id):
     history = []
 
@@ -155,30 +155,6 @@ def get_latest_user_record(user_id, filename):
         return None
 
     return user_records[0]
-
-# Retrieves selected fields from a past records from the user
-def get_user_records_by_columns(user_id, filename, columns):
-    records = get_user_records(user_id, filename)
-    selected_records = []
-
-    for record in records:
-        selected_record = {}
-
-        for column in columns:
-            value = record
-
-            for part in column.split("."):
-                if isinstance(value, dict):
-                    value = value.get(part)
-                else:
-                    value = None
-                    break
-
-            selected_record[column] = value
-
-        selected_records.append(selected_record)
-
-    return selected_records
 
 # Replaces a record from user from the same date
 def replace_user_record(user_id, record, filename):
@@ -233,32 +209,37 @@ def get_previous_attempts(user_id, filename):
 
 #Note that below is the required format for the return value for each of the 3 layers
 #------------------------------------------------------------------------------
-'''user_input = {
-    "user_id": 1,
-    "sleep_duration": 7,
-    "stress_level": 2,
-    "focus_level": 2,
-    "academic_workload": 9,
-    "mood": "Exhausted",
-    "social_activity_level": 3,
-    "reflection": "not enough sleep"
-    }
-
-ai_output = {
-    "conversation_id": 10,
-    "mental_wellness_risk_score": 10,
-    "sentiment": "Negative",
-    "burnout_risk_score": 82,
-    "crisis_alert": False,
-    "primary_stressor": "Assignment deadlines",
-    "personalized_recommendations": "Prioritise sleep and manage deadlines."
-    }
-
-logic_output = {
-    "mental_wellness_risk_tier": "High",
-    "warnings": ["High Burnout Warning"],
-    "route": "Urgent support",
-    "counselling_recommendation": True
+'''{
+        "record_id": "58cf2be5-a36f-4849-944f-004c20ab96ba",
+        "date": "12-10-2026",
+        "time": "22:09:59",
+        "user_input": {
+            "user_id": "088c5abb-18d7-44d9-888b-2abca870e6bd",
+            "sleep_duration": 1.0,
+            "stress_level": 1,
+            "focus_level": 1,
+            "academic_workload": 1,
+            "mood": "Motivated",
+            "social_activity_level": 1,
+            "reflection": "second"
+        },
+        "ai_output": {
+            "burnout_risk_score": 50,
+            "crisis_alert": true,
+            "mental_wellness_risk_score": 85,
+            "personalized_recommendations": "Your sleep duration of only one hour is critically low and poses an immediate danger to your physical and cognitive health. Please prioritize immediate rest or contact a medical professional, as your current level of sleep deprivation is unsustainable and requires urgent attention.",
+            "primary_stressor": "Sleep Deprivation",
+            "sentiment": "Neutral"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "High",
+            "warnings": [],
+            "route": "Urgent support",
+            "counselling_recommendation": true,
+            "display_messages": [
+                "You slept less than 7 hours. Try to get more sleep."
+            ]
+        }
     }'''
 #------------------------------------------------------------------------------
 
@@ -266,7 +247,3 @@ logic_output = {
 if __name__ == "__main__":
     filename = "records.json"
     records = load(filename)
-
-    #record = merge_record(user_input, ai_output, logic_output)
-    #replace_user_record(1, record, filename)
-    
