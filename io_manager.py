@@ -222,7 +222,6 @@ def handle_history(state,db=RECORDS):
         #Show the table again after every action, so it is always up to date
         view_assessment_history(state["uid"], db)
         if not get_user_records(state["uid"], db):
-            pause()
             return
         option, func = choose_option(HISTORY_MENU)
         if func is None:    #Go Back
