@@ -60,6 +60,7 @@
 
 import json
 import io_manager
+import io_manager
 import questionnaire
 import ai_manager
 from ai_manager import client
@@ -71,7 +72,7 @@ DATABASE_FILE = 'records.json'
 
 def run_real_survey(user_id):
     """Executes the full survey flow with real AI and logic integration."""
-    print("\n--- Starting Wellness Survey ---")
+    io_manager.print_welcome("Starting Wellness Survey")
     
     # Prompt questionnaire and assign the active user's ID
     #user_input = questionnaire.prompt_questionnaire()
@@ -81,11 +82,11 @@ def run_real_survey(user_id):
     user_input["user_id"] = user_id
 
     # Call the AI Manager
-    print("\nAnalyzing your responses with AI. Please wait...")
+    io_manager.print_notice("Analyzing your responses with AI. Please wait...")
     try:
         interaction = ai_manager.generate_survey_response(user_input, None)
     except Exception as e:
-        print(f"\nError communicating with the AI or parsing response: {e}")
+        io_manager.print_error(f"Error communicating with the AI or parsing response: {e}")
         return
 
     ai_output = ai_manager.parse_response(interaction)
@@ -119,7 +120,7 @@ def main():
         # Intercept dummy functions to use the real connected modules
         if func == io_manager.handle_survey:
             if not client:
-                print("AI functionality down. Please try again later!")
+                io_manager.print_error("AI functionality down. Please try again later!")
             else:
                 run_real_survey(state["uid"])
         elif func == io_manager.handle_history:
@@ -139,7 +140,7 @@ def survey():
     interaction_id = interaction.id
     ai_output = json.loads(interaction.output_text)
 
-    print(ai_output)
+    io_manager.print_notice(ai_output)
 
     logic_output = logic_manager.assess(user_input, ai_output)
 
@@ -156,4 +157,4 @@ if __name__ == "__main__":
         main()
         survey()
     except (KeyboardInterrupt, EOFError):
-            print("\n\nProgram terminated. Thank You!")
+        io_manager.print_termination_msg()
