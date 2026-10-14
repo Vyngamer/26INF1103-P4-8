@@ -284,7 +284,7 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
 
 try:
     client = connect_client()
-except Exception as e:
+except ValueError as e:
     pass
 
 if __name__ == "__main__":
