@@ -5,6 +5,7 @@ User Account Actions
 import json
 import os
 import uuid
+import re
 from hasher import hash_password, verify_password, needs_upgrade
 from prompts import prompt_text, prompt_password
 
@@ -41,7 +42,7 @@ def save_users(users_list):
 #Find a user by username (None if not found)
 def find_user(users_list, username):
     for user in users_list:
-        if user["username"] == username:
+        if user["username"].lower() == username.lower():
             return user
     return None
 
@@ -51,6 +52,10 @@ def find_user_by_id(users_list, uid):
         if user["user_id"] == uid:
             return user
     return None
+
+#Username validation
+def validate_username(username):
+    return bool(re.match(r'^[a-zA-Z0-9 _\-.]{3,20}$', username))
 
 #Password validation
 def pw_validation(password):
@@ -93,6 +98,8 @@ def user_register():
 
     print("Create a new user")
     username = prompt_text("Please Enter A Username: ")
+    if not validate_username(username):
+        return make_result(False, "Username must be 3-20 characters long and contain only letters, numbers, spaces, _, -, or .")
     if find_user(users_list, username):
         return make_result(False, "Username already exists, please try again.")
 
@@ -143,6 +150,8 @@ def change_username(uid):
         return make_result(False, "Current user not found.")
 
     new_username = prompt_text("Enter your new username: ")
+    if not validate_username(new_username):
+        return make_result(False, "Username must be 3-20 characters long and contain only letters, numbers, spaces, _, -, or .")
     if find_user(users_list, new_username):
         return make_result(False, "Username already exists, please try again.")
 

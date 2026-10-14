@@ -65,36 +65,12 @@ def main():
                 run_real_survey(state["uid"])
         elif func == io_manager.handle_history:
             io_manager.handle_history(state, DATABASE_FILE)
-            io_manager.pause()
         else:
             # Executes Login, Register, Exit, Change Username/Password, or Logout
             func(state)
 
-def survey():
-    user_id = 'user1'
-    database_file = 'records.json'
-
-    user_input = questionnaire.prompt_questionnaire()
-    interaction = ai_manager.generate_survey_response(user_input)
-
-    interaction_id = interaction.id
-    ai_output = json.loads(interaction.output_text)
-
-    io_manager.print_notice(ai_output)
-
-    logic_output = logic_manager.assess(user_input, ai_output)
-
-    record = {
-        "user_input": user_input,
-        "ai_output": ai_output,
-        "logic_output": logic_output
-    }
-
-    data_manager.save(record, database_file)
-
 if __name__ == "__main__":
     try:
         main()
-        survey()
     except (KeyboardInterrupt, EOFError):
         io_manager.print_termination_msg()

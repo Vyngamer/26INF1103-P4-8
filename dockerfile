@@ -18,5 +18,6 @@ COPY . .
 
 RUN python -m pytest test_ai_manager.py
 RUN python -m pytest -v test_logic_manager.py
+RUN python -m pytest test_io_manager.py
 
 CMD ["python", "main.py"]

@@ -54,8 +54,8 @@ def prompt_questionnaire() -> dict:
             responses[question] = func()
         return responses
     except (KeyboardInterrupt, EOFError):
-            print("\n\nProgram terminated. Thank You!")
-            sys.exit()
+            print("\n\nSurvey cancelled.")
+            return None
 
 '''
 OUTPUT LOGIC
