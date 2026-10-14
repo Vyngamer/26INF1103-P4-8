@@ -1,5 +1,12 @@
 # Project Initial Details of 26INF1103-P4-8
 
+### App quickstart
+```powershell
+docker compose build
+
+docker run --rm -it -v "${PWD}:/app" -e DISPLAY=:0 -v /run/desktop/mnt/host/wslg/.X11-unix:/tmp/.X11-unix ai-counsellor
+```
+
 ### Problem Statement
 Mental health challenges such as stress, anxiety, and burnout are increasingly common among students. Many students fail to recognise early warning signs of declining mental well-being until their academic performance, physical health, or social life is negatively affected. Existing wellness applications often provide generic advice and do not offer personalised analysis based on a student's individual circumstances.
 
