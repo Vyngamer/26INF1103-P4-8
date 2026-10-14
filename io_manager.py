@@ -307,6 +307,16 @@ def run_menu(menu,state):
         return option, func
 
 '''
+ERROR/NOTICE PRINT FUNCTIONS
+'''
+def print_error(msg):
+    print("ERROR: " + msg)
+
+def print_notice(msg):
+    print("NOTICE: " + msg)
+
+
+'''
 MAIN PROGRAM
 '''
 
