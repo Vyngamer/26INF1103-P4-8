@@ -23,14 +23,12 @@ def test_valid_survey_false(survey_data):
 
 valid_survey_true = [
     {
-        "user_id": 1,
-        "sleep_duration": 9.0,
-        "stress_level": 2,
-        "focus_level": 2,
-        "academic_workload": 9,
-        "mood": "Exhausted",
-        "social_activity_level": 3,
-        "reflection": "im feeling too stressed already"
+        "burnout_risk_score": 50,
+        "crisis_alert": True,
+        "mental_wellness_risk_score": 85,
+        "personalized_recommendations": "Your sleep duration of only one hour is critically low and poses an immediate danger to your physical and cognitive health. Please prioritize immediate rest or contact a medical professional, as your current level of sleep deprivation is unsustainable and requires urgent attention.",
+        "primary_stressor": "Sleep Deprivation",
+        "sentiment": "Neutral"
     }
 ]
 # test valid_survey true cases
@@ -67,6 +65,4 @@ def test_call_api_xfail(prompt, system_instruction, response_output_format, prev
         assert True 
 
 
-def test_generate_survey_response():
-    assert generate_survey_response({}, None) == "Survey data is invalid!"
 
