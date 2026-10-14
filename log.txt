@@ -1,0 +1,1339 @@
+commit 4c141b922d6b6cd65cb2fc4e68d988facc98b514
+Merge: dc2822d 2e16c52
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 23:24:12 2026 +0800
+
+    Merge branch 'develop', fully functional app
+
+commit 2e16c52fcf930b9b1a8b98451ab14560c2fe5cbd
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 22:42:34 2026 +0800
+
+    Removed dead code
+
+commit dc3b70f72fc00b063251a5138035b65e9a29ffb8
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 22:35:33 2026 +0800
+
+    Fixed environment duplication
+
+commit 9ee48542f5430e4512995ced7e5505bc581bd6fd
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 22:30:57 2026 +0800
+
+    Removed dead code
+
+commit c989ccfffba60aa95eb757e0fd5a419a49b16cdd
+Merge: 48d5e37 7098e40
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 22:28:51 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit 7098e40bfef9e4e8e849a1cc2bd257ee09471d57
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 22:28:25 2026 +0800
+
+    Removed dead code
+
+commit 0fbbd50837c8431bfb54468ce05cf87b220bc3f3
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 22:28:09 2026 +0800
+
+    Added Pytest for I/O layer
+
+commit 48d5e3740131b460c40e03fbb69ad5606bbfe897
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 22:23:06 2026 +0800
+
+    Modified dockerfile and docker-compose to accept variables from .env
+
+commit 0b96669310da5d13a4b26db63087fdfdbd595cd6
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 22:07:43 2026 +0800
+
+    Updated username validation
+
+commit 3dce15dcef02d9cf9751ce9ef9faeb41b1ba5f4d
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 22:03:41 2026 +0800
+
+    Added failsafe for pwinput, updated mid-survey cancellation
+
+commit 82590e32506e38e45db39c77b79bb787c355871b
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 21:17:01 2026 +0800
+
+    fixed graph on docker issue
+
+commit 554d7657d6793a1f4c9db50246c87fecd193adbf
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 20:14:00 2026 +0800
+
+    Changed print to print_notice for graph save message
+
+commit 0c7a0916263fba686bea3e4a2e2b98cb9954bc59
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 20:11:00 2026 +0800
+
+    Chart no longer displays automatically but instead saves to a file
+
+commit 3ae534c386df359ca697edc74dd293763351313b
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 19:17:38 2026 +0800
+
+    Added backup key into both docker-compose and dockerfile
+
+commit aeef0b87a3dfb662fbd4b44790373acf9fd720c0
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 18:53:51 2026 +0800
+
+    Included pytest into dockerfile and created docker-compose file to simplify build command
+
+commit 329d78ef20d2aa077f9c70e10d59918ed4e46a72
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 18:19:08 2026 +0800
+
+    Removed irrelevant test
+
+commit af3ebcc88a1ef4ad085267de48e6c90fc8d35341
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 17:57:00 2026 +0800
+
+    removed redundent code from main
+
+commit e854a0032d9d1d1ebab12f38de6daed66cb73a27
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 17:52:33 2026 +0800
+
+    Moved all print statements to io_managere
+
+commit e3b747beff8bbab7a50ec363329f52b51da1045a
+Merge: 8836602 e7712dd
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 17:34:04 2026 +0800
+
+    Merge branch 'feature/ai-manager' into develop
+
+commit e7712dd39917e73455cdfaf70aead2debc18a8d3
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 17:32:00 2026 +0800
+
+    Moved print statements over to io_manager
+
+commit 8836602d1e42324cc6327d71be2b09a4ca3b0bd5
+Merge: dc6a1c3 e9e03ee
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 16:37:52 2026 +0800
+
+    Refactored validation functions
+
+commit dc6a1c3692bda48e8121896da5d1fa3a7462b6de
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 16:36:24 2026 +0800
+
+    Added AI response validation
+
+commit e9e03eeb82e7e3512d9a32c922150c2552a270a7
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Wed Oct 14 16:21:10 2026 +0800
+
+    Added few historical data
+
+commit 1da7edb0dc0d689d7749d15e85ca26b63f9e6121
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 16:05:21 2026 +0800
+
+    added test cases
+
+commit ceb85cb64ecec3b5c9210b3e865b50bc4449fbae
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 16:04:41 2026 +0800
+
+    created test file to test logic manager
+
+commit 32fe654e6580765a429fa44aaf89ca584d22617b
+Merge: 9a31858 6ae7daf
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 15:46:43 2026 +0800
+
+    Removed unnecessary functions
+
+commit 6ae7dafee734992a81801eac47cb22531d5b32ee
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 15:45:47 2026 +0800
+
+    Refactored validate_response function
+
+commit 9a3185823d476610b7e00f685ee1e7cd9930c6e9
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Wed Oct 14 15:22:15 2026 +0800
+
+    Fixed double pause on empty history
+
+commit 2fcb209d47992ba1ca790549f5072d6564033d3c
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 15:20:12 2026 +0800
+
+    Fixed xfail test
+
+commit 08899b3a47e21186316440cde0436c69743f1bc9
+Merge: 47b60e6 9360e08
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 15:05:18 2026 +0800
+
+    Merge branch 'feature/ai-manager' into develop
+
+commit 9360e08fadfabab5093344e64258570589827d34
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 15:03:16 2026 +0800
+
+    Survey stops before user inputs anything if API is down
+
+commit 47b60e6606c34ea7ae0da00bf53d73c6804f3bbc
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 13:44:10 2026 +0800
+
+    Changed ValueError to Exception to handle general errors
+
+commit 2707bc8d26926f5847a1056e4397be5a6e1621f4
+Merge: bc6896d e7deb04
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 13:30:35 2026 +0800
+
+    Merge branch 'feature/ai-manager' into develop
+
+commit e7deb048da67564d6d5e6fe1b7b8c7d6bde9747d
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 13:18:43 2026 +0800
+
+    Revert "Created dockerfile and fixed crash"
+    
+    This reverts commit a7fc3d262a3f868ea50aaa484877a98c2b1c6721.
+
+commit bf4a5977f2d222d05bcf827486efb64e86ba5e29
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 13:15:20 2026 +0800
+
+    Edited dockerfile
+
+commit c66d99d6453d19870ec2617fbb1ed4bba64f118d
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 13:13:32 2026 +0800
+
+    Added dockerfile
+
+commit f842934b8ccba975e88bf0d6900661bba009eb5e
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 12:17:41 2026 +0800
+
+    Created dockerfile and fixed crash
+
+commit c75faa6e50293324ac4892ce3174898d23750f83
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 11:22:19 2026 +0800
+
+    Fixing xfail code (unfinished)
+
+commit bc6896d7795a82891d87b8bf4802a5d212e41db8
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Wed Oct 14 11:17:25 2026 +0800
+
+    Cleaning up of codes and comments
+
+commit 14bd0da06480fedcf020fc665bb7df6730d3687e
+Author: tisanyay <brendentay@gmail.com>
+Date:   Wed Oct 14 10:37:32 2026 +0800
+
+    Fixed validate_response bug
+
+commit 154d0187912d5c2c250bc5dfbc3c34a606c003e7
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 23:41:57 2026 +0800
+
+    Updated historical insights for first entry
+
+commit 1a8474c784a704e3a092800abdab1216b0ec5ab0
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 23:15:03 2026 +0800
+
+    Edited assessment details format
+
+commit 1ea855b9d6bd1bd7bb8dbaaa29cdc7d2aabbbb93
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 23:02:30 2026 +0800
+
+    formatted the warnings
+
+commit 5cfc24923ef023737e91e4e04c839a970bf62a92
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 22:55:44 2026 +0800
+
+    Update to inform user beforehand of password reqs
+
+commit 701ba4940fd0aaecd18aff8ff07a40d7896be694
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 22:49:19 2026 +0800
+
+    Commented out redundant funcs
+
+commit 7d7d0b8bc61e2dc15b495aaea7e96136cc31f3df
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 22:49:00 2026 +0800
+
+    Updated graph, fixed wrong x-axis
+
+commit bca86377ba3af997f2cd372bbf3294f8b157ff92
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 22:23:07 2026 +0800
+
+    Updated test records
+
+commit 28c443d82858ade1fc58de68e4d3a398af7ccf7d
+Merge: 7e91880 b7c3f48
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 22:02:47 2026 +0800
+
+    Merge branch 'develop' of https://github.com/Vyngamer/INF1103_G8 into develop
+
+commit b7c3f48fe0fb74aebba44060486d9a63f103dd1f
+Merge: c9e2777 f29d3c6
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 22:01:15 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit f29d3c67a4e1891387b7d3658fc8121c66fa7c7c
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 21:59:39 2026 +0800
+
+    Shows additional recommendations
+
+commit 7e918805c182feec8ee6e69f96f0b5b9696499b3
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 21:59:35 2026 +0800
+
+    Remove the uneeded function to seperate displaymessage
+
+commit c9e2777baf710112b901939cf31f08ef69a6f9ea
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 21:50:42 2026 +0800
+
+    edit functions, how I access the data
+
+commit ea086872ce17e773e54f60c4fae9d1f97520731f
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 21:29:12 2026 +0800
+
+    Fix the save function
+
+commit 523f3b5a8bd986b7c325340a805644df63542666
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 21:26:50 2026 +0800
+
+    Change save function to include replace function
+
+commit 032b513a92f7c8053748902a8342cdc863da3c90
+Merge: 919e617 33faee9
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 21:21:16 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit 33faee9be17ed8baa778ab71ec33918f5d5925cc
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 21:20:43 2026 +0800
+
+    Shows submenu after assessment history list
+
+commit 919e617664b1f164e17b9cb25f27674d3aa3932c
+Merge: b09d9f6 e555723
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 21:12:33 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit e5557237ffcdc5c186935c53863da73c5c2e02c8
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 21:11:57 2026 +0800
+
+    Prompt user to cfm if existing record on same day
+
+commit b09d9f657b0b8c803302f0902f107edd2874e5bd
+Merge: 7b3c646 240ca2b
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 21:02:42 2026 +0800
+
+    Merge branch 'feature/data-manager' into develop
+
+commit 240ca2b899a40176028780c2043c85505a446cd9
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 20:46:18 2026 +0800
+
+    Added get_previous_attempts function
+
+commit 7b3c646ca02b593241adf0fb4a7c832b430e824e
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 20:24:45 2026 +0800
+
+    Fixed validate_response bug
+
+commit e60488b4ea6a376a60a568b4150f17ce6b162b6f
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 18:19:37 2026 +0800
+
+    Fixed check_int function
+
+commit 27bbb088e21c2ee1434df78710db4bed90c47493
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 17:48:00 2026 +0800
+
+    Added checks in validate_response to check for input data type, length, range, etc.
+
+commit d28c822feb8f93b9533254d9ed3f681b605848a4
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 16:04:36 2026 +0800
+
+    Decorators raise errors instead of returning them
+
+commit 3505dac057acb6175cbce73ae50199cd133c6543
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 15:52:23 2026 +0800
+
+    Fixed typo for parse_response function
+
+commit 6f593fa28378eac2b716d15332e1ccef20981e2a
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 15:46:12 2026 +0800
+
+    Removed parse_response function outside try-except block
+
+commit 79a1a1d194d10abe774eead9a6dfcdb78f77d80a
+Merge: 6f3e922 3dcd022
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 15:42:48 2026 +0800
+
+    Merge branch 'feature/ai-manager' into develop
+
+commit 3dcd022cb1697646b5d2acd1565b7679598deba7
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 15:42:33 2026 +0800
+
+    Removed exit_on_error behaviour to API functions
+
+commit 6f3e92293603f26e50e8a3ed8b53df1c78836777
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 15:30:28 2026 +0800
+
+    Changed json.loads function to ai_manager.parse_response
+
+commit 56b96e195a8a682db616bdf526c1a9f647a4cf78
+Merge: 5c37326 589c976
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 15:29:09 2026 +0800
+
+    Merge branch 'feature/ai-manager' into develop
+
+commit 589c97686f7d5623595a8fe77d4ae3651d0a989d
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 15:28:49 2026 +0800
+
+    Added parse_response function and renamed valid_survey to validate_response
+
+commit 5c37326ccb0e4bdd108e9e72109190760df9f963
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 14:45:02 2026 +0800
+
+    Fixed keyboard interrupt bug
+
+commit fbce7229bf7e8498b532ffb9486a58d860005521
+Author: tisanyay <brendentay@gmail.com>
+Date:   Tue Oct 13 14:28:52 2026 +0800
+
+    Added test cases for generate_survey, call_api, and xfail for call_api
+
+commit cbe340ffd9da6dd7732cf70aef4a12b45e8af06f
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 14:23:36 2026 +0800
+
+    Fixed mid-survey keyboard interrupt bug
+
+commit 572e204ab903f443368ea5e8860aa47d722ea6cc
+Merge: 7347791 ea9f316
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 13:35:45 2026 +0800
+
+    Conclude merge conflicts
+
+commit 7347791260dbfa53dc3167b493b8baab6be7ced7
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 13:29:11 2026 +0800
+
+    Added graphs, fixed exit error
+
+commit 27c4b5f175719e7718f525b5d8fc7b625d13fcd1
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 13:28:44 2026 +0800
+
+    Removed redundant funcs
+
+commit ec4effef9d980f8827b55a5225e64af38e45110a
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 13:27:53 2026 +0800
+
+    Added user score graph
+
+commit ea9f3165c0dcb89b61204c90b13a7d6ff41308dc
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 13:22:09 2026 +0800
+
+    tweaked the graph function
+
+commit ca3dc92e1fe7c6f50e59716422c76890843b2194
+Merge: c0907bb c167aaa
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 13:17:08 2026 +0800
+
+    Merge branch 'feature/data-manager' into develop
+
+commit c167aaa16093c1c76e444b8fd69027f93aff36bb
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 13:16:37 2026 +0800
+
+    Modified replace user record function to handle more efficiently
+
+commit c0907bbc507c3276ad75cda3a5ddf2b5fd4ee9b3
+Merge: 5e65d5a 92adf32
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 13:03:44 2026 +0800
+
+    Merge branch 'feature/data-manager' into develop
+
+commit 92adf327459b98ab9a30bcc8e4ff20823c8a0649
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 13:03:06 2026 +0800
+
+    Added replace user record function
+
+commit 5e65d5a1b22847e38e5aff2b5b84740231cd52df
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 12:23:02 2026 +0800
+
+    added graph
+
+commit d05fcebd3f0674f15b19daa97de70f9b1a53e0eb
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 12:20:40 2026 +0800
+
+    Added a function to filter by columns
+
+commit bce36e905995067c70a931022c0db6b50fc834e5
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Oct 13 11:29:46 2026 +0800
+
+    Added error handling for save and load functions
+
+commit 99f18e7acec411b43c9d711cda175c08060e57bc
+Merge: 55516c3 14558c6
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 04:22:26 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit 14558c602d01a6607510117114eda6885ce43123
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 04:19:03 2026 +0800
+
+    Added assessment history functionality & menu, limit surveys to one entry per day
+
+commit 5fb9aebfae2873e4ea829e6efea53d8387610143
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 04:18:03 2026 +0800
+
+    Added functionality for user to view assessment history details
+
+commit 40edd5b25a81c8df6e43353a90a2678f8296367d
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 04:17:10 2026 +0800
+
+    Added yes/no prompt
+
+commit 03576c41b95bc670cc41ff4ff4f9682553b54656
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 04:16:54 2026 +0800
+
+    Updated to match existing records' key names
+
+commit cdd9ad432aa8f61f1d57b0dca7bd402a3dfd4884
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Tue Oct 13 04:16:16 2026 +0800
+
+    Updated title printing into a common function
+
+commit 55516c3bc819c3803e143da19e7c95b5e12b97fe
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 22:40:09 2026 +0800
+
+    Added requirements.txt
+
+commit 61389403232f8b02e974479d0ca6d2bdd6a578e6
+Merge: 65e1cd3 e01ea2d
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 22:20:30 2026 +0800
+
+    adding all changes
+
+commit e01ea2d8ee73572ea9bbec4a6c6844693814a5b6
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 22:17:52 2026 +0800
+
+    Changed such that module connects to client automatically
+
+commit 65e1cd3db2402f658c2fb275d2d043539ca51266
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 21:52:32 2026 +0800
+
+    added functions to get savable and display messages
+
+commit 0a4f6b62feafba0634a140584bb51f783fbfd0f5
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 20:54:29 2026 +0800
+
+    fixed compare_social function
+
+commit 01ef1b96f6b4d0db50d883130739bc61ebbae138
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 20:48:57 2026 +0800
+
+    fixed average function
+
+commit 44e34af85340b75042d8620aad19d49709101072
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 20:37:14 2026 +0800
+
+    Removed empty file
+
+commit 6556fd9b54af12d4183c40a86109cc63946df926
+Merge: b28eb57 70ee564
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 20:35:59 2026 +0800
+
+    Minor changes in ai_manager file and new test cases
+
+commit 70ee56450b1d804c4d366ee6a12653227ed60ce1
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 20:25:56 2026 +0800
+
+    Added test cases and moved connect_client() function
+
+commit 7256a5194157a7418b826f8d54e327d4d4df6300
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 17:26:19 2026 +0800
+
+    Renamed file for compatibility with pytest
+
+commit 26f28151ac956ff78d817632ee4d6583df403d22
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 17:09:27 2026 +0800
+
+    Added error on exit decorator
+
+commit 66d2457eccfb0f9f5e12fba024675cf530bc3c91
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 16:10:03 2026 +0800
+
+    Renamed test file to ai_manager_test.py
+
+commit b28eb575c6dd6fe255bf21231b0175c1c4f728fc
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 15:51:59 2026 +0800
+
+    Added error handling: missing API key, unavailable models, and network issue
+
+commit 32e24f597c58ade6683c019793cc4531108405c4
+Author: tisanyay <brendentay@gmail.com>
+Date:   Sun Oct 11 18:13:28 2026 +0800
+
+    created test.py file
+
+commit fed2b35fccdc41d92d96141c211045be3b7ab09a
+Author: tisanyay <brendentay@gmail.com>
+Date:   Sun Oct 11 16:13:12 2026 +0800
+
+    modularized survey function
+
+commit dd1cc4165fe0e6c100c9e5601c41580132690eba
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Oct 12 15:51:59 2026 +0800
+
+    Added error handling: missing API key, unavailable models, and network issue
+
+commit dbdd88c533167dc4e5166187912a3b31ffd6674e
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 15:23:40 2026 +0800
+
+    changes to main.py
+
+commit 09d135dab544b6d0a8a8d62f1d65ad3075b26f32
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 15:22:29 2026 +0800
+
+    changes to compare functions
+
+commit f03bead825989abd0de50ea26422afe032ca4559
+Author: marcuswonggithub <149362022+marcuswonggithub@users.noreply.github.com>
+Date:   Mon Oct 12 14:01:47 2026 +0800
+
+    Update README.md
+    
+    Added a new table under business rules which compares user input with stored data
+
+commit db95d0c9bd202af22ef73d8a506e04fff9621d0f
+Author: marcuswonggithub <149362022+marcuswonggithub@users.noreply.github.com>
+Date:   Mon Oct 12 13:50:01 2026 +0800
+
+    Update README.md
+    
+    Added ; to make it neater for business rules
+
+commit 50960346b4758ef73ed0cc0bfbf0e664866595cf
+Author: marcuswonggithub <149362022+marcuswonggithub@users.noreply.github.com>
+Date:   Mon Oct 12 13:45:21 2026 +0800
+
+    Update README.md
+    
+    Update Business Rules for support route
+
+commit d1cc82269ebdbf5dd7f8b271e5d2762038991484
+Merge: 8220962 40eef7d
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 13:14:59 2026 +0800
+
+    Merge remote-tracking branch 'origin/develop' into feature/logic-manager
+
+commit 40eef7dc81e9d302c7b1b121e118b469b0d1ee2e
+Merge: 8261944 2888aa2
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:46:32 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit 2888aa25823409f98926b4353d4c1c9119076bfa
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:45:43 2026 +0800
+
+    Updated password requirements
+
+commit 82619448e985b172697e36629d3fd24ec819a902
+Merge: 1060b19 94b1afe
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Mon Oct 12 01:26:50 2026 +0800
+
+    Merge branch 'feature/data-manager' into develop
+
+commit 94b1afedc6b580b3955b70ad9c624f5dbb236515
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Mon Oct 12 01:26:07 2026 +0800
+
+    Removed a comment
+
+commit 1060b19810672466d783b5073b926dfd558500fc
+Merge: f0c165f e807dec
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:25:18 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit e807dec388329c2fd9f597d66f6e59390ac4c182
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:24:41 2026 +0800
+
+    Updated to store user id for survey entries
+
+commit f0c165fbf27d05c2f1fc94b57d4510457c3d4b37
+Merge: 132db65 8a100d3
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Mon Oct 12 01:24:11 2026 +0800
+
+    Merge branch 'feature/data-manager' into develop
+
+commit 8a100d362084cb6d408e89a55fa45876cd192e55
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Mon Oct 12 01:22:22 2026 +0800
+
+    Added minor changes to organise the codes
+
+commit 132db65fe736450e3a90c5bd5530536980a63436
+Merge: e11425a 0f91e31
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:13:48 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit 0f91e31d91a3f5a7dc96afb630774dd4e108f5f5
+Merge: 7dee547 5cb076d
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:11:37 2026 +0800
+
+    Merge branch 'feature/io-manager' of https://github.com/Vyngamer/26INF1103-P4-8 into feature/io-manager
+
+commit 7dee547d5f22dddb488527126523167669649612
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:11:11 2026 +0800
+
+    Updated comments
+
+commit 5cb076d6917ccf66d118aa7e8eda4f0a36e7e6c7
+Author: KaungKhantSIT <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:07:45 2026 +0800
+
+    Deleted logic_sample.json logic output
+
+commit 8d83d3b7a758f45b74ef110ec86bb3d155fbd313
+Author: KaungKhantSIT <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:07:10 2026 +0800
+
+    Deleted ai_sample.json sample output
+
+commit aae617c46abf0c4e50f893a8c9d340eef1ffb9f9
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Mon Oct 12 01:04:58 2026 +0800
+
+    Added view well-being summary
+
+commit de9e75829305960c8ca749844dcac4b6929310c6
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 01:01:17 2026 +0800
+
+    Updated Menu functionality and program functions, updated user session state checking, updated unit testing
+
+commit 568bd83557c35c2c3c5c6655abf287b1fdfe60da
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 00:58:39 2026 +0800
+
+    User functionality updated
+
+commit 42d6941b9f8fcd42142750cfda88f8dc622f47ce
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 00:58:18 2026 +0800
+
+    Optimized survey logic
+
+commit ac5ddeabda397808584e28d997713a3c2d70ac96
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 00:57:40 2026 +0800
+
+    Created file for generic input prompts
+
+commit 36f0184e0d8b34f77ee76996d608040b443ad5e7
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Mon Oct 12 00:57:05 2026 +0800
+
+    Updated Hash
+
+commit 3addd687c8efc5a621470f527e6b0a4500f78d70
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Mon Oct 12 00:10:17 2026 +0800
+
+    Added compare assessment function
+
+commit 73caf28aa98629dcb2980bfddfbedc56f30ef2a5
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Sun Oct 11 23:52:50 2026 +0800
+
+    Added view Assessment history function
+
+commit a1b20c6d6303c8597d75d66aafaf786584c2c5bd
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Sun Oct 11 23:32:43 2026 +0800
+
+    Added view latest record function
+
+commit 984d1916991e0003f4c8ad45f105e3d80836e4a3
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Sun Oct 11 23:22:31 2026 +0800
+
+    Added get latest user record function
+
+commit 9a2f098dc21f8a3d73fdd7ba0608c19a79ccfeb0
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Sun Oct 11 23:09:36 2026 +0800
+
+    Added get user records function
+
+commit 327fc85112c89e666687b3eb1b02d6b5d0325b4c
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Sun Oct 11 18:54:21 2026 +0800
+
+    Modified the save function to call the backup function
+
+commit 52871586078ddedb1dce046b17e62c4135ea8d83
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Sun Oct 11 18:51:31 2026 +0800
+
+    Modified backup function to keep only latest 3 files
+
+commit ffd6737238cf39c5e3e7fcffdfc4b27e13d04309
+Author: tisanyay <brendentay@gmail.com>
+Date:   Sun Oct 11 18:13:28 2026 +0800
+
+    created test.py file
+
+commit e11425a08bf16ef2b6bad357cb56394b884ac9d3
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Sun Oct 11 17:34:46 2026 +0800
+
+    Updated link in README.md file
+
+commit 82209624c056c25c897cf5d38ed924bdbc5f98d0
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Sun Oct 11 16:29:33 2026 +0800
+
+    added functions to see if there is an improvement of scores
+
+commit 9f4ab2682fabdd1a55b2662103d7ca12f26e3e6f
+Author: tisanyay <brendentay@gmail.com>
+Date:   Sun Oct 11 16:13:12 2026 +0800
+
+    modularized survey function
+
+commit dbb82cf3b70ccc0b1d165f29d8890e169523fccb
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Sun Oct 11 16:11:18 2026 +0800
+
+    Modify the main assess function by adding newly implemented functions
+
+commit 0dcac5ec879d6ca7105d49d7bcf1a5618ebab23b
+Author: tisanyay <brendentay@gmail.com>
+Date:   Sun Oct 11 16:07:31 2026 +0800
+
+    standardized data variable name with rest of the files
+
+commit 69aaa71c83493a686f2c377973a2ebbbb3cf8a30
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Sun Oct 11 15:58:12 2026 +0800
+
+    Created the compare_focus function
+
+commit caca8ab60102fc93c6f55d9c7db25af29ec976d6
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Sun Oct 11 15:56:15 2026 +0800
+
+    Created the compare_social function
+
+commit a83c724b8ef6a2d4aebee851b4b15d0a543ffc65
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Sat Oct 10 12:41:51 2026 +0800
+
+     Create a function that tells how much sleep they have compared to average
+
+commit 1e65fac220bb0fb86d583deecdcbe3be53155e3e
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Sat Oct 10 12:23:23 2026 +0800
+
+    Create a function that check if sleep is less than 7 hours
+
+commit 2f6286c6e9de6a65cef1f8a6ede3327568c743ab
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Sat Oct 10 11:44:00 2026 +0800
+
+    Create a function that calculate average
+
+commit 5e6ea1ce0113ab0a18fe4b267bee0311ee9ae4b0
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Sat Oct 10 11:20:22 2026 +0800
+
+    Update Logic.py argument and variable names to match
+
+commit 686c2e2d4c8d39ba36a0d8009e4f53e72f3350d1
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 22:13:42 2026 +0800
+
+    variable name change
+
+commit cde6a5eb929e69227a8e27a3248d0bd1babe35f0
+Merge: feebf3e 9616428
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 9 18:07:00 2026 +0800
+
+    Merge branch 'feature/data-manager' into develop
+
+commit 96164286c9afa6ee1fa5a4274694f3e8a1986ac5
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 9 18:04:54 2026 +0800
+
+    Cleanup of functions to merge into develop
+
+commit feebf3eaf08977d59670b2bbd1ec286422d6afa0
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 18:02:55 2026 +0800
+
+    base integration of io, ai, logic, and data layer
+
+commit 0e6556545d6560432f10c14b80d31f6f2b8f0c6a
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 17:55:39 2026 +0800
+
+    changed dictionary key names to standardise with rest of files
+
+commit c2be9c581841a64658def84d97e7a22293f051d3
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 17:46:36 2026 +0800
+
+    changed variable names
+
+commit 64037d8153339e71bf8f57b5a8cdfc8e34e0715a
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 17:35:24 2026 +0800
+
+    removed sample files
+
+commit d7c954f6a4216b1def519000bd5c1882076ce654
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 17:20:35 2026 +0800
+
+    Revert "removed sample files"
+    
+    This reverts commit 48c42a041ec81427e152e01e9106cd8a04484ff0.
+
+commit 48c42a041ec81427e152e01e9106cd8a04484ff0
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 16:57:57 2026 +0800
+
+    removed sample files
+
+commit 9474dacc4f40a6811fbdef090b5af7567290e036
+Merge: 7120cc9 378099f
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Fri Oct 9 16:52:48 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit 378099f88bc03b4490c3b869dfa4a55265ae289d
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Fri Oct 9 16:50:04 2026 +0800
+
+    Modularised code, added menu functionality, incomplete user login functionality
+
+commit 7120cc946f72c13855d94d3960435667cb971d39
+Merge: 7d3e811 20c9e11
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 9 12:19:17 2026 +0800
+
+    Merge branch 'develop' of https://github.com/Vyngamer/26INF1103-P4-8 into develop
+
+commit 7d3e811d0fb8066396366281344107fe1a47df9b
+Merge: 6555c4b c791540
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 9 12:17:00 2026 +0800
+
+    Merge branch 'feature/data-manager' into develop
+
+commit c7915403f4631dfe780e962124753e65601cd0c6
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 9 12:16:15 2026 +0800
+
+    Made minor changes for the main function
+
+commit 20c9e11cd3b27ec401a06b5111e4f8aa9154ed9d
+Merge: c241966 147ebb3
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 12:00:29 2026 +0800
+
+    Merge branch 'feature/ai-manager' into develop
+
+commit d9b525fb9bf6ab2d4745b30df56ba39c879a346f
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 9 11:50:36 2026 +0800
+
+    Added get_user_history function
+
+commit 147ebb3325c575f997141f7295d0630ae95a1989
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 11:44:30 2026 +0800
+
+    removed miscellaneous files
+
+commit e0574ae6b483638f9baca544bc66da6808d9059c
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Fri Oct 9 11:35:33 2026 +0800
+
+    Added Menu functionality and main program flow
+
+commit e7e4a7a1f9dc8808fe1e7708d77d8602a8ddaee6
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 9 11:31:52 2026 +0800
+
+    minor changes
+
+commit 107a898d810b604bab0c73fa5e0556f3396d6261
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 9 11:24:18 2026 +0800
+
+    Added user_id field to database schema
+
+commit 3d897b3a3a12b9cc707da13830eea96b25ad2803
+Author: SIT-Ning <2605753@sit.singaporetech.edu.sg>
+Date:   Fri Oct 9 11:07:05 2026 +0800
+
+    backup function update
+
+commit 1ee45b65bbf57d5b68e9208fecfa35fb2b434000
+Author: SIT-Ning <2605753@sit.singaporetech.edu.sg>
+Date:   Fri Oct 9 10:57:55 2026 +0800
+
+    Add a backup function
+
+commit c2419665ecb8feed4fbae2bf91b23ce4dc148fcc
+Merge: 6555c4b c92e7ba
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Fri Oct 9 10:16:12 2026 +0800
+
+    Merge branch 'feature/io-manager' into develop
+
+commit c92e7bad32aba2a3a24dfa9544ef33bb7c9a1649
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Fri Oct 9 10:14:33 2026 +0800
+
+    output update
+
+commit 6555c4b629bfa2e3c157d46cd73f451b0bef79a4
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Mon Oct 5 21:56:39 2026 +0800
+
+    Fixed the get_risk_tier function
+
+commit 0f7bae9caaf0d2d99accde2493cbad33bedb4f37
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 2 16:26:20 2026 +0800
+
+    added comments
+
+commit e0f5372306df97f915a6476a75f50a34520812a6
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 2 14:22:01 2026 +0800
+
+    Updated save() function to change record_id processing
+
+commit 82c95529fb0a10c52a6c971254f5644c0951c53b
+Author: Kaung Khant <2602036@sit.singaporetech.edu.sg>
+Date:   Fri Oct 2 11:43:34 2026 +0800
+
+    Simple IO logic
+
+commit dc2822d2488b6f5cdb60808281eff11707bd7687
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Fri Oct 2 11:17:47 2026 +0800
+
+    added main.py
+
+commit bf6eca29b656ab090adbd7b60ba089bfb5ee0b7d
+Merge: 8e0d545 5b629fc
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 2 11:07:34 2026 +0800
+
+    Resolve merge conflicts in load() function
+
+commit 8e0d5458f06c275e14ebfb03a3743cbd70705d1f
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Fri Oct 2 10:59:05 2026 +0800
+
+    Fix error in load() function to handle file existence
+
+commit f8052b17d17c8586911f027dd34b14af4e81f3f1
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 2 10:58:59 2026 +0800
+
+    modified flowchart.md
+
+commit 5ca1957b8b689b49a1e25fa8469dc7a33b31bcd3
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Oct 2 10:57:06 2026 +0800
+
+    reformatted functions
+
+commit 5b629fce39388c5c80559ef90b849aee3c85e8d1
+Author: SIT-Ning <2605753@sit.singaporetech.edu.sg>
+Date:   Fri Oct 2 10:22:17 2026 +0800
+
+    Update data_manager.py
+
+commit 81d598fdc05f58776baaf21a27dd700250d9bdaa
+Author: SIT-Ning <2605753@sit.singaporetech.edu.sg>
+Date:   Fri Oct 2 09:51:49 2026 +0800
+
+    Refactor data_manager.py for improved functionality
+
+commit b3b942ff70aa8ba57c32c6b0b8583d391968a9f0
+Merge: 0a611cf 3808689
+Author: Yisan Tay <brendentay@meridian.jwong.dev>
+Date:   Fri Oct 2 09:14:59 2026 +0800
+
+    fixed merge
+
+commit 0a611cfb71240ca3d2f6c73c20482989391113a6
+Author: Yisan Tay <brendentay@meridian.jwong.dev>
+Date:   Fri Oct 2 09:11:54 2026 +0800
+
+    added comments and refined prompt
+
+commit 7ad83afc40b1109170c6412ffd7517e68b5daea7
+Author: Yisan Tay <brendentay@meridian.jwong.dev>
+Date:   Fri Oct 2 08:23:29 2026 +0800
+
+    added chat_flow.md diagram
+
+commit e0a2f0fa563d018a92a9868a2f76781b7e0fc353
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Thu Oct 1 14:44:55 2026 +0800
+
+    added get_warnings function to get the warnings that we want to flag to the user
+
+commit ff89865b7dac68cf559c7b73739cf1bdbaae1206
+Author: Vyngamer <2603199@sit.singaporetech.edu.sg>
+Date:   Thu Oct 1 14:42:41 2026 +0800
+
+    added get_risk_tier function to get user's risk tier based on their score
+
+commit 4f2903a8326871be0cafcc227bd7ee9fefe9fad1
+Author: SIT-Ning <2605753@sit.singaporetech.edu.sg>
+Date:   Wed Sep 30 14:14:27 2026 +0800
+
+    Refactor load function to check file existence
+    
+    Fix loading function to handle file existence and errors.
+
+commit 9313ccf08cb65732fff1f2e70974d5455905b3a3
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Wed Sep 30 11:54:29 2026 +0800
+
+    Implement the decide_route function which will determine counselling or not
+
+commit 7765a28c0ea537ff0e3ae2764baf7a3e2746c9d4
+Author: Marcus Wong Yu Xuan <2603182@sit.singaporetech.edu.sg>
+Date:   Wed Sep 30 11:47:53 2026 +0800
+
+    Implement the main function in logic-manager which will call on other functions
+
+commit c7f3d6c83b15b86d7eca66ae026f583e3fc55dff
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Sep 29 22:49:31 2026 +0800
+
+    Modified query_pd() to filter by columns
+
+commit e93495a32917596785834713ed3afd0822f6e173
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Sep 29 22:40:52 2026 +0800
+
+    Added query_pd function using pandas
+
+commit 145df9e22c38401ecf93e253b2ca4f4e8033658a
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Sep 29 22:21:46 2026 +0800
+
+    Added query() function using lambda
+
+commit fbe3ee9a640765d4472331f37a98fb26781be1eb
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Sep 29 21:32:17 2026 +0800
+
+    Modified save() to fix database schema
+
+commit 176a018fb55adafc5549cee0dad43bf616224d36
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Sep 29 20:38:08 2026 +0800
+
+    Added save() function
+
+commit 45e2c252523bea666b2b9ed5f7e8866180322c7a
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Sep 29 19:37:18 2026 +0800
+
+    Rename load.py to data_manager.py
+
+commit b51632a26a391a39a72d8d3afd01155536f95354
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Tue Sep 29 19:19:48 2026 +0800
+
+    Changed file name
+
+commit 3808689474de02a16b038c9fd53c57aff6ef0d5f
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Sep 28 17:49:44 2026 +0800
+
+    added paper to add context and information to prompt
+
+commit 0e4214c5b4ea3f97148f259093987312ad906ba3
+Author: tisanyay <brendentay@gmail.com>
+Date:   Mon Sep 28 17:03:12 2026 +0800
+
+    added comments to functions
+
+commit 44fcc4d65059ca62ce3a8177127b32d4e8b8d987
+Author: SIT-Ning <2605753@sit.singaporetech.edu.sg>
+Date:   Mon Sep 28 15:18:18 2026 +0800
+
+    Delete load.py
+
+commit 4978707472247f7d54b3b9d50905c9ba36b4f690
+Merge: 1b388bb 7b406f2
+Author: SIT-Ning <2605753@sit.singaporetech.edu.sg>
+Date:   Mon Sep 28 15:17:40 2026 +0800
+
+    Merge pull request #1 from Vyngamer/feature/data-manager
+    
+    Loading of json file
+
+commit 7b406f22df82d9f358575a16dfb81e9e973f51d3
+Author: SIT-Ning <2605753@sit.singaporetech.edu.sg>
+Date:   Mon Sep 28 15:16:47 2026 +0800
+
+    Add files via upload
+
+commit 7596c44f40a603902dc0aa11ed66b26eb2edac55
+Author: Yisan Tay <brendentay@meridian.jwong.dev>
+Date:   Sat Sep 26 14:14:55 2026 +0800
+
+    modified flowchart.md
+
+commit e9dfabe362b5fe735f105d83a8346b28ef5b413c
+Author: tisanyay <brendentay@gmail.com>
+Date:   Sat Sep 26 13:59:22 2026 +0800
+
+    created flowchart.md
+
+commit cfee656cd06265be4176b67b8bed0b3a3dc7fcef
+Author: tisanyay <brendentay@gmail.com>
+Date:   Fri Sep 25 13:05:31 2026 +0800
+
+    first commit
+
+commit 1b388bb3bd90cb453eba439c16b62ddfc9110128
+Author: Vyngamer <92712586+Vyngamer@users.noreply.github.com>
+Date:   Fri Sep 25 11:11:37 2026 +0800
+
+    Update repository link in README
+
+commit 6f8a0c20d52fa1d5381acc6295614c353ce50df1
+Author: Vyngamer <92712586+Vyngamer@users.noreply.github.com>
+Date:   Fri Sep 25 11:11:03 2026 +0800
+
+    updated project desc
+
+commit 39a1086b5ce064a4d713c987dbfc3c579e4927a1
+Author: marcuswonggithub <149362022+marcuswonggithub@users.noreply.github.com>
+Date:   Sun Sep 20 19:18:03 2026 +0800
+
+    Update README.md
+
+commit 4ee5cabf134989d0e3e7552d386c00d6681d46a2
+Author: mohamedazfar <mohamedazfar007@gmail.com>
+Date:   Thu Sep 17 23:29:22 2026 +0800
+
+    Added Initial project details
+
+commit f7b4037135568a713ed51da2bee10cb49bb6cea1
+Author: Vyngamer <92712586+Vyngamer@users.noreply.github.com>
+Date:   Tue Sep 8 10:03:21 2026 +0800
+
+    Initial commit
