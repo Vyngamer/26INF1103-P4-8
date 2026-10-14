@@ -5,8 +5,10 @@ import json
 import google
 from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
 
+
 backup_model = "gemini-3.5-flash-lite"
 primary_model = "gemini-3.1-flash-lite"
+
 
 # decorator which handles general errors after all other error handlers
 def general_error_handler(base_api_call_func):
@@ -285,7 +287,7 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
 try:
     client = connect_client()
 except ValueError as e:
-    pass
+    client = None
 
 if __name__ == "__main__":
     variable = input('enter something')

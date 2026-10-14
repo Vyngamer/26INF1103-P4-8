@@ -62,6 +62,7 @@ import json
 import io_manager
 import questionnaire
 import ai_manager
+from ai_manager import client
 import logic_manager
 import data_manager
 import history
@@ -117,7 +118,10 @@ def main():
 
         # Intercept dummy functions to use the real connected modules
         if func == io_manager.handle_survey:
-            run_real_survey(state["uid"])
+            if not client:
+                print("AI functionality down. Please try again later!")
+            else:
+                run_real_survey(state["uid"])
         elif func == io_manager.handle_history:
             io_manager.handle_history(state, DATABASE_FILE)
             io_manager.pause()
