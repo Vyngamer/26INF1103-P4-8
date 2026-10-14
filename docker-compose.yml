@@ -7,3 +7,9 @@ services:
         - BACKUP_GEMINI_API_KEY
       context: .
       no_cache: true
+    stdin_open: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - ${X11_SOCKET:-/run/desktop/mnt/host/wslg/.X11-unix}:/tmp/.X11-unix
