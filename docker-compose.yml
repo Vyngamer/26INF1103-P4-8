@@ -1,0 +1,17 @@
+services:
+  ai-counsellor:
+    env_file: ".env"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - BACKUP_GEMINI_API_KEY=${BACKUP_GEMINI_API_KEY}
+      - DISPLAY=${DISPLAY:-:0}
+    build:
+      context: .
+      args:
+        - GEMINI_API_KEY=${GEMINI_API_KEY}
+        - BACKUP_GEMINI_API_KEY=${BACKUP_GEMINI_API_KEY}
+      no_cache: true
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${X11_SOCKET:-/run/desktop/mnt/host/wslg/.X11-unix}:/tmp/.X11-unix

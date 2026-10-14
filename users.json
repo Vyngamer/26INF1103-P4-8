@@ -1,0 +1,27 @@
+[
+    {
+        "user_id": "d5d4c2ee-9ec7-404e-b00b-be9701e9349f",
+        "username": "user1",
+        "password": "pbkdf2$600000$6101c6568b05716457d040c4809bde09$152070c966d90e110d000553c4c723ba5385c90ec19a82bf11a31f3356cc12ca"
+    },
+    {
+        "user_id": "890a9fba-1f46-426c-8d18-a95538191917",
+        "username": "user2",
+        "password": "pbkdf2$600000$4ded60bdd20b20116de099cf92c1692a$8b410bfd05ebba6bd8fc8badc4a5468fca27a401f755ee437e277480e6c61faa"
+    },
+    {
+        "user_id": "dae02ec0-1e70-4f9a-99db-19881d690d12",
+        "username": "Marcus",
+        "password": "pbkdf2$600000$1f53a4d839622009b20b5771c38b3f6c$d80ae14495c5d87f566c90f4c197445c7e51e47bdc87945c2e4ef04290cc18d6"
+    },
+    {
+        "user_id": "088c5abb-18d7-44d9-888b-2abca870e6bd",
+        "username": "bobo shooter",
+        "password": "pbkdf2$600000$4bca29e577efc0b68325ec520442abf6$6138b8eaf77b343aef084beaf6fb74ec25ea367068000528bd2d0ad98f3fbc30"
+    },
+    {
+        "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
+        "username": "user3",
+        "password": "pbkdf2$600000$5c0da420d3358602d60143c74d72c4fd$11acd4c332cb47e05b5499ba56beddbcc9d7f34aea62a9116b7d460544fc2a49"
+    }
+]
