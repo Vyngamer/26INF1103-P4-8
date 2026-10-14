@@ -4,6 +4,7 @@ standard valid answers
 """
 
 import pwinput
+import sys
 
 
 #Non-empty text input (whitespace trimmed)
@@ -18,7 +19,10 @@ def prompt_text(prompt):
 #register / login / change-password all treat them the same way
 def prompt_password(prompt):
     while True:
-        value = pwinput.pwinput(prompt=prompt)
+        if sys.stdin.isatty():
+            value = pwinput.pwinput(prompt=prompt)
+        else:
+            value = input(prompt)
         if value:
             return value
         print("Password cannot be empty. Please try again.")
