@@ -211,7 +211,7 @@ def show_graph(state):
         plt.tight_layout()
         plt.savefig('graph.png')
 
-        print('Graph saved as graph.png.')
+        print_notice('Graph saved as graph.png')
 
         pause()
 
