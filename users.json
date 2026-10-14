@@ -18,5 +18,10 @@
         "user_id": "088c5abb-18d7-44d9-888b-2abca870e6bd",
         "username": "bobo shooter",
         "password": "pbkdf2$600000$4bca29e577efc0b68325ec520442abf6$6138b8eaf77b343aef084beaf6fb74ec25ea367068000528bd2d0ad98f3fbc30"
+    },
+    {
+        "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
+        "username": "user3",
+        "password": "pbkdf2$600000$5c0da420d3358602d60143c74d72c4fd$11acd4c332cb47e05b5499ba56beddbcc9d7f34aea62a9116b7d460544fc2a49"
     }
 ]
