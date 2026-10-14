@@ -67,5 +67,186 @@
                 "Your burnout risk score has improved since your last attempt. Keep it up!"
             ]
         }
+    },
+    {
+        "record_id": "d6a603f2-de9a-403c-b7a1-e1aad62e6ee3",
+        "date": "10-10-2026",
+        "time": "16:15:23",
+        "user_input": {
+            "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
+            "sleep_duration": 8.5,
+            "stress_level": 2,
+            "focus_level": 9,
+            "academic_workload": 3,
+            "mood": "Motivated",
+            "social_activity_level": 8,
+            "reflection": "I feel well-rested and motivated. I have been managing my assignments effectively and spending time with friends, which helps me maintain a positive mindset."
+        },
+        "ai_output": {
+            "burnout_risk_score": 10,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 5,
+            "personalized_recommendations": "You are maintaining excellent balance and a healthy routine; keep up your current habits of social connection and effective time management. Continue prioritizing these self-care practices to sustain your motivation throughout the term.",
+            "primary_stressor": "None identified",
+            "sentiment": "Positive"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "Low",
+            "warnings": [],
+            "route": "Self-care guidance",
+            "counselling_recommendation": false,
+            "display_messages": []
+        }
+    },
+    {
+        "record_id": "8cd66c32-be43-4128-8022-ca3c1c1ec64b",
+        "date": "11-10-2026",
+        "time": "16:16:34",
+        "user_input": {
+            "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
+            "sleep_duration": 4.5,
+            "stress_level": 9,
+            "focus_level": 3,
+            "academic_workload": 10,
+            "mood": "Anxious",
+            "social_activity_level": 2,
+            "reflection": "I have several deadlines approaching and feel overwhelmed by the amount of work I need to complete. I struggle to concentrate and have been sleeping less than usual."
+        },
+        "ai_output": {
+            "burnout_risk_score": 85,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 75,
+            "personalized_recommendations": "It sounds like you are carrying a very heavy load right now. Please prioritize your sleep tonight, as your current lack of rest is likely exacerbating your anxiety and making your tasks feel even more overwhelming. Try to break your assignments into tiny, manageable 15-minute segments and reach out to your instructor or a campus support service to see if an extension is possible.",
+            "primary_stressor": "Academic Workload",
+            "sentiment": "Negative"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "High",
+            "warnings": [
+                "High Burnout Warning (Sleep)",
+                "Burnout Warning (Workload)",
+                "Social Withdrawal Risk",
+                "Cognitive Fatigue Risk"
+            ],
+            "route": "Counsellor follow-up",
+            "counselling_recommendation": true,
+            "display_messages": [
+                "You slept less than 7 hours. Try to get more sleep.",
+                "You slept 4.00 hours less than your average.",
+                "You are socialising less than your previous average. Try connecting with others.",
+                "Your focus level has dropped since your last attempt. Try taking a break and resting."
+            ]
+        }
+    },
+    {
+        "record_id": "d99a725e-db02-427e-a724-dc343d4aec2e",
+        "date": "12-10-2026",
+        "time": "16:17:28",
+        "user_input": {
+            "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
+            "sleep_duration": 6.0,
+            "stress_level": 5,
+            "focus_level": 6,
+            "academic_workload": 6,
+            "mood": "Calm",
+            "social_activity_level": 5,
+            "reflection": "My workload is manageable overall, although some days are more stressful than others. I am trying to balance studying with sufficient rest and time for myself."
+        },
+        "ai_output": {
+            "burnout_risk_score": 35,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 25,
+            "personalized_recommendations": "It is encouraging to see you are actively balancing your studies with self-care; your current approach is sustainable. To maintain this stability, consider incorporating small, scheduled 'unplugged' breaks during your study sessions to prevent future fatigue.",
+            "primary_stressor": "Academic Workload",
+            "sentiment": "Positive"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "Low",
+            "warnings": [],
+            "route": "Self-care guidance",
+            "counselling_recommendation": false,
+            "display_messages": [
+                "You slept less than 7 hours. Try to get more sleep.",
+                "You slept 0.50 hours less than your average.",
+                "Your focus level has improved since your last attempt. Keep it up!",
+                "Your mental wellness risk score has improved since your last attempt. Keep it up!",
+                "Your burnout risk score has improved since your last attempt. Keep it up!"
+            ]
+        }
+    },
+    {
+        "record_id": "29aa4f5c-5baf-4cb6-b922-beebd1f4e082",
+        "date": "13-10-2026",
+        "time": "16:18:00",
+        "user_input": {
+            "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
+            "sleep_duration": 3.0,
+            "stress_level": 8,
+            "focus_level": 2,
+            "academic_workload": 8,
+            "mood": "Exhausted",
+            "social_activity_level": 1,
+            "reflection": "I have been sleeping very little and feel tired throughout the day. It is difficult to focus on my assignments, and I have been avoiding social activities because I feel overwhelmed."
+        },
+        "ai_output": {
+            "burnout_risk_score": 90,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 82,
+            "personalized_recommendations": "It is clear you are carrying a heavy burden right now; please prioritize getting at least 6 hours of sleep tonight as your body and brain desperately need recovery. Once you have rested, try to break your assignments into tiny, manageable 15-minute tasks to reduce that overwhelming feeling without overexerting your focus.",
+            "primary_stressor": "Academic Overload",
+            "sentiment": "Negative"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "High",
+            "warnings": [
+                "High Burnout Warning (Sleep)",
+                "Burnout Warning (Workload)",
+                "Social Withdrawal Risk",
+                "Cognitive Fatigue Risk"
+            ],
+            "route": "Counsellor follow-up",
+            "counselling_recommendation": true,
+            "display_messages": [
+                "You slept less than 7 hours. Try to get more sleep.",
+                "You slept 3.33 hours less than your average.",
+                "You are socialising less than your previous average. Try connecting with others.",
+                "Your focus level has dropped since your last attempt. Try taking a break and resting."
+            ]
+        }
+    },
+    {
+        "record_id": "7a9cfde3-8a30-48fa-999c-f74f451cfc85",
+        "date": "14-10-2026",
+        "time": "16:18:51",
+        "user_input": {
+            "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
+            "sleep_duration": 7.5,
+            "stress_level": 4,
+            "focus_level": 8,
+            "academic_workload": 5,
+            "mood": "Motivated",
+            "social_activity_level": 7,
+            "reflection": "I have started following a better sleep schedule and breaking assignments into smaller tasks. I feel more focused and have been reconnecting with friends, which makes managing my workload easier."
+        },
+        "ai_output": {
+            "burnout_risk_score": 15,
+            "crisis_alert": false,
+            "mental_wellness_risk_score": 10,
+            "personalized_recommendations": "It is excellent to see that your new strategies for task management and sleep hygiene are yielding positive results. Continue prioritizing these healthy habits and maintain your current social balance to sustain this productive momentum.",
+            "primary_stressor": "None",
+            "sentiment": "Positive"
+        },
+        "logic_output": {
+            "mental_wellness_risk_tier": "Low",
+            "warnings": [],
+            "route": "Self-care guidance",
+            "counselling_recommendation": false,
+            "display_messages": [
+                "You slept 2.00 hours more than your average.",
+                "Your focus level has improved since your last attempt. Keep it up!",
+                "Your mental wellness risk score has improved since your last attempt. Keep it up!",
+                "Your burnout risk score has improved since your last attempt. Keep it up!"
+            ]
+        }
     }
 ]
