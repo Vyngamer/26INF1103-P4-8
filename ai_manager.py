@@ -5,7 +5,7 @@ import json
 import google
 from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
 
-backup_model = "gemini-3.8-flash"
+backup_model = "gemini-3.5-flash-lite"
 primary_model = "gemini-3.1-flash-lite"
 
 # decorator which handles general errors after all other error handlers
@@ -29,7 +29,8 @@ def backup_model_retry(base_api_call_func):
             print("Retrying with secondary model...")
 
             try:
-                return base_api_call_func(*args, **kwargs, model=backup_model)
+                kwargs['model'] = backup_model
+                return base_api_call_func(*args, **kwargs)
             except NotFoundError as e: 
                 print("Both models unavailable.")
                 raise e
