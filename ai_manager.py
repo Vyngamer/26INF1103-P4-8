@@ -186,15 +186,6 @@ def generate_prompt(survey_data):
 
     return system_instruction, prompt
 
-def check_int(raw):
-    return isinstance(raw, int)
-
-def check_float(raw):
-    return isinstance(raw, float)
-
-def check_str(raw):
-    return isinstance(raw, str)
-
 def check_str_len(raw):
     return len(raw) > 0
 
@@ -205,17 +196,17 @@ def check_choice(raw, choice_list):
     return raw in choice_list
 
 def check_level_rating(raw):
-    return check_int(raw) and check_range(raw, 1, 10)
+    return isinstance(raw, int) and check_range(raw, 1, 10)
 
 def check_sleep_duration(raw):
-    return check_float(raw) and check_range(raw, 0, 24)
+    return isinstance(raw, float) and check_range(raw, 0, 24)
 
 def check_mood(raw):
     mood_list = ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]
-    return check_str(raw) and check_choice(raw, mood_list)
+    return isinstance(raw, str) and check_choice(raw, mood_list)
 
 def check_reflection(raw):
-    return check_str(raw) and check_str_len(raw)
+    return isinstance(raw, str) and check_str_len(raw)
 
 def validate_response(survey_data):
     survey_validation_mapping = {

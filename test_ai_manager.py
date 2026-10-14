@@ -62,9 +62,9 @@ call_api_test_data_xfail = [
 def test_call_api_xfail(prompt, system_instruction, response_output_format, previous_interaction_id, model):
     try:
         interaction = call_api(prompt, system_instruction, response_output_format, previous_interaction_id, model=model)
-    except:
+        assert False
+    except Exception as e:
         assert True 
-    assert False 
 
 
 def test_generate_survey_response():
