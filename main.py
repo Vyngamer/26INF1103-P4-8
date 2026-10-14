@@ -1,6 +1,5 @@
 import json
 import io_manager
-import io_manager
 import questionnaire
 import ai_manager
 from ai_manager import client

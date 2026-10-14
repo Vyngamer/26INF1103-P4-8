@@ -4,7 +4,7 @@ Main I/O Layer
 import matplotlib.pyplot as plt
 from matplotlib.backends import backend_registry, BackendFilter
 import sys
-from questionnaire import full_survey, prompt_questionnaire
+from questionnaire import prompt_questionnaire
 from prompts import prompt_choice, prompt_range, prompt_yes_no
 from user import user_login, user_register, change_username, change_password
 from data_manager import get_user_records, get_user_int_records, get_user_records, replace_user_record
@@ -93,15 +93,7 @@ def handle_survey(uid):
             pause()
             return
 
-    #full_survey(LOGIC_FILE, AI_FILE, state["uid"])
     survey = prompt_questionnaire()
-
-    #Replace the old record AFTER the new survey is finished,
-    #so quitting/crashing halfway through keeps the existing assessment
-    #if todays:
-        #delete_records([record["record_id"] for record in todays], state["uid"], RECORDS)
-    #    pass
-    #pause()
     return survey
 
 #Change username
@@ -255,22 +247,7 @@ def handle_history_details(state):
         return
     view_assessment_details(get_user_records(state["uid"], RECORDS)[number - 1])
     pause()
-
-'''
-#View the well-being summary
-def handle_history_summary(state):
-    view_wellbeing_summary(state["uid"], RECORDS)
-    pause()
-'''
-
-'''
-Graph functions
-'''
-def handle_graph(state, RECORDS):
-    full_record = get_user_records(state["uid"], RECORDS)
-    required_information = get_user_int_records(full_record, state["uid"])
-    print(required_information)
-
+    
 '''
 MENUS
 '''
@@ -292,7 +269,6 @@ USER_MENU = {
 
 HISTORY_MENU = {
     "View Assessment Details": handle_history_details,
-    #"View Summary": handle_history_summary,
     "Back": None
 }
 

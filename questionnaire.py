@@ -110,17 +110,3 @@ def load_results(filename: str) -> dict:
             return json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
-
-
-#Run the survey, show the assessment, and return the merged results dict
-def full_survey(logic_file: str, ai_file: str, uid) -> dict:
-    survey = prompt_questionnaire()   #Start survey
-    survey["user_id"] = uid
-    #save_results(survey_file, survey) #Save results to JSON file
-
-    #Get logic and AI outputs and merge into one dict
-    result = load_results(logic_file) | load_results(ai_file)
-
-    input("\nPress Enter to Continue... ")
-    risk_assessment(result)
-    return survey, result
