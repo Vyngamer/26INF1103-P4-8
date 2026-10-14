@@ -2,6 +2,7 @@
 Main I/O Layer
 '''
 import matplotlib.pyplot as plt
+from matplotlib.backends import backend_registry, BackendFilter
 import sys
 from questionnaire import full_survey, prompt_questionnaire
 from prompts import prompt_choice, prompt_range, prompt_yes_no
@@ -47,6 +48,11 @@ def set_logged_out(state):
 #Allow user to enter to return to menu
 def pause():
     input("\nPress Enter to return to the menu...")
+
+#Check if matplotlib can open a window (False when there is no display, e.g. headless Docker)
+def can_show_window():
+    interactive = backend_registry.list_builtin(BackendFilter.INTERACTIVE)
+    return plt.get_backend().lower() in [b.lower() for b in interactive]
 
 '''
 MAIN MENU HANDLERS
@@ -211,9 +217,15 @@ def show_graph(state):
         plt.tight_layout()
         plt.savefig('graph.png')
 
-        print_notice('Graph saved as graph.png')
-
-        pause()
+        if can_show_window():
+            print_notice('Graph saved as graph.png. Close the graph window to continue...')
+            plt.show()  #Blocks until the graph window is closed
+            plt.close(figure)
+        else:
+            #No display (e.g. Docker without X11), so the graph can only be saved
+            plt.close(figure)
+            print_notice('No display found, graph saved as graph.png')
+            pause()
 
 '''
 Assessment History

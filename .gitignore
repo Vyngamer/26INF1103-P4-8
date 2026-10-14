@@ -1,3 +1,7 @@
+# Environment files
+.env
 env.txt
+
+# Python cache
 __pycache__/
 *.pyc
