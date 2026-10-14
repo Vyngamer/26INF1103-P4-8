@@ -192,46 +192,41 @@ def check_str_len(raw):
 def check_range(raw, min, max):
     return min <= raw <= max
 
-def check_choice(raw, choice_list):
-    return raw in choice_list
+def check_rating(raw):
+    return isinstance(raw, int) and check_range(raw, 1, 100)
 
-def check_level_rating(raw):
-    return isinstance(raw, int) and check_range(raw, 1, 10)
+def check_bool(raw):
+    return isinstance(raw, bool)
 
-def check_sleep_duration(raw):
-    return isinstance(raw, float) and check_range(raw, 0, 24)
-
-def check_mood(raw):
-    mood_list = ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]
-    return isinstance(raw, str) and check_choice(raw, mood_list)
-
-def check_reflection(raw):
+def check_recommendation(raw):
     return isinstance(raw, str) and check_str_len(raw)
 
-def validate_response(survey_data):
-    survey_validation_mapping = {
-        "sleep_duration": check_sleep_duration,
-        "stress_level": check_level_rating,
-        "focus_level": check_level_rating,
-        "academic_workload": check_level_rating,
-        "mood": check_mood,
-        "social_activity_level": check_level_rating,
-        "reflection": check_reflection 
-    }
+def validate_response(response_data):
+    validation_mapping = {
+            'burnout_risk_score': check_rating,
+            'crisis_alert': check_bool,
+            'mental_wellness_risk_score': check_rating,
+            'personalized_recommendations': check_recommendation,
+            'primary_stressor': check_recommendation,
+            'sentiment': check_recommendation
+            }
 
-
-    for key, validation_func in survey_validation_mapping.items():
-        if key not in survey_data:
+    for key, validation_func in validation_mapping.items():
+        if key not in response_data:
             return False
         
-        check = validation_func(survey_data[key])
+        check = validation_func(response_data[key])
         if not check:
             return False
 
     return True
 
 def parse_response(raw_interaction_object):
-    return json.loads(raw_interaction_object.output_text)
+    try: 
+        return json.loads(raw_interaction_object.output_text)
+    except Exception as e:
+        return {}
+    
 
 def generate_survey_response(survey_data, previous_interaction_id=None):
     """
@@ -250,8 +245,8 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
         contains the interactions.text_output property which is the response from the chosen chatbot
         contains the interactions.id property which shows the interaction id for stateful conversations.
     """
-    if not validate_response(survey_data):
-        return "Survey data is invalid!"
+    # if not validate_response(survey_data):
+    #     return "Survey data is invalid!"
 
     system_instruction, prompt = generate_prompt(survey_data)
 
@@ -273,6 +268,9 @@ def generate_survey_response(survey_data, previous_interaction_id=None):
 
     interaction = call_api(prompt, system_instruction, response_output_format, None)
 
+    if not validate_response(parse_response(interaction)):
+        return generate_survey_response(survey_data, previous_interaction_id=None)
+
     return interaction
 
 try:
@@ -282,7 +280,18 @@ except Exception as e:
 
 if __name__ == "__main__":
     variable = input('enter something')
-    print(generate_survey_response({}, None))
+
+    example_dict = {
+        "sleep_duration": 9.0,
+        "stress_level": 4,
+        "focus_level": 9,
+        "academic_workload": 9,
+        "mood": "Exhausted",
+        "social_activity_level": 1,
+        "reflection": "Loads of work"
+    }
+
+    print(parse_response(generate_survey_response(example_dict, None)))
 
     # develop error handling
     # develop test cases
