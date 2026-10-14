@@ -4,5 +4,6 @@ services:
     build:
       args:
         - GEMINI_API_KEY
+        - BACKUP_GEMINI_API_KEY
       context: .
       no_cache: true
