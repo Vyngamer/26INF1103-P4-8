@@ -50,7 +50,7 @@ We will create rules by combining user inputs and AI-generated outputs to identi
 | Cognitive Fatigue Risk | Focus Level | Sentiment Analysis | Focus Level ≤ 4 AND Sentiment = “Negative” |
 | Support Route | - | Crisis Alert, Mental Wellness Risk Score, Burnout Risk Score, Sentiment | Urgent support: Crisis Alert = True; Counsellor follow-up:  Mental Wellness Risk Tier = “High” OR two or more warning rules are triggered OR (Mental Wellness Risk Score ≥ 60 AND Burnout Risk Score ≥ 70 AND Sentiment = “Negative”); Self-care guidance: Neither of the conditions met |
 
-Additionally, we use the user’s previous assessments to compare the current attempt with their historical average, latest attempt, and recent trends. These comparisons generate display messages separately from the original warnings. They are not stored in the JSON file.
+Additionally, we use the user’s previous assessments to compare the current attempt with their historical average, latest attempt, and recent trends. These comparisons generate display messages will be in a list and is stored in the JSON file.
 
 | Rule | Current Data Used | Previous Data Used | Condition and Message |
 |---|---|---|---|
