@@ -109,7 +109,7 @@
             "focus_level": 3,
             "academic_workload": 10,
             "mood": "Anxious",
-            "social_activity_level": 2,
+            "social_activity_level": 7,
             "reflection": "I have several deadlines approaching and feel overwhelmed by the amount of work I need to complete. I struggle to concentrate and have been sleeping less than usual."
         },
         "ai_output": {
@@ -149,7 +149,7 @@
             "focus_level": 6,
             "academic_workload": 6,
             "mood": "Calm",
-            "social_activity_level": 5,
+            "social_activity_level": 6,
             "reflection": "My workload is manageable overall, although some days are more stressful than others. I am trying to balance studying with sufficient rest and time for myself."
         },
         "ai_output": {
@@ -185,7 +185,7 @@
             "focus_level": 2,
             "academic_workload": 8,
             "mood": "Exhausted",
-            "social_activity_level": 1,
+            "social_activity_level": 5,
             "reflection": "I have been sleeping very little and feel tired throughout the day. It is difficult to focus on my assignments, and I have been avoiding social activities because I feel overwhelmed."
         },
         "ai_output": {
@@ -215,36 +215,40 @@
         }
     },
     {
-        "record_id": "7a9cfde3-8a30-48fa-999c-f74f451cfc85",
-        "date": "14-10-2026",
-        "time": "16:18:51",
+        "record_id": "3d26c70e-8056-4332-a5c1-6a303d7ac992",
+        "date": "17-10-2026",
+        "time": "13:46:19",
         "user_input": {
             "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
-            "sleep_duration": 7.5,
-            "stress_level": 4,
-            "focus_level": 8,
-            "academic_workload": 5,
-            "mood": "Motivated",
-            "social_activity_level": 7,
-            "reflection": "I have started following a better sleep schedule and breaking assignments into smaller tasks. I feel more focused and have been reconnecting with friends, which makes managing my workload easier."
+            "sleep_duration": 6.0,
+            "stress_level": 9,
+            "focus_level": 5,
+            "academic_workload": 9,
+            "mood": "Exhausted",
+            "social_activity_level": 4,
+            "reflection": "I am really exhausted and sad and lonely"
         },
         "ai_output": {
-            "burnout_risk_score": 15,
+            "burnout_risk_score": 78,
             "crisis_alert": false,
-            "mental_wellness_risk_score": 10,
-            "personalized_recommendations": "It is excellent to see that your new strategies for task management and sleep hygiene are yielding positive results. Continue prioritizing these healthy habits and maintain your current social balance to sustain this productive momentum.",
-            "primary_stressor": "None",
-            "sentiment": "Positive"
+            "mental_wellness_risk_score": 75,
+            "personalized_recommendations": "It sounds like you are carrying a heavy burden right now, and it is completely valid to feel exhausted. Please prioritize getting an extra hour of restorative sleep tonight and try to reach out to one trusted friend or family member, as social connection can be a powerful antidote to feelings of loneliness.",
+            "primary_stressor": "Academic Workload",
+            "sentiment": "Negative"
         },
         "logic_output": {
-            "mental_wellness_risk_tier": "Low",
-            "warnings": [],
-            "route": "Self-care guidance",
-            "counselling_recommendation": false,
+            "mental_wellness_risk_tier": "High",
+            "warnings": [
+                "Burnout Warning (Workload)",
+                "Cognitive Fatigue Risk"
+            ],
+            "route": "Counsellor follow-up",
+            "counselling_recommendation": true,
             "display_messages": [
-                "You slept 2.00 hours more than your average.",
+                "You slept less than 7 hours. Try to get more sleep.",
+                "You slept 0.50 hours more than your average.",
+                "Your social activity has dropped across four consecutive attempts. Try connecting with others.",
                 "Your focus level has improved since your last attempt. Keep it up!",
-                "Your mental wellness risk score has improved since your last attempt. Keep it up!",
                 "Your burnout risk score has improved since your last attempt. Keep it up!"
             ]
         }
