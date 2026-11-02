@@ -32,3 +32,29 @@ class GeminiClient:
         })
 
         return interaction
+
+class AICounsellor(GeminiClient):
+    def __init__(self, model, system_instruction, response_json_format):
+
+        # missing parameters
+        super().__init__(model, system_instruction, response_json_format)
+    
+    def generate_prompt(self, survey_data):
+        survey_data = json.dumps(survey_data)
+
+        prompt = [
+                {"type": "text", "text": survey_data},
+        ]
+
+        return prompt
+    
+    def generate_survey_response(self, survey_data):
+        prompt = self.generate_prompt(survey_data)
+
+        interaction = call_api(prompt, self._system_instruction, self._response_output_format, None)
+
+        # modularize this part
+        if not validate_response(parse_response(interaction)):
+            return generate_survey_response(survey_data, previous_interaction_id=None)
+
+        return interaction
