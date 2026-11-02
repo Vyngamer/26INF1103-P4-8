@@ -22,6 +22,12 @@ class APIResult(Generic[TypeVar('T'), TypeVar('E')]):
     def fail(cls, error):
         return cls(success=False, error=error)
 
+@dataclass
+class GeminiErrorDetails:
+    message: str
+    code: Optional[str] = None
+    exception_type: str = "UnknownException"
+
 
 class GeminiClient:
     def __init__(self, model, system_instruction, response_json_format):
