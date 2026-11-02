@@ -1,4 +1,4 @@
-from dataclass import dataclass
+from dataclasses import dataclass
 from typing import Generic, TypeVar, Optional, Any
 from google import genai
 from io_manager import print_error, print_notice
@@ -19,40 +19,53 @@ class APIResult(Generic[TypeVar('T'), TypeVar('E')]):
     def ok(cls, data):
         return cls(success=True, data=data)
 
+    @classmethod
     def fail(cls, error):
         return cls(success=False, error=error)
 
-
-@dataclass
-class GeminiErrorDetails:
-    message: str
-    code: Optional[str] = None
-    exception_type: str = "UnknownException"
-
-
 class GeminiClient:
-    def __init__(self, model, system_instruction, response_json_format):
+    def __init__(self, model, system_instruction=None, response_json_format=None):
         self._model = model
         self._system_instruction = system_instruction
         self._response_json_format = response_json_format
         self._client = None
+        self._previous_interaction_id = None
     
-    def connect_client():
+    def connect_client(self):
         self._client = genai.Client()
 
-    def call_api(self, prompt, system_instruction, previous_interaction_id, response_output_format):
-        interaction = self.__client.interactions.create(
-            model=self._model,
-            input=prompt,
-            system_instruction=system_instruction,
-            previous_interaction_id=previous_interaction_id,
-            response_format={
-            "type": "text",
-            "mime_type": "application/json",
-            "schema": response_output_format
-        })
+    def generate_response_format(self, json_response_format):
+        response_format = None
 
-        return interaction
+        if self._response_json_format:
+            response_format = {
+                    "type": "text",
+                    "mime_type": "application/json",
+                    "schema": self._response_output_format
+                }
+
+        return response_format
+
+    def set_previous_interaction_id(self, id):
+        self._previous_interaction_id = id
+
+    def call_api(self, prompt):
+        response_format = self.generate_response_format(self._response_json_format)
+
+        try: 
+            interaction = self._client.interactions.create(
+                    model=self._model,
+                    input=prompt,
+                    system_instruction=self._system_instruction,
+                    previous_interaction_id=self._previous_interaction_id,
+                    response_format=response_format
+                )
+            
+            self._previous_interaction_id = interaction.id
+            return APIResult.ok(interaction.output_text)
+
+        except Exception as e:
+            return APIResult.fail(e)
 
 
 class AICounsellor(GeminiClient):
@@ -135,3 +148,4 @@ class APIErrorHandler:
                 print_error("Both API keys unavailable...")
                 raise e
         
+
