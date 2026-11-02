@@ -9,6 +9,20 @@ import google
 from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
 
 
+@dataclass(frozen=True)
+class APIResult(Generic[TypeVar('T'), TypeVar('E')]):
+    success: bool
+    data: Optional[T] = None
+    error: Optional[E] = None
+
+    @classmethod
+    def ok(cls, data):
+        return cls(success=True, data=data)
+
+    def fail(cls, error):
+        return cls(success=False, error=error)
+
+
 class GeminiClient:
     def __init__(self, model, system_instruction, response_json_format):
         self._model = model
