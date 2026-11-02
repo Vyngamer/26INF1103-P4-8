@@ -7,7 +7,7 @@ import os
 import json
 import google
 from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
-
+from ai_manager_helper import general_error_handler, backup_model_retry, failed_network_handler, failed_api_key_handler
 
 @dataclass(frozen=True)
 class APIResult(Generic[TypeVar('T'), TypeVar('E')]):
@@ -31,6 +31,8 @@ class GeminiClient:
         self._client = None
         self._previous_interaction_id = None
     
+    @general_error_handler
+    @failed_api_key_handler
     def connect_client(self):
         self._client = genai.Client()
 
@@ -49,6 +51,10 @@ class GeminiClient:
     def set_previous_interaction_id(self, id):
         self._previous_interaction_id = id
 
+    @general_error_handler
+    @backup_model_retry
+    @failed_api_key_handler
+    @failed_network_handler
     def call_api(self, prompt):
         response_format = self.generate_response_format(self._response_json_format)
 
@@ -93,59 +99,4 @@ class AICounsellor(GeminiClient):
             return generate_survey_response(survey_data, previous_interaction_id=None)
 
         return interaction
-
-
-class APIErrorHandler:
-    def __init__(self, arg):
-        self._arg = arg
-        self._memory = []
-
-    def __call__(self):
-        pass
-
-    def memory(self):
-        return self._memory
-
-    def catch_general_error(*args, **kwargs):
-        try:
-            return base_api_call_func(*args, **kwargs)
-        except Exception as e:
-            print_error("No AI functionality.")
-            raise e
-
-    def retry_api_call(*args, **kwargs):
-        try: 
-            return base_api_call_func(*args, **kwargs)
-        except NotFoundError as e:
-            print_error("An error occured.")
-            print_notice("Retrying with secondary model...")
-
-            try:
-                kwargs['model'] = backup_model
-                return base_api_call_func(*args, **kwargs)
-            except NotFoundError as e: 
-                print_error("Both models unavailable.")
-                raise e
-    
-    def failed_network_notice(*args, **kwargs):
-        try:
-            return base_api_call_func(*args, **kwargs)
-        except APIConnectionError as e:
-
-            print_error("Network connection error. Please check that you are connected to the internet.")
-            raise e
-
-    def api_key_fallback(*args, **kwargs):
-        try:
-            return base_api_call_func(*args, **kwargs)    
-        except ValueError as e:
-            print_error("Primary key failed... Switching to alternate key")
-            
-            os.environ["GEMINI_API_KEY"] = os.getenv("BACKUP_GEMINI_API_KEY")
-            try:
-                return base_api_call_func(*args, **kwargs) 
-            except ValueError as e:
-                print_error("Both API keys unavailable...")
-                raise e
-        
 
