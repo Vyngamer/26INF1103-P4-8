@@ -1,10 +1,29 @@
-from ai_manager_refactor import GeminiClient
+from ai_manager_refactor import AICounsellor, EntityExtraction
 
-model = "gemini-3.1-flash-lite" 
-system_instruction = ""
+print("\nLoading...\n")
 
-client = GeminiClient(model, system_instruction)
+client = AICounsellor()
+entity_extraction = EntityExtraction()
 
-print(client.connect_client())
+client.connect_client()
+entity_extraction.connect_client()
 
-# print(client.call_api("Hello!"))
+print(client.call_api("Hello!"))
+
+s = ''
+while True:
+    prompt = input("Enter prompt:\n\t")
+    s = s + prompt + '\n'
+
+    print("\nLoading response...\n")
+
+    json_response = entity_extraction.call_api(s).data
+    s = s + json_response + '\n'
+    
+    print(json_response)
+    print()
+    
+    chat_response = client.call_api(prompt).data
+    s = s + chat_response + '\n'
+
+    print(chat_response)

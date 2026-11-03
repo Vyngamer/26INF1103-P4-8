@@ -1,11 +1,13 @@
 from google import genai
-from io_manager import print_error, print_notice
 import sys
 import os
 import json
 import google
 from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
 
+"""
+("Error code: 503 - {'error': {'message': 'gemini-3.1-flash-lite is currently experiencing high demand, spikes in demand are usually temporary. Please try again later.', 'code': 'service_unavailable'}}"
+"""
 
 # decorator which handles general errors after all other error handlers
 def general_error_handler(base_api_call_func):
@@ -13,7 +15,7 @@ def general_error_handler(base_api_call_func):
         try:
             return base_api_call_func(*args, **kwargs)
         except Exception as e:
-            print_error("No AI functionality.")
+            print("No AI functionality.")
             raise e
 
     return catch_general_error
@@ -24,14 +26,14 @@ def backup_model_retry(base_api_call_func):
         try: 
             return base_api_call_func(*args, **kwargs)
         except NotFoundError as e:
-            print_error("An error occured.")
-            print_notice("Retrying with secondary model...")
+            print("An error occured.")
+            print("Retrying with secondary model...")
 
             try:
                 kwargs['model'] = backup_model
                 return base_api_call_func(*args, **kwargs)
             except NotFoundError as e: 
-                print_error("Both models unavailable.")
+                print("Both models unavailable.")
                 raise e
     
     return retry_api_call
@@ -43,7 +45,7 @@ def failed_network_handler(base_api_call_func):
             return base_api_call_func(*args, **kwargs)
         except APIConnectionError as e:
 
-            print_error("Network connection error. Please check that you are connected to the internet.")
+            print("Network connection error. Please check that you are connected to the internet.")
             raise e
     return failed_network_notice
 
@@ -53,13 +55,13 @@ def failed_api_key_handler(base_api_call_func):
         try:
             return base_api_call_func(*args, **kwargs)    
         except ValueError as e:
-            print_error("Primary key failed... Switching to alternate key")
+            print("Primary key failed... Switching to alternate key")
             
             os.environ["GEMINI_API_KEY"] = os.getenv("BACKUP_GEMINI_API_KEY")
             try:
                 return base_api_call_func(*args, **kwargs) 
             except ValueError as e:
-                print_error("Both API keys unavailable...")
+                print("Both API keys unavailable...")
                 raise e
         
     return api_key_fallback
