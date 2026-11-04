@@ -40,7 +40,7 @@ class MongoDBStorage:
 
     # Retrievs all assessment records from MongoDB
     def load(self):
-        try
+        try:
             records = self.__collection.find(
                 {},
                 {"_id": 0}
@@ -51,6 +51,17 @@ class MongoDBStorage:
         except PyMongoError as error:
             print(f"Error loading records: {error}")
             return []
+
+    # Insert an assessment record into MongoDB
+    def save(self, record):
+        try:
+            self.__collection.insert_one(record)
+            return True
+
+        except PyMongoError as error:
+            print(f"Error saving record: {error}")
+            return False
+
 
 
 
