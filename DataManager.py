@@ -138,14 +138,17 @@ class DataManager:
         
         return self.__records
         
-    # Save all assessment objects into JSON
-    def save_records(self):
-        records_data = []
+    # Save a new assessment record
+    def save(self, record):
+        record_data = record.to_dict()
 
-        for record in self.__records:
-            records_data.append(record.to_dict())
+        success = self.__storage.save(record_data)
 
-        return self.__collection.save(records_data)
+        if success:
+            self.__records.append(record)
+            return True
+
+        return False
 
     # Merge outputs from the different managers
     def merge_record(self, user_input, ai_output, logic_output):
