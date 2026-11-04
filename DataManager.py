@@ -5,7 +5,6 @@ from zoneinfo import ZoneInfo
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import PyMongoError
 from dotenv import load_dotenv
-import json
 
 # Load environment variables
 load_dotenv()
@@ -36,24 +35,21 @@ project_db = client["student_wellbeing_db"]
 assessment_records = project_db["assessment_records"]
 
 class MongoDBStorage:
+
     def __init__(self, collection):
         self.__collection = collection
 
-    # Retrievs all assessment records from MongoDB
+    # Load all assessment records
     def load(self):
         try:
-            records = self.__collection.find(
-                {},
-                {"_id": 0}
-            )
-
-            return list(records)
+            documents = self.__collection.find({}, {"_id": 0})
+            return list(documents)
 
         except PyMongoError as error:
             print(f"Error loading records: {error}")
             return []
 
-    # Insert an assessment record into MongoDB
+    # Save a new assessment record
     def save(self, record):
         try:
             self.__collection.insert_one(record)
@@ -61,6 +57,24 @@ class MongoDBStorage:
 
         except PyMongoError as error:
             print(f"Error saving record: {error}")
+            return False
+
+    # Replace today's assessment record for a user
+    def replace_today(self, user_id, today, new_record):
+        try:
+            self.__collection.replace_one(
+                {
+                    "user_input.user_id": user_id,
+                    "date": today
+                },
+                new_record,
+                upsert=True
+            )
+
+            return True
+
+        except PyMongoError as error:
+            print(f"Error replacing assessment record: {error}")
             return False
 
 class AssessmentRecord:
@@ -275,45 +289,6 @@ class DataManager:
                 })
 
         return previous_attempts
-
-
-
-class JSONStorage:
-    def __init__(self, filename):
-        self.__filename = filename
-
-    # Load data from JSON file
-    def load(self):
-        if os.path.exists(self.__filename):
-            try:
-                with open(self.__filename, "r") as file:
-                    records = json.load(file)
-
-                if not isinstance(records, list):
-                    raise ValueError("JSON file must contain a list.")
-
-                return records
-
-            except (json.JSONDecodeError, OSError, ValueError) as error:
-                print(f"Error loading JSON file: {error}")
-                return None
-
-        else:
-            # Create an empty JSON file if it does not exist
-            self.save([])
-            return []
-
-     # Save data into JSON file
-    def save(self, records):
-        try:
-            with open(self.__filename, "w") as file:
-                json.dump(records, file, indent=4)
-
-            return True
-
-        except (OSError, TypeError) as error:
-            print(f"Error saving JSON file: {error}")
-            return False
 
      
 
