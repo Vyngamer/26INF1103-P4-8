@@ -7,7 +7,7 @@ import os
 import json
 import google
 from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
-from ai_manager_helper import general_error_handler, backup_model_retry, failed_network_handler, failed_api_key_handler
+from ai_error_handler import APIErrorHandler
 
 @dataclass(frozen=True)
 class APIResult(Generic[TypeVar('T'), TypeVar('E')]):
@@ -25,13 +25,14 @@ class APIResult(Generic[TypeVar('T'), TypeVar('E')]):
 
 
 class SurveyEntitySchema(BaseModel):
-    sleep_duration: int = Field(description="Average daily sleep hours over past week (0-24), The user had {sleep} hours of sleep")
-    stress_level: int = Field(description="Current stress (1 = Very Low, 10 = Very High), the user's stress level is {stress} out of 10")
-    focus_level: int = Field(description="Ability to concentrate (1 = Very Poor, 5 = Excellent), the user's focus level is {focus} out of 10")
-    academic_workload: int = Field(description="Coursework load (1 = Light, 10 = Very Heavy), the user's academic workload is {workload} out of 10")
+    sleep_duration: int = Field(gte=-1, lte=24, description="Average daily sleep hours over past week (0-24), The user had {sleep} hours of sleep")
+    stress_level: int = Field(gte=-1, lte=10, description="Current stress (1 = Very Low, 10 = Very High), the user's stress level is {stress} out of 10")
+    focus_level: int = Field(gte=-1, lte=5, description="Ability to concentrate (1 = Very Poor, 5 = Excellent), the user's focus level is {focus} out of 10")
+    academic_workload: int = Field(gte=-1, lte=10, description="Coursework load (1 = Light, 10 = Very Heavy), the user's academic workload is {workload} out of 10")
     mood: Literal['Motivated', 'Calm', 'Anxious', 'Sad', 'Exhausted', 'Undefined'] = \
             Field(description="Emotional state, the user's mood is {mood}")
-    social_activity_level: int = Field(description="Engagement level (1 = Isolated, 10 = Very Social), the user's social activity level is {social} out of 10")
+    social_activity_level: int = \
+            Field(gte=-1, lte=10, description="Engagement level (1 = Isolated, 10 = Very Social), the user's social activity level is {social} out of 10")
     reflection: str = Field(description="Free-response text capturing personal thoughts/concerns, the user's reflection text is {reflection}.")
     text: str = Field(description="A question to prompt the user on any of these fields.")
 
@@ -44,11 +45,6 @@ class GeminiClient:
         self._client = None
         self._previous_interaction_id = None
     
-    @general_error_handler
-    @failed_api_key_handler
-    def connect_client(self):
-        self._client = genai.Client()
-
     def generate_response_format(self, json_response_format):
         response_format = None
 
@@ -64,10 +60,15 @@ class GeminiClient:
     def set_previous_interaction_id(self, id):
         self._previous_interaction_id = id
 
-    @general_error_handler
-    @backup_model_retry
-    @failed_api_key_handler
-    @failed_network_handler
+    @APIErrorHandler.general_error_handler
+    @APIErrorHandler.failed_api_key_handler
+    def connect_client(self):
+        self._client = genai.Client()
+
+    @APIErrorHandler.general_error_handler
+    @APIErrorHandler.backup_model_retry
+    @APIErrorHandler.failed_api_key_handler
+    @APIErrorHandler.failed_network_handler
     def call_api(self, prompt):
         response_format = self.generate_response_format(self._response_json_format)
 
@@ -110,9 +111,8 @@ class AICounsellor(GeminiClient):
                 You are to be affable, kind, and conversational when conducting this survey.
 
                 Identify the entities defined in the response json format and do not guess. If the user is not clear
-                in any of the data fields then leave 'None' in those fields. For example, if the user mentions that 
-                he/she only had 5 hours of sleep on average, then only fill in the json response for sleep duration
-                and leave the rest of the fields blank with nil.
+                in any of the data fields then do not change the fields. For example, if the user mentions that 
+                he/she only had 5 hours of sleep on average, then only fill in the json response for sleep duration.
 
                 The fields are quantitative, so only fill them in when the user explicitly states the field value. If 
                 the user vaguely answers the questions without providing a valid data value then re-prompt the question.
@@ -120,6 +120,7 @@ class AICounsellor(GeminiClient):
                 Strictly adhere to the range stated within the fields. If the user uses hyperbole then default to the 
                 corresponding end of the range.
             """
+
         model = "gemini-3.5-flash-lite"
 
         response_json_format = SurveyEntitySchema.model_json_schema()
