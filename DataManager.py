@@ -34,6 +34,26 @@ except PyMongoError as error:
 project_db = client["student_wellbeing_db"]
 assessment_records = project_db["assessment_records"]
 
+class MongoDBStorage:
+    def __init__(self, collection):
+        self.__collection = collection
+
+    # Retrievs all assessment records from MongoDB
+    def load(self):
+        try
+            records = self.__collection.find(
+                {},
+                ("_id": 0)
+            )
+
+            return list(records)
+
+        except PyMongoError as error:
+            print(f"Error loading records: {error}")
+            return []
+
+
+
 
 
 
