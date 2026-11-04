@@ -111,49 +111,9 @@ class AssessmentRecord:
             "logic_output": self.__logic_output
         }
 
-class JSONStorage:
-    def __init__(self, filename):
-        self.__filename = filename
-
-    # Load data from JSON file
-    def load(self):
-        if os.path.exists(self.__filename):
-            try:
-                with open(self.__filename, "r") as file:
-                    records = json.load(file)
-
-                if not isinstance(records, list):
-                    raise ValueError("JSON file must contain a list.")
-
-                return records
-
-            except (json.JSONDecodeError, OSError, ValueError) as error:
-                print(f"Error loading JSON file: {error}")
-                return None
-
-        else:
-            # Create an empty JSON file if it does not exist
-            self.save([])
-            return []
-
-     # Save data into JSON file
-    def save(self, records):
-        try:
-            with open(self.__filename, "w") as file:
-                json.dump(records, file, indent=4)
-
-            return True
-
-        except (OSError, TypeError) as error:
-            print(f"Error saving JSON file: {error}")
-            return False
-
-     
-
-
 class DataManager:
-    def __init__(self, filename):
-        self.__storage = JSONStorage(filename)
+    def __init__(self, collection):
+        self.__storage = MongoDBStorage(collection)
         self.__records = []
 
         # Load existing assessment records
@@ -161,27 +121,23 @@ class DataManager:
 
     # Load records from JSON and convert them into objects
     def load_records(self):
-        records = self.__storage.load()
+        documents = self.__storage.load()
 
-        if records is None:
-            return False
+        for document in documents:
 
-        self.__records = []
-
-        for record in records:
-            assessment = AssessmentRecord(
-                record.get("user_input", {}),
-                record.get("ai_output", {}),
-                record.get("logic_output", {}),
-                record.get("record_id"),
-                record.get("date"),
-                record.get("time")
+            record = AssessmentRecord(
+                user_input=document["user_input"],
+                ai_output=document["ai_output"],
+                logic_output=document["logic_output"],
+                record_id=document["record_id"],
+                date=document["date"],
+                time=document["time"]
             )
 
-            self.__records.append(assessment)
-
-        return True
-
+            self.__records.append(record)
+        
+        return self.__records
+        
     # Save all assessment objects into JSON
     def save_records(self):
         records_data = []
@@ -189,7 +145,7 @@ class DataManager:
         for record in self.__records:
             records_data.append(record.to_dict())
 
-        return self.__storage.save(records_data)
+        return self.__collection.save(records_data)
 
     # Merge outputs from the different managers
     def merge_record(self, user_input, ai_output, logic_output):
@@ -316,3 +272,47 @@ class DataManager:
                 })
 
         return previous_attempts
+
+
+
+class JSONStorage:
+    def __init__(self, filename):
+        self.__filename = filename
+
+    # Load data from JSON file
+    def load(self):
+        if os.path.exists(self.__filename):
+            try:
+                with open(self.__filename, "r") as file:
+                    records = json.load(file)
+
+                if not isinstance(records, list):
+                    raise ValueError("JSON file must contain a list.")
+
+                return records
+
+            except (json.JSONDecodeError, OSError, ValueError) as error:
+                print(f"Error loading JSON file: {error}")
+                return None
+
+        else:
+            # Create an empty JSON file if it does not exist
+            self.save([])
+            return []
+
+     # Save data into JSON file
+    def save(self, records):
+        try:
+            with open(self.__filename, "w") as file:
+                json.dump(records, file, indent=4)
+
+            return True
+
+        except (OSError, TypeError) as error:
+            print(f"Error saving JSON file: {error}")
+            return False
+
+     
+
+
+
