@@ -7,33 +7,32 @@ import hashlib
 import hmac
 import os
 
+class PasswordHasher:
+    ALGORITHM = "pbkdf2"
+    ITERATIONS = 600_000
+    SALT_BYTES = 16  
 
-ALGORITHM = "pbkdf2"
-ITERATIONS = 600_000
+    def __init__(self, iterations=ITERATIONS):
+        self.iterations = iterations
 
-def _derive(password, salt, iterations):
-    return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations)
+    @staticmethod
+    def _derive(password, salt, iterations):
+        return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations)
 
-#Password Hashing (new random salt every time)
-def hash_password(password):
-    salt = os.urandom(16)
-    digest = _derive(password, salt, ITERATIONS)
-    return f"{ALGORITHM}${ITERATIONS}${salt.hex()}${digest.hex()}"
+    #Password Hashing (new random salt every time)
+    def hash(self, password):
+        salt = os.urandom(self.SALT_BYTES)
+        digest = self._derive(password, salt, self.iterations)
+        return f"{self.ALGORITHM}${self.iterations}${salt.hex()}${digest.hex()}"
 
-#Check a password against a stored hash (new or legacy format)
-def verify_password(password, stored):
-    if stored.startswith(ALGORITHM + "$"):
+    #Check a plain-text password against a stored hash
+    def verify(self, password, stored):
         try:
-            _, iterations, salt_hex, digest_hex = stored.split("$")
-            actual = _derive(password, bytes.fromhex(salt_hex), int(iterations))
+            algorithm, iterations, salt_hex, digest_hex = stored.split("$")
+            if algorithm != self.ALGORITHM:
+                return False
+            actual = self._derive(password, bytes.fromhex(salt_hex), int(iterations))
             expected = bytes.fromhex(digest_hex)
-        except ValueError:
+        except (ValueError, OverflowError):
             return False
         return hmac.compare_digest(actual, expected)
-    #Legacy unsalted SHA-256
-    legacy = hashlib.sha256(password.encode("utf-8")).hexdigest()
-    return hmac.compare_digest(legacy.encode(), stored.encode())
-
-#True if the stored hash is still in the old format
-def needs_upgrade(stored):
-    return not stored.startswith(ALGORITHM + "$")
