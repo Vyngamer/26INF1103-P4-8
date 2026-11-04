@@ -126,6 +126,7 @@ class AssessmentRecord:
         }
 
 class DataManager:
+
     def __init__(self, collection):
         self.__storage = MongoDBStorage(collection)
         self.__records = []
@@ -133,9 +134,11 @@ class DataManager:
         # Load existing assessment records
         self.load_records()
 
-    # Load records from JSON and convert them into objects
+    # Load records from MongoDB and convert them into objects
     def load_records(self):
         documents = self.__storage.load()
+
+        self.__records = []
 
         for document in documents:
 
@@ -149,11 +152,15 @@ class DataManager:
             )
 
             self.__records.append(record)
-        
+
         return self.__records
-        
+
     # Save a new assessment record
     def save(self, record):
+
+        if not isinstance(record, AssessmentRecord):
+            return False
+
         record_data = record.to_dict()
 
         success = self.__storage.save(record_data)
@@ -166,27 +173,25 @@ class DataManager:
 
     # Merge outputs from the different managers
     def merge_record(self, user_input, ai_output, logic_output):
-        return AssessmentRecord(user_input, ai_output, logic_output)
 
-    # Save a new assessment record
-    def save(self, record):
-        if not isinstance(record, AssessmentRecord):
-            return False
+        return AssessmentRecord(
+            user_input,
+            ai_output,
+            logic_output
+        )
 
-        self.__records.append(record)
+    # Get all assessment records
+    def get_records(self):
 
-        if self.save_records():
-            return True
-
-        # Remove the record if saving fails
-        self.__records.pop()
-        return False
+        return self.__records
 
     # Get assessment records belonging to a user
     def get_user_records(self, user_id):
+
         user_records = []
 
         for record in self.__records:
+
             user_input = record.get_user_input()
 
             if user_input.get("user_id") == user_id:
@@ -203,8 +208,9 @@ class DataManager:
 
         return user_records
 
-    # Get the latest assessment record
+    # Get the latest assessment record for a user
     def get_latest_user_record(self, user_id):
+
         records = self.get_user_records(user_id)
 
         if records:
@@ -214,24 +220,39 @@ class DataManager:
 
     # Get selected assessment information for a user
     def get_user_int_records(self, records, user_id):
+
         user_records = []
 
         for record in records:
+
             user_input = record.get_user_input()
             ai_output = record.get_ai_output()
 
             if user_input.get("user_id") == user_id:
+
                 user_records.append({
                     "date": record.get_date(),
-                    "sleep_duration": user_input.get("sleep_duration"),
-                    "focus_level": user_input.get("focus_level"),
-                    "stress_level": user_input.get("stress_level"),
+
+                    "sleep_duration": user_input.get(
+                        "sleep_duration"
+                    ),
+
+                    "focus_level": user_input.get(
+                        "focus_level"
+                    ),
+
+                    "stress_level": user_input.get(
+                        "stress_level"
+                    ),
+
                     "social_activity_level": user_input.get(
                         "social_activity_level"
                     ),
+
                     "mental_wellness_risk_score": ai_output.get(
                         "mental_wellness_risk_score"
                     ),
+
                     "burnout_risk_score": ai_output.get(
                         "burnout_risk_score"
                     )
@@ -241,48 +262,71 @@ class DataManager:
 
     # Replace today's assessment record for a user
     def replace_user_record(self, user_id, record):
+
         if not isinstance(record, AssessmentRecord):
             return False
-
-        today = datetime.now().strftime("%d-%m-%Y")
-
-        updated_records = []
-
-        for existing_record in self.__records:
-            user_input = existing_record.get_user_input()
-
-            # Keep records belonging to other users or other dates
-            if not (
-                user_input.get("user_id") == user_id
-                and existing_record.get_date() == today
-            ):
-                updated_records.append(existing_record)
 
         # Check that the replacement belongs to the correct user
         if record.get_user_input().get("user_id") != user_id:
             return False
 
-        old_records = self.__records
-        self.__records = updated_records
-        self.__records.append(record)
+        # Get today's date in Singapore timezone
+        today = datetime.now(
+            ZoneInfo("Asia/Singapore")
+        ).strftime("%d-%m-%Y")
 
-        if self.save_records():
+        # Ensure the replacement record is dated today
+        if record.get_date() != today:
+            return False
+
+        # Convert the assessment object into a dictionary
+        record_data = record.to_dict()
+
+        # Replace the existing MongoDB document
+        success = self.__storage.replace_today(
+            user_id,
+            today,
+            record_data
+        )
+
+        if success:
+
+            updated_records = []
+
+            for existing_record in self.__records:
+
+                user_input = existing_record.get_user_input()
+
+                # Keep records belonging to other users or dates
+                if not (
+                    user_input.get("user_id") == user_id
+                    and existing_record.get_date() == today
+                ):
+                    updated_records.append(existing_record)
+
+            updated_records.append(record)
+
+            self.__records = updated_records
+
             return True
 
-        # Restore original records if saving fails
-        self.__records = old_records
         return False
 
     # Get previous assessment attempts
     def get_previous_attempts(self, user_id):
+
         records = self.get_user_records(user_id)
 
-        today = datetime.now().strftime("%d-%m-%Y")
+        today = datetime.now(
+            ZoneInfo("Asia/Singapore")
+        ).strftime("%d-%m-%Y")
 
         previous_attempts = []
 
         for record in records:
+
             if record.get_date() != today:
+
                 previous_attempts.append({
                     **record.get_user_input(),
                     **record.get_ai_output()
