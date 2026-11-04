@@ -43,7 +43,7 @@ class MongoDBStorage:
         try
             records = self.__collection.find(
                 {},
-                ("_id": 0)
+                {"_id": 0}
             )
 
             return list(records)
