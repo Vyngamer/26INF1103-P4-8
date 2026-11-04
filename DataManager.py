@@ -334,7 +334,162 @@ class DataManager:
 
         return previous_attempts
 
-     
+
+if __name__ == "__main__":
+
+    print("\n========== DATA MANAGER TESTING ==========\n")
+
+    # Initialise DataManager
+    data_manager = DataManager(assessment_records)
+
+    # ----------------------------------
+    # 1. Test load_records()
+    # ----------------------------------
+    print("1. Testing load_records()")
+
+    records = data_manager.load_records()
+
+    print("Total records loaded:", len(records))
 
 
+    # ----------------------------------
+    # 2. Test merge_record()
+    # ----------------------------------
+    print("\n2. Testing merge_record()")
 
+    user_input =  {
+            "user_id": "1",
+            "sleep_duration": 1.0,
+            "stress_level": 1,
+            "focus_level": 1,
+            "academic_workload": 1,
+            "mood": "Motivated",
+            "social_activity_level": 1,
+            "reflection": "sad"
+            }
+    
+    ai_output = {
+            "burnout_risk_score": 50,
+            "crisis_alert": True,
+            "mental_wellness_risk_score": 85,
+            "personalized_recommendations": "Your sleep duration of only one hour is critically low and poses an immediate danger to your physical and cognitive health. Please prioritize immediate rest or contact a medical professional, as your current level of sleep deprivation is unsustainable and requires urgent attention.",
+            "primary_stressor": "Sleep Deprivation",
+            "sentiment": "Neutral"
+            }
+    
+    logic_output = {
+            "mental_wellness_risk_tier": "High",
+            "warnings": [],
+            "route": "Urgent support",
+            "counselling_recommendation": True,
+            "display_messages": [
+                "You slept less than 7 hours. Try to get more sleep."
+            ]
+            }
+
+    record = data_manager.merge_record(
+        user_input,
+        ai_output,
+        logic_output
+    )
+
+    print("Record created:", record.to_dict())
+
+
+    # ----------------------------------
+    # 3. Test save()
+    # ----------------------------------
+    print("\n3. Testing save()")
+
+    success = data_manager.save(record)
+
+    print("Record saved:", success)
+
+
+    # ----------------------------------
+    # 4. Test get_records()
+    # ----------------------------------
+    print("\n4. Testing get_records()")
+
+    all_records = data_manager.get_records()
+
+    print("Total records:", len(all_records))
+
+
+    # ----------------------------------
+    # 5. Test get_user_records()
+    # ----------------------------------
+    print("\n5. Testing get_user_records()")
+
+    user_records = data_manager.get_user_records("1")
+
+    print("User records:", len(user_records))
+
+
+    # ----------------------------------
+    # 6. Test get_latest_user_record()
+    # ----------------------------------
+    print("\n6. Testing get_latest_user_record()")
+
+    latest_record = data_manager.get_latest_user_record(
+        "1"
+    )
+
+    if latest_record:
+        print("Latest record:", latest_record.to_dict())
+    else:
+        print("No records found.")
+
+
+    # ----------------------------------
+    # 7. Test get_user_int_records()
+    # ----------------------------------
+    print("\n7. Testing get_user_int_records()")
+
+    selected_records = data_manager.get_user_int_records(
+        all_records,
+        "1"
+    )
+
+    print("Selected assessment information:")
+    print(selected_records)
+
+
+    # ----------------------------------
+    # 8. Test replace_user_record()
+    # ----------------------------------
+    print("\n8. Testing replace_user_record()")
+
+    updated_user_input = {
+        **user_input,
+        "stress_level": 2,
+        "reflection": "Feeling less stressed today."
+    }
+
+    updated_record = data_manager.merge_record(
+        updated_user_input,
+        ai_output,
+        logic_output
+    )
+
+    success = data_manager.replace_user_record(
+        "1",
+        updated_record
+    )
+
+    print("Record replaced:", success)
+
+
+    # ----------------------------------
+    # 9. Test get_previous_attempts()
+    # ----------------------------------
+    print("\n9. Testing get_previous_attempts()")
+
+    previous_attempts = data_manager.get_previous_attempts(
+        "1"
+    )
+
+    print("Previous attempts:", previous_attempts)
+
+
+    print("\n========== TESTING COMPLETED ==========")
