@@ -1,9 +1,41 @@
-import json
-import os
-from datetime import datetime
 import os
 import uuid
-from pathlib import Path
+from datetime import datetime, timezone
+from pymongo import MongoClient, ASCENDING
+from pymongo.errors import PyMongoError
+from dotenv import load_dotenv
+import json
+
+# Load environment variables
+load_dotenv()
+
+# Retrieve MongoDB connection string
+MONGODB_URI = os.getenv("MONGODB_URI")
+
+if not MONGODB_URI:
+    raise ValueError("MONGODB_URI is missing from .env")
+
+# Connect to MongoDB Atlas
+client = MongoClient(
+    MONGODB_URI,
+    serverSelectionTimeoutMS=5000
+)
+
+# Test connection
+try:
+    client.admin.command("ping")
+    print("Successfully connected to MongoDB Atlas!")
+
+except PyMongoError as error:
+    client.close()
+    raise ConnectionError(f"MongoDB connection failed: {error}")
+
+# Select database and collection
+project_db = client["student_wellbeing_db"]
+assessment_records = project_db["assessment_records"]
+
+
+
 
 class JSONStorage:
     def __init__(self, filename):
@@ -42,30 +74,7 @@ class JSONStorage:
             print(f"Error saving JSON file: {error}")
             return False
 
-     def JSONbackup(self, max_backup = 3):
-        path = Path(self.__filename)
-        
-        if not path.is_file():
-            raise FileNotFoundError(f"Source file is not found: {self.__filename} ")
-        
-        backup_folder = path.parent / "Backup"
-        backup_folder.mkdir(parents=True, exist_ok=True)
-        
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_name = f"{path.stem}_backup_{timestamp}{path.suffix}"
-        backup_path = backup_folder / backup_name
-        
-        shutil,copy2(path, backup_path)
-        
-        backup_pattern = f"{path.stem}_backup_*{path.suffix}"
-        backup_files = list(backup_folder.glob(backup_pattern))
-        backup_files.sort(key=lambda file: file.name, reverse=True)
-
-        for old_backup in backup_files[max_backups:]:
-            old_backup.unlink()
-
-        return str(backup_path)
-
+     
 class AssessmentRecord:
     def __init__(self, user_input, ai_output, logic_output, record_id=None, date=None, time=None):
         now = datetime.now()
