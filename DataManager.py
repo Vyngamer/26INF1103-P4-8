@@ -1,6 +1,7 @@
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import PyMongoError
 from dotenv import load_dotenv
@@ -62,53 +63,9 @@ class MongoDBStorage:
             print(f"Error saving record: {error}")
             return False
 
-
-
-
-
-
-
-class JSONStorage:
-    def __init__(self, filename):
-        self.__filename = filename
-
-    # Load data from JSON file
-    def load(self):
-        if os.path.exists(self.__filename):
-            try:
-                with open(self.__filename, "r") as file:
-                    records = json.load(file)
-
-                if not isinstance(records, list):
-                    raise ValueError("JSON file must contain a list.")
-
-                return records
-
-            except (json.JSONDecodeError, OSError, ValueError) as error:
-                print(f"Error loading JSON file: {error}")
-                return None
-
-        else:
-            # Create an empty JSON file if it does not exist
-            self.save([])
-            return []
-
-     # Save data into JSON file
-    def save(self, records):
-        try:
-            with open(self.__filename, "w") as file:
-                json.dump(records, file, indent=4)
-
-            return True
-
-        except (OSError, TypeError) as error:
-            print(f"Error saving JSON file: {error}")
-            return False
-
-     
 class AssessmentRecord:
     def __init__(self, user_input, ai_output, logic_output, record_id=None, date=None, time=None):
-        now = datetime.now()
+        now = datetime.now(ZoneInfo("Asia/Singapore"))
 
         if record_id is None:
             # New assessment
@@ -153,6 +110,46 @@ class AssessmentRecord:
             "ai_output": self.__ai_output,
             "logic_output": self.__logic_output
         }
+
+class JSONStorage:
+    def __init__(self, filename):
+        self.__filename = filename
+
+    # Load data from JSON file
+    def load(self):
+        if os.path.exists(self.__filename):
+            try:
+                with open(self.__filename, "r") as file:
+                    records = json.load(file)
+
+                if not isinstance(records, list):
+                    raise ValueError("JSON file must contain a list.")
+
+                return records
+
+            except (json.JSONDecodeError, OSError, ValueError) as error:
+                print(f"Error loading JSON file: {error}")
+                return None
+
+        else:
+            # Create an empty JSON file if it does not exist
+            self.save([])
+            return []
+
+     # Save data into JSON file
+    def save(self, records):
+        try:
+            with open(self.__filename, "w") as file:
+                json.dump(records, file, indent=4)
+
+            return True
+
+        except (OSError, TypeError) as error:
+            print(f"Error saving JSON file: {error}")
+            return False
+
+     
+
 
 class DataManager:
     def __init__(self, filename):
