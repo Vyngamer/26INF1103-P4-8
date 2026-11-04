@@ -3,350 +3,353 @@ Main I/O Layer
 '''
 import matplotlib.pyplot as plt
 from matplotlib.backends import backend_registry, BackendFilter
-import sys
-from questionnaire import prompt_questionnaire
-from prompts import prompt_choice, prompt_range, prompt_yes_no
-from user import user_login, user_register, change_username, change_password
-from data_manager import get_user_records, get_user_int_records, get_user_records, replace_user_record
-from history import view_assessment_history, view_assessment_details, get_todays_records, delete_records
-from title import print_title
+from abc import ABC, abstractmethod 
+from questionnaire import Questionnaire
+from prompts import ChoicePrompt, RangePrompt, YesNoPrompt
+from user import AccountService
+from data_manager import get_user_records, get_user_int_records
+from history import AssessmentHistory, AssessmentHistoryTable, AssessmentDetailView
+from console import Console
 
 #I/O Files
-LOGIC_FILE = "logic_sample.json"
-AI_FILE = "ai_sample.json"
 RECORDS = "records.json"
 
-'''
-SET TO FALSE FOR REAL USE
-
-True: For standalone console to call menu functions directly
-False: Return (option no., func) and let main program call
-'''
-TEST_MODE = False
+# Note: print_error & print_notice have been removed from io_manager.
+# ai_manager.py, ai_manager_helper.py and ai_manager_refactor.py must change
+# from io_manager import print_error, print_notice
+# TO
+# from console import Console
+# and call Console.error(...) / Console.notice(...) instead.
 
 '''
 Session State
 '''
-#Fresh session state
-def new_state():
-    return {"running": True, "uid": None, "username": None}
 
-#Check if a user is logged in
-def is_logged_in(state):
-    return state["uid"] is not None
+# Session Class
+class Session:
+    def __init__(self):
+        self.running = True
+        self.uid = None
+        self.username = None
 
-#Change state to logged in
-def set_logged_in(state, uid, username):
-    state["uid"] = uid
-    state["username"] = username
+    #Check if a user is logged in
+    def is_logged_in(self):
+        return self.uid is not None
 
-#Change state to logged out
-def set_logged_out(state):
-    state["uid"] = None
-    state["username"] = None
+    #Change state to logged in
+    def log_in(self, uid, username):
+        self.uid = uid
+        self.username = username
 
-#Allow user to enter to return to menu
-def pause():
-    input("\nPress Enter to return to the menu...")
+    #Change state to logged out
+    def log_out(self):
+        self.uid = None
+        self.username = None
 
-#Check if matplotlib can open a window (False when there is no display, e.g. headless Docker)
-def can_show_window():
-    interactive = backend_registry.list_builtin(BackendFilter.INTERACTIVE)
-    return plt.get_backend().lower() in [b.lower() for b in interactive]
 
 '''
-MAIN MENU HANDLERS
+MENU ACTIONS
 '''
 
-#User registration
-def handle_register(state):
-    result = user_register()
-    print(result["message"])
+# Abstract base class for every menu option.
+# __str__ returns the label so actions can be listed by ChoicePrompt directly.
+class MenuAction(ABC):
+    label = ""
+    closes_menu = False    #True for "Back" - tells a sub-menu loop to stop
 
-#User login
-def handle_login(state):
-    result = user_login()
-    print(f"\n{result['message']}")
-    if result["ok"]:
-        set_logged_in(state, result["uid"], result["username"])
+    def __str__(self):
+        return self.label
 
-#Exit program
-def handle_exit(state):
-    print("\nProgram terminated. Thank You!")
-    state["running"] = False
-    sys.exit()
+    @abstractmethod
+    def execute(self, session):
+        pass
+
+
+# Shared base for actions that use the account service (register, login, ...)
+class AccountAction(MenuAction):
+    def __init__(self, accounts=None):
+        self.accounts = accounts or AccountService()
+
 
 '''
-USER MENU HANDLERS
+MAIN MENU ACTIONS
 '''
 
-#Handles survey and assessment
-def handle_survey(uid):
-    #If the user already has an assessment today, ask before replacing it
-    todays = get_todays_records(uid, RECORDS)
-    if todays:
-        print(f"\nYou have already completed an assessment today (at {todays[0]['time']}).")
+# Originally handle_register() - User registration
+class RegisterAction(AccountAction):
+    label = "Register New User"
 
-        if not prompt_yes_no("Only one assessment per day is allowed. "
-                             "Replace today's assessment and start a new survey? (y/n): "):
-            print("\nYour existing assessment for today has been kept.")
-            pause()
-            return
+    def execute(self, session):
+        result = self.accounts.register()
+        print(result.message)
 
-    survey = prompt_questionnaire()
-    return survey
 
-#Change username
-def handle_change_username(state):
-    result = change_username(state["uid"])
-    print(result["message"])
-    if result["ok"]:
-        state["username"] = result["username"]
-    pause()
+# Originally handle_login() - User login
+class LoginAction(AccountAction):
+    label = "Login"
 
-#Change password
-def handle_change_password(state):
-    result = change_password(state["uid"])
-    print(result["message"])
-    pause()
+    def execute(self, session):
+        result = self.accounts.login()
+        print(f"\n{result.message}")
+        if result.ok:
+            session.log_in(result.uid, result.username)
 
-#User logout
-def handle_logout(state):
-    set_logged_out(state)
-    print("\nSuccessfully Logged Out.")
+
+# Originally handle_exit() - Exit program
+class ExitAction(MenuAction):
+    label = "Exit"
+
+    #Stops WellbeingApp.run()'s loop so the program ends normally (no sys.exit needed)
+    def execute(self, session):
+        Console.termination_msg()
+        session.running = False
+
+'''
+USER MENU ACTIONS
+'''
+
+# Originally handle_survey() - Handles survey and assessment.
+class SurveyAction(MenuAction):
+    label = "Start Survey"
+
+    def __init__(self, db=RECORDS):
+        self.db = db
+
+    #Collect the answers, then hand them to process_responses() for further handling.
+    def execute(self, session):
+        responses = self.collect_responses(session.uid)
+        if responses is not None:
+            self.process_responses(session, responses)
+
+    #Run the questionnaire. Returns the answers, or None if the user kept today's assessment
+    def collect_responses(self, uid):
+        #If the user already has an assessment today, ask before replacing it
+        todays = AssessmentHistory(uid, self.db).todays_records()
+        if todays:
+            print(f"\nYou have already completed an assessment today (at {todays[0]['time']}).")
+
+            # Prompt user to confirm if they want to replace today's assessment
+            if not YesNoPrompt("Only one assessment per day is allowed. "
+                               "Replace today's assessment and start a new survey? (y/n): ").ask():
+                print("\nYour existing assessment for today has been kept.")
+                Console.pause()
+                return None
+
+        return Questionnaire().run()
+
+    #Hook for subclasses: what to do with the answers
+    def process_responses(self, session, responses):
+        pass
+
+
+# Originally handle_change_username() - Change username
+class ChangeUsernameAction(AccountAction):
+    label = "Change Username"
+
+    def execute(self, session):
+        result = self.accounts.change_username(session.uid)
+        print(result.message)
+        if result.ok:
+            session.username = result.username
+        Console.pause()
+
+
+# Originally handle_change_password() - Change password
+class ChangePasswordAction(AccountAction):
+    label = "Change Password"
+
+    def execute(self, session):
+        result = self.accounts.change_password(session.uid)
+        print(result.message)
+        Console.pause()
+
+
+# Originally handle_logout() - User logout
+class LogoutAction(MenuAction):
+    label = "Logout"
+
+    def execute(self, session):
+        session.log_out()
+        print("\nSuccessfully Logged Out.")
+
+
+# Generic "Back" option for sub-menus
+class BackAction(MenuAction):
+    label = "Back"
+    closes_menu = True
+
+    def execute(self, session):
+        pass
 
 '''
 Graph
 '''
 
-# graph
-def show_graph(state):
-    user_records = get_user_records(state["uid"], RECORDS)
-    if len(user_records) < 2:
-        print("You do not have enough records to do this comparison\nYou need to have at least 2 survey attempts")
-        pause()
-    else:
-        required_data = get_user_int_records(user_records, state["uid"])
-        index = 1
-        x_axis = []
-        while index <= len(required_data):
-            x_axis.append(index)
-            index += 1
-        sleep_duration = []
-        for sleep in required_data:
-            sleep_duration.append(sleep["sleep_duration"])
-        focus_level = []
-        for focus in required_data:
-            focus_level.append(focus["focus_level"])
-        stress_level = []
-        for stress in required_data:
-            stress_level.append(stress["stress_level"])
-        social_level =[]
-        for social in required_data:
-            social_level.append(social["social_activity_level"])
-        wellness_score = []
-        for wellness in required_data:
-            wellness_score.append(wellness["mental_wellness_risk_score"])
-        burnout_risk_score = []
-        for burnout in required_data:
-            burnout_risk_score.append(burnout["burnout_risk_score"])
+class TrendsAction(MenuAction):
+    label = "View Assessment Trends"
+    OUTPUT_FILE = "graph.png"
+
+    # (data key, grid row, grid columns, y-label, title, y-max, colour)
+    CHARTS = [
+        ("sleep_duration",             0, slice(0, 2), 'Hours (H)',                     'Hours of Sleep',               24,  '#1f77b4'),
+        ("focus_level",                0, slice(2, 4), 'Focus Level (1-10)',            'Your Focus Level',             10,  '#ff7f0e'),
+        ("stress_level",               0, slice(4, 6), 'Stress Level (1-10)',           'Your Stress Level',            10,  '#d62728'),
+        ("social_activity_level",      0, slice(6, 8), 'Social Activity Level (1-10)',  'Your Social Activity Level',   10,  '#b1bd22'),
+        ("mental_wellness_risk_score", 1, slice(0, 4), 'Mental wellness score (0-100)', 'Your Mental Wellness Scores',  100, '#2ca02c'),
+        ("burnout_risk_score",         1, slice(4, 8), 'Burnout Risk Score (0-100)',    'Your Burnout Risk Scores',     100, '#9467bd'),
+    ]
+
+    def __init__(self, db=RECORDS):
+        self.db = db
+
+    #Check if matplotlib can open a window (False when there is no display, e.g. headless Docker)
+    @staticmethod
+    def can_show_window():
+        interactive = backend_registry.list_builtin(BackendFilter.INTERACTIVE)
+        return plt.get_backend().lower() in [b.lower() for b in interactive]
+
+    def execute(self, session):
+        user_records = get_user_records(session.uid, self.db)
+        if len(user_records) < 2:
+            print("You do not have enough records to do this comparison\nYou need to have at least 2 survey attempts")
+            Console.pause()
+            return
+
+        #As records are stored newest first; reverse so the graph runs oldest -> newest
+        required_data = get_user_int_records(user_records, session.uid)[::-1]
+        x_axis = list(range(1, len(required_data) + 1))
 
         # initialising the graph
         figure = plt.figure(figsize=(12, 8))
         figure.suptitle('Personal Wellness Tracking Dashboard', fontsize=16, fontweight='bold')
         grid_space = figure.add_gridspec(2, 8)
 
-
-        # create graph 1 (sleep)
-        ax1 = figure.add_subplot(grid_space[0, 0:2])
-        ax1.set(xlabel='Attempts', ylabel='Hours (H)', title='Hours of Sleep')
-        ax1.set_xticks(x_axis)
-        ax1.set_ylim(0, 10)
-        ax1.plot(x_axis, sleep_duration[::-1], marker='o', color='#1f77b4', linewidth=2)
-        ax1.fill_between(x_axis, sleep_duration[::-1], color='#1f77b4', alpha=0.15)
-
-        # create graph 2 (focus level)
-        ax2 = figure.add_subplot(grid_space[0, 2:4])
-        ax2.set(xlabel='Attempts', ylabel='Focus Level (1-10)', title='Your Focus Level')
-        ax2.set_xticks(x_axis)
-        ax2.set_ylim(0, 10)
-        ax2.plot(x_axis, focus_level[::-1], marker='o', color='#ff7f0e', linewidth=2)
-        ax2.fill_between(x_axis, focus_level[::-1], color='#ff7f0e', alpha=0.15)
-
-        # create graph 3 (stress level)
-        ax3 = figure.add_subplot(grid_space[0, 4:6])
-        ax3.set(xlabel='Attempts', ylabel='Stress Level (1-10)', title='Your Stress Level')
-        ax3.set_xticks(x_axis)
-        ax3.set_ylim(0, 10)
-        ax3.plot(x_axis, stress_level[::-1], marker='o', color='#d62728', linewidth=2)
-        ax3.fill_between(x_axis, stress_level[::-1], color='#d62728', alpha=0.15)
-
-        # create graph 4 (social level)
-        ax4 = figure.add_subplot(grid_space[0, 6:8])
-        ax4.set(xlabel='Attempts', ylabel='Social Activity Level (0-10)', title='Your Social Activity Level')
-        ax4.set_xticks(x_axis)
-        ax4.set_ylim(0, 10)
-        ax4.plot(x_axis, social_level[::-1], marker='o', color='#b1bd22', linewidth=2)
-        ax4.fill_between(x_axis, social_level[::-1], color="#b1bd22", alpha=0.15)
-
-        # create graph 5 (mental wellness score)
-        ax5 = figure.add_subplot(grid_space[1, 0:4])
-        ax5.set(xlabel='Attempts', ylabel='Mental wellness score (0-100)', title='Your Mental Wellness Scores')
-        ax5.set_xticks(x_axis)
-        ax5.set_ylim(0, 100)
-        ax5.plot(x_axis, wellness_score[::-1], marker='o', color='#2ca02c', linewidth=2)
-        ax5.fill_between(x_axis, wellness_score[::-1], color='#2ca02c', alpha=0.15)
-
-        # create graph 6 (burnout risk score)
-        ax6 = figure.add_subplot(grid_space[1, 4:8])
-        ax6.set(xlabel='Attempts', ylabel='Burnout Risk Score (0-100)', title='Your Burnout Risk Scores')
-        ax6.set_xticks(x_axis)
-        ax6.set_ylim(0, 100)
-        ax6.plot(x_axis, burnout_risk_score[::-1], marker='o', color='#9467bd', linewidth=2)
-        ax6.fill_between(x_axis, burnout_risk_score[::-1], color='#9467bd', alpha=0.15)
+        # create each graph
+        for key, row, columns, ylabel, title, ymax, colour in self.CHARTS:
+            values = [entry[key] for entry in required_data]
+            axis = figure.add_subplot(grid_space[row, columns])
+            axis.set(xlabel='Attempts', ylabel=ylabel, title=title)
+            axis.set_xticks(x_axis)
+            axis.set_ylim(0, ymax)
+            axis.plot(x_axis, values, marker='o', color=colour, linewidth=2)
+            axis.fill_between(x_axis, values, color=colour, alpha=0.15)
 
         # displaying the graph
         plt.tight_layout()
-        plt.savefig('graph.png')
+        plt.savefig(self.OUTPUT_FILE)
 
-        if can_show_window():
-            print_notice('Graph saved as graph.png. Close the graph window to continue...')
+        if self.can_show_window():
+            Console.notice(f'Graph saved as {self.OUTPUT_FILE}. Close the graph window to continue...')
             plt.show()  #Blocks until the graph window is closed
             plt.close(figure)
         else:
             #No display (e.g. Docker without X11), so the graph can only be saved
             plt.close(figure)
-            print_notice('No display found, graph saved as graph.png')
-            pause()
+            Console.notice(f'No display found, graph saved as {self.OUTPUT_FILE}')
+            Console.pause()
 
 '''
 Assessment History
 '''
 
-#Assessment history: Show assessment history, then secondary menu for further details
-def handle_history(state,db=RECORDS):
-    while True:
-        #Show the table again after every action, so it is always up to date
-        view_assessment_history(state["uid"], db)
-        if not get_user_records(state["uid"], db):
-            return
-        option, func = choose_option(HISTORY_MENU)
-        if func is None:    #Go Back
-            return
-        func(state)    
+# Originally handle_history() - Show assessment history, then secondary menu for further details
+class HistoryAction(MenuAction):
+    label = "View History"
 
-#Ask which assessment, by its No. in the history table. Returns that number (0 = cancel)
-def prompt_assessment_number(state, action):
-    total = len(get_user_records(state["uid"], RECORDS))
-    return prompt_range(f"Enter the No. of the assessment to {action} (1-{total}, or 0 to cancel): ", 0, total)
+    def __init__(self, db=RECORDS):
+        self.db = db
+        self.menu = Menu([HistoryDetailsAction(db), BackAction()])
 
-#View one assessment from the history table in detail
-def handle_history_details(state):
-    number = prompt_assessment_number(state, "view")
-    if number == 0:
-        return
-    view_assessment_details(get_user_records(state["uid"], RECORDS)[number - 1])
-    pause()
-    
+    def execute(self, session):
+        history = AssessmentHistory(session.uid, self.db)
+        while True:
+            #Show the table again after every action, so it is always up to date
+            records = history.records()
+            if not records:
+                print("\nNo assessment history found.")
+                return
+            AssessmentHistoryTable(records).show()
+            action = self.menu.choose()
+            if action.closes_menu:    #Go Back
+                return
+            action.execute(session)
+
+
+# Originally handle_history_details() + prompt_assessment_number().
+# View one assessment from the history table in detail.
+class HistoryDetailsAction(MenuAction):
+    label = "View Assessment Details"
+
+    def __init__(self, db=RECORDS):
+        self.db = db
+
+    def execute(self, session):
+        records = AssessmentHistory(session.uid, self.db).records()
+        number = self.prompt_assessment_number(len(records))
+        if number == 0:
+            return
+        AssessmentDetailView(records[number - 1]).show()
+        Console.pause()
+
+    #Ask which assessment, by its No. in the history table. Returns that number (0 = cancel)
+    @staticmethod
+    def prompt_assessment_number(total):
+        return RangePrompt(f"Enter the No. of the assessment to view (1-{total}, or 0 to cancel): ",
+                           0, total).ask()
+
 '''
 MENUS
 '''
 
-MAIN_MENU = {
-    "Register New User": handle_register,
-    "Login": handle_login,
-    "Exit": handle_exit
-}
+# List of MenuAction objects
+class Menu:
+    def __init__(self, actions):
+        self.actions = list(actions)
 
-USER_MENU = {
-    "Start Survey": handle_survey,
-    "View History": handle_history,
-    "Change Username": handle_change_username,
-    "Change Password": handle_change_password,
-    "View Assessment Trends": show_graph,
-    "Logout": handle_logout
-}
+    # Show the menu, prompt user to choose an option
+    # Return the chosen action
+    def choose(self):
+        return ChoicePrompt(self.actions,
+                            "\n---------MENU---------",
+                            f"Enter option (1-{len(self.actions)}): ",
+                            "----------------------\n").ask()
 
-HISTORY_MENU = {
-    "View Assessment Details": handle_history_details,
-    "Back": None
-}
 
-#Identify which menu to show depending if user is logged in
-def current_menu(state):
-    if is_logged_in(state):
-        return USER_MENU
-    else:
-        return MAIN_MENU
+# Whole console application
+# main.py creates one object and passes in its own SurveyAction subclass
+class WellbeingApp:
+    def __init__(self, survey_action=None, db=RECORDS, title="STUDENT WELLBEING SUPPORT SYSTEM"):
+        self.title = title
+        self.session = Session()
+        accounts = AccountService()    # one shared service for every account action
+        if survey_action is None:
+            survey_action = SurveyAction(db)
+        self.main_menu = Menu([RegisterAction(accounts), LoginAction(accounts), ExitAction()])
+        self.user_menu = Menu([
+            survey_action,
+            HistoryAction(db),
+            ChangeUsernameAction(accounts),
+            ChangePasswordAction(accounts),
+            TrendsAction(db),
+            LogoutAction()
+        ])
 
-#Show a menu, then return option no. & associated function
-def choose_option(menu):
-    labels = list(menu)
-    label = prompt_choice(labels,
-                          "\n---------MENU---------",
-                          f"Enter option (1-{len(menu)}): ",
-                          "----------------------\n")
-    return labels.index(label) + 1, menu[label]
+    #Identify which menu to show depending if user is logged in
+    def current_menu(self):
+        return self.user_menu if self.session.is_logged_in() else self.main_menu
 
-#Main menu
-def run_menu(menu,state):
-    option, func = choose_option(menu)
-    #Call function if testing, else return option no. and function object
-    if TEST_MODE:
-        func(state)
-    else:
-        return option, func
+    #Show the title, then keep showing the right menu and running the chosen action
+    def run(self):
+        Console.title(self.title)
+        while self.session.running:
+            self.current_menu().choose().execute(self.session)
 
 '''
-GENERAL ERROR/NOTICE PRINT FUNCTIONS
-'''
-def print_error(msg):
-    print("\nERROR: " + msg)
-
-def print_notice(msg):
-    print("\nNOTICE: " + msg)
-
-def print_welcome(msg):
-    print("\n---" + msg + "---")
-
-def print_termination_msg():
-    print("\n\nProgram terminated. Thank You!")
-
-'''
-MAIN PROGRAM
+RUN I/O MANAGER DIRECTLY
 '''
 
-#Main Program
-def io_main(state=None):
-    if state is None:
-        state = new_state()
-
-    #If not testing, return option no. & function for main prog
-    if not TEST_MODE:
-        return run_menu(current_menu(state), state)
-    
-    #Title
-    title = "STUDENT WELLBEING SUPPORT SYSTEM"
-    print_title(title)
-
-    #If testing, loop & call directly in terminal
-    while state["running"]:
-        run_menu(current_menu(state), state)
-    
-#test
 if __name__ == "__main__":
     try:
-        if TEST_MODE:
-            print("TEST MODE: TRUE")
-            io_main()
-        else:
-            print("TEST MODE: FALSE")
-            state = new_state()
-            title = "STUDENT WELLBEING SUPPORT SYSTEM"
-            print_title(title)
-            while state["running"]:
-                i, func = io_main(state)
-                print(f"TEST: io_main returned: ({i}, {func.__name__})")
-                func(state)
+        WellbeingApp().run()
     except (KeyboardInterrupt, EOFError):
-        print("\n\nProgram terminated. Thank You!")
+        Console.termination_msg()
