@@ -99,7 +99,7 @@ class LoginAction(AccountAction):
 class ExitAction(MenuAction):
     label = "Exit"
 
-    #Stops WellbeingApp.run()'s loop so the program ends normally (no sys.exit needed)
+    #Stops IOManager.run()'s loop so the program ends normally (no sys.exit needed)
     def execute(self, session):
         Console.termination_msg()
         session.running = False
@@ -317,7 +317,7 @@ class Menu:
 
 # Whole console application
 # main.py creates one object and passes in its own SurveyAction subclass
-class WellbeingApp:
+class IOManager:
     def __init__(self, survey_action=None, db=RECORDS, title="STUDENT WELLBEING SUPPORT SYSTEM"):
         self.title = title
         self.session = Session()
@@ -350,6 +350,6 @@ RUN I/O MANAGER DIRECTLY
 
 if __name__ == "__main__":
     try:
-        WellbeingApp().run()
+        IOManager().run()
     except (KeyboardInterrupt, EOFError):
         Console.termination_msg()

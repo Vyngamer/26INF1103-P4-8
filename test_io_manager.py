@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-from io_manager import (Session, WellbeingApp, Menu, SurveyAction, LoginAction,
+from io_manager import (Session, IOManager, Menu, SurveyAction, LoginAction,
                         LogoutAction, ExitAction, BackAction, AssessmentHistory,
                         YesNoPrompt, Questionnaire)
 from io_helpers.console import Console
@@ -71,7 +71,7 @@ def test_console_termination_msg(capsys):
 
 #Test that the correct menu is returned based on login state
 def test_current_menu():
-    app = WellbeingApp()
+    app = IOManager()
 
     #When logged out, should return the main menu
     assert app.current_menu() is app.main_menu
@@ -82,7 +82,7 @@ def test_current_menu():
 
 # Check each menu lists the right options, in the right order
 def test_menu_labels():
-    app = WellbeingApp()
+    app = IOManager()
     assert [str(action) for action in app.main_menu.actions] == ["Register New User", "Login", "Exit"]
     assert [str(action) for action in app.user_menu.actions] == [
         "Start Survey", "View History", "Change Username",
@@ -91,7 +91,7 @@ def test_menu_labels():
 # main.py passes in its own survey action - it must replace the default one
 def test_app_uses_given_survey_action():
     custom = SurveyAction()
-    app = WellbeingApp(survey_action=custom)
+    app = IOManager(survey_action=custom)
     assert app.user_menu.actions[0] is custom
 
 # Menu.choose() returns the chosen action object itself
@@ -118,7 +118,7 @@ def test_logout_action(capsys):
     assert session.username is None
     assert "\nSuccessfully Logged Out.\n" in captured.out
 
-#Test that the exit action flags the session as not running (which ends WellbeingApp.run's loop)
+#Test that the exit action flags the session as not running (which ends IOManager.run's loop)
 def test_exit_action(capsys):
     session = Session()
     ExitAction().execute(session)
