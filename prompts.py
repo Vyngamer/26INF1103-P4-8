@@ -1,61 +1,130 @@
 """
-Common input functions to ask repeatedly until receiving
+Common input prompt classes that ask repeatedly until receiving
 standard valid answers
 """
 
 import pwinput
 import sys
+from abc import ABC, abstractmethod
 
 
-#Non-empty text input (whitespace trimmed)
-def prompt_text(prompt):
-    while True:
-        value = input(prompt).strip()
-        if value:
+# Raised by Prompt.convert() / Prompt.validate() to reject an answer.
+# Exception message is printed and the user is asked again.
+class InvalidInput(ValueError):
+    pass
+
+
+# Abstract base class for every console prompt (Template Method pattern).
+class Prompt(ABC):
+    def __init__(self, message):
+        self.message = message
+
+    #Keep asking until the answer converts and validates, then return it
+    def ask(self):
+        while True:
+            raw = self.read()
+            try:
+                value = self.convert(raw)
+                self.validate(value)
+            except InvalidInput as problem:
+                print(problem)
+                continue
             return value
-        print("Input cannot be empty. Please try again.")
 
-#Non-empty hidden input. Passwords are NOT stripped so that
-#register / login / change-password all treat them the same way
-def prompt_password(prompt):
-    while True:
+    #Read one raw answer (whitespace trimmed)
+    def read(self):
+        return input(self.message).strip()
+
+    #Turn the raw text into the answer's type. Raise InvalidInput to reject it
+    @abstractmethod
+    def convert(self, raw):
+        pass
+
+    #Extra checks on the converted value. Raise InvalidInput to reject it
+    def validate(self, value):
+        pass
+
+
+# Non-empty text input (whitespace trimmed)
+class TextPrompt(Prompt):
+    EMPTY_MESSAGE = "Input cannot be empty. Please try again."
+
+    def convert(self, raw):
+        if not raw:
+            raise InvalidInput(self.EMPTY_MESSAGE)
+        return raw
+
+
+# TextPrompt with a maximum length (For Reflection Question). Raises InvalidInput if too long.
+class LimitedTextPrompt(TextPrompt):
+    def __init__(self, message, limit, too_long_msg):
+        super().__init__(message)
+        self.limit = limit
+        self.too_long_msg = too_long_msg
+
+    def validate(self, value):
+        if len(value) > self.limit:
+            raise InvalidInput(self.too_long_msg)
+
+
+# Prompt for a password (input hidden). Raises InvalidInput if empty.
+class PasswordPrompt(TextPrompt):
+    EMPTY_MESSAGE = "Password cannot be empty. Please try again."
+
+    def read(self):
         if sys.stdin.isatty():
-            value = pwinput.pwinput(prompt=prompt)
-        else:
-            value = input(prompt)
-        if value:
-            return value
-        print("Password cannot be empty. Please try again.")
+            return pwinput.pwinput(prompt=self.message)
+        return input(self.message)
 
-#Number input with range validation. cast=int for whole numbers, cast=float for decimals
-def prompt_range(prompt, minimum, maximum, cast=int):
-    error = "Please enter a whole number." if cast is int else "Please enter a valid number."
-    while True:
+
+# Number input with range validation.
+class RangePrompt(Prompt):
+    def __init__(self, message, minimum, maximum, cast=int):
+        super().__init__(message)
+        self.minimum = minimum
+        self.maximum = maximum
+        self.cast = cast    # cast=int for whole numbers, cast=float for decimals
+
+    def convert(self, raw):
         try:
-            value = cast(input(prompt).strip())
+            return self.cast(raw)
         except ValueError:
-            print(error)
-            continue
-        if minimum <= value <= maximum:
-            return value
-        print(f"Please enter a number from {minimum} to {maximum}.")
+            raise InvalidInput("Please enter a whole number." if self.cast is int
+                               else "Please enter a valid number.")
 
-#Show a numbered list of options and return the chosen option (the item itself, not its number)
-def prompt_choice(options, heading, prompt, footer=""):
-    print(heading)
-    for i, option in enumerate(options, start=1):
-        print(f"{i}. {option}")
-    if footer:
-        print(footer)
-    choice = prompt_range(prompt, 1, len(options))
-    return options[choice - 1]
+    def validate(self, value):
+        if not self.minimum <= value <= self.maximum:
+            raise InvalidInput(f"Please enter a number from {self.minimum} to {self.maximum}.")
 
-#Yes/no question. Returns True for y/yes, False for n/no
-def prompt_yes_no(prompt):
-    while True:
-        answer = input(prompt).strip().lower()
+
+# Shows a numbered list of options
+# Returns the chosen option
+# Inherits number parsing / range checking from RangePrompt
+class ChoicePrompt(RangePrompt):
+    def __init__(self, options, heading, message, footer=""):
+        options = list(options)
+        if not options:     # Rejects an empty list of options
+            raise ValueError("ChoicePrompt needs at least one option.")
+        super().__init__(message, 1, len(options))
+        self.options = options
+        self.heading = heading
+        self.footer = footer
+
+    def ask(self):
+        print(self.heading)
+        for i, option in enumerate(self.options, start=1):
+            print(f"{i}. {option}")
+        if self.footer:
+            print(self.footer)
+        return self.options[super().ask() - 1]
+
+
+# Returns True for y/yes, False for n/no
+class YesNoPrompt(Prompt):
+    def convert(self, raw):
+        answer = raw.lower()
         if answer in ("y", "yes"):
             return True
         if answer in ("n", "no"):
             return False
-        print("Please enter y or n.")
+        raise InvalidInput("Please enter y or n.")
