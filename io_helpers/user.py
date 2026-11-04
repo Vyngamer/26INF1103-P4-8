@@ -9,8 +9,8 @@ import uuid
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from hasher import PasswordHasher
-from prompts import TextPrompt, PasswordPrompt
+from io_helpers.hasher import PasswordHasher
+from io_helpers.prompts import TextPrompt, PasswordPrompt
 
 DATABASE = "users.json"
 MIN_PASSWORD_LENGTH = 4

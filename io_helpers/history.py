@@ -5,7 +5,7 @@ Functionality for user to view history
 from abc import ABC, abstractmethod
 from datetime import datetime
 from data_manager import get_user_records
-from console import Console
+from io_helpers.console import Console
 
 
 # One user's saved assessments in a records file

@@ -4,12 +4,12 @@ Main I/O Layer
 import matplotlib.pyplot as plt
 from matplotlib.backends import backend_registry, BackendFilter
 from abc import ABC, abstractmethod 
-from questionnaire import Questionnaire
-from prompts import ChoicePrompt, RangePrompt, YesNoPrompt
-from user import AccountService
+from io_helpers.questionnaire import Questionnaire
+from io_helpers.prompts import ChoicePrompt, RangePrompt, YesNoPrompt
+from io_helpers.user import AccountService
 from data_manager import get_user_records, get_user_int_records
-from history import AssessmentHistory, AssessmentHistoryTable, AssessmentDetailView
-from console import Console
+from io_helpers.history import AssessmentHistory, AssessmentHistoryTable, AssessmentDetailView
+from io_helpers.console import Console
 
 #I/O Files
 RECORDS = "records.json"
@@ -18,7 +18,7 @@ RECORDS = "records.json"
 # ai_manager.py, ai_manager_helper.py and ai_manager_refactor.py must change
 # from io_manager import print_error, print_notice
 # TO
-# from console import Console
+# from io_helpers.console import Console
 # and call Console.error(...) / Console.notice(...) instead.
 
 '''

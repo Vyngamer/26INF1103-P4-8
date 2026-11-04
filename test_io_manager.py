@@ -2,8 +2,8 @@ from unittest.mock import patch, MagicMock
 from io_manager import (Session, WellbeingApp, Menu, SurveyAction, LoginAction,
                         LogoutAction, ExitAction, BackAction, AssessmentHistory,
                         YesNoPrompt, Questionnaire)
-from console import Console
-from user import AccountResult
+from io_helpers.console import Console
+from io_helpers.user import AccountResult
 
 # --- Session Tests ---
 
@@ -88,7 +88,7 @@ def test_menu_labels():
         "Start Survey", "View History", "Change Username",
         "Change Password", "View Assessment Trends", "Logout"]
 
-# [OOP] NEW: main.py passes in its own survey action - it must replace the default one
+# main.py passes in its own survey action - it must replace the default one
 def test_app_uses_given_survey_action():
     custom = SurveyAction()
     app = WellbeingApp(survey_action=custom)

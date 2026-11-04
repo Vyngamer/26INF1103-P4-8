@@ -3,7 +3,7 @@ Survey Questions
 '''
 
 from abc import ABC, abstractmethod
-from prompts import RangePrompt, ChoicePrompt, LimitedTextPrompt
+from io_helpers.prompts import RangePrompt, ChoicePrompt, LimitedTextPrompt
 
 # Abstract base class for one survey question. Each question knows the
 # key its answer is stored under and how to ask for that answer.
