@@ -1,6 +1,6 @@
 from ai_manager_refactor import AICounsellor
 
-class AI_Manager:
+class AIManager:
     def __init__(self):
         self._client = AICounsellor()
         
