@@ -1,6 +1,7 @@
 from pydantic import ValidationError
 from ai_manager_helper.data_classes import SurveyEntitySchema
 from ai_manager_helper.api_client_classes import AICounsellor
+import json
 
 class AIManager:
     def __init__(self):
@@ -16,9 +17,9 @@ class AIManager:
     def start_conversation(self):
         print(self._client.call_api("Hello!"))
 
-    def prompt_bot(self):
-        prompt = input("Enter prompt:\n")
-        return self._client.call_api(prompt).data
+    def prompt_bot(self, message):
+        output_response = json.loads(self._client.call_api(message).data)
+        return output_response['text']
 
     def validate_response(self, response):
         return SurveyEntitySchema.validate_response(response)
@@ -27,8 +28,8 @@ class AIManager:
 if __name__ == "__main__":
     ai_manager = AIManager()
     ai_manager.connect_client()
-    ai_manager.start_conversation()
-
-    while True:
-        ai_manager.prompt_bot()
+# 
+#     while True:
+#         ai_manager.prompt_bot()
     
+    print(ai_manager.prompt_bot("hello"))

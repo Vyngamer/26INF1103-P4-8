@@ -52,7 +52,6 @@ class GeminiClient:
                 )
             
             self._previous_interaction_id = interaction.id
-            print(interaction)
             return APIResult.ok(interaction.output_text)
 
         except Exception as e:
