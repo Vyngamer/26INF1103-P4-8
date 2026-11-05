@@ -1,5 +1,5 @@
-from WarningRule import WarningRule
-from CurrentAttempt import CurrentAttempt
+from .WarningRule import WarningRule
+from ..CurrentAttempt import CurrentAttempt
 
 class WorkloadBurnoutRule(WarningRule):
     def evaluate(self, current: CurrentAttempt) -> str | None:

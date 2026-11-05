@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from CurrentAttempt import CurrentAttempt
+from ..CurrentAttempt import CurrentAttempt
 
 class WarningRule(ABC):
     """Contract for rules that may produce a routing warning."""
