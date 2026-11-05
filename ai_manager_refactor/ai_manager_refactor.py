@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Generic, TypeVar, Optional, Any, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, ValidationError, field_validator
 from google import genai
 import sys
 import os
@@ -35,6 +35,30 @@ class SurveyEntitySchema(BaseModel):
             Field(gte=-1, lte=10, description="Engagement level (1 = Isolated, 10 = Very Social), the user's social activity level is {social} out of 10")
     reflection: str = Field(description="Free-response text capturing personal thoughts/concerns, the user's reflection text is {reflection}.")
     text: str = Field(description="A question to prompt the user on any of these fields.")
+
+    model_config = ConfigDict(extra='forbid', strict=True)
+
+    def validate_response(response):
+        try:
+            SurveyEntitySchema(**response)
+
+        except ValidationError as e:
+            print(e)
+            return False
+        
+        return True
+    
+    @field_validator('focus_level', 'stress_level', 'sleep_duration', 'social_activity_level', 'academic_workload')
+    def not_negative_or_zero(cls, value):
+        if value < 1:
+            raise ValueError(f'{value} is not valid.')
+        return value
+
+    @field_validator('reflection', 'text')
+    def text_not_empty(cls, text):
+        if text == "" or text == "None":
+            raise ValueError(f'{text} not valid')
+        return text
 
 
 class GeminiClient:
@@ -126,4 +150,5 @@ class AICounsellor(GeminiClient):
         response_json_format = SurveyEntitySchema.model_json_schema()
 
         super().__init__(model, system_instruction, response_json_format=response_json_format)
+
 
