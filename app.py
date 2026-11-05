@@ -1,5 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from markupsafe import escape
+from ai_manager import AIManager
+
+ai_manager = AIManager()
+ai_manager.connect_client()
 
 app = Flask(__name__)
 
@@ -55,3 +59,18 @@ def index():
 @app.route('/wellness-check')
 def wellness_check():
     return render_template('wellness-check.html')
+
+@app.route('/get', methods=['GET','POST'])
+def chat():
+    user_message = request.form["msg"]
+
+    return get_AI_response(user_message)
+
+
+def get_AI_response(text):
+
+    # clean text here
+
+    print(text)
+    return ai_manager.prompt_bot(text)
+
