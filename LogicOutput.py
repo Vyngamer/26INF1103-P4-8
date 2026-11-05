@@ -4,7 +4,7 @@ class LogicOutput:
         self._warnings = warnings.copy()
         self._route = route
         self._display_messages = display_messages.copy()
-    
+        
     @property
     def mental_wellness_risk_tier(self) -> str:
         return self._mental_wellness_risk_tier
