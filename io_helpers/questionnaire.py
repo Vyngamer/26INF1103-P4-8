@@ -17,8 +17,12 @@ class Question(ABC):
         return self.key.replace('_', ' ').title()
 
     #Ask the question and return the validated answer
-    @abstractmethod
     def ask(self):
+        return self.make_prompt().ask()
+
+    #Build and return the Prompt used to ask this question
+    @abstractmethod
+    def make_prompt(self):
         pass
 
 
@@ -28,9 +32,9 @@ class SleepQuestion(Question):
     def __init__(self, key="sleep_duration"):
         super().__init__(key)
 
-    def ask(self):
+    def make_prompt(self):
         return RangePrompt("How many hours per day did you sleep on average for the past week?: ",
-                           0, 24, cast=float).ask()
+                           0, 24, cast=float)
 
 
 # Originally scale_question()
@@ -40,22 +44,22 @@ class ScaleQuestion(Question):
         super().__init__(key)
         self.description = description
 
-    def ask(self):
-        return RangePrompt(f"On a scale of 1-10, {self.description} for the past week?: ", 1, 10).ask()
+    def make_prompt(self):
+        return RangePrompt(f"On a scale of 1-10, {self.description} for the past week?: ", 1, 10)
 
 
 # Originally get_mood()
 # Mood selection from predefined options
 class MoodQuestion(Question):
-    MOOD_OPTIONS = ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]
+    MOOD_OPTIONS = ("Motivated", "Calm", "Anxious", "Sad", "Exhausted")
 
     def __init__(self, key="mood"):
         super().__init__(key)
 
-    def ask(self):
+    def make_prompt(self):
         return ChoicePrompt(self.MOOD_OPTIONS,
                             "Select your mood from the following options:",
-                            "Enter the number corresponding to your mood: ").ask()
+                            "Enter the number corresponding to your mood: ")
 
 
 # Originally get_reflection()
@@ -65,9 +69,9 @@ class ReflectionQuestion(Question):
         super().__init__(key)
         self.limit = limit
 
-    def ask(self):
+    def make_prompt(self):
         return LimitedTextPrompt("Reflection: ", self.limit,
-                                 f"Please enter a reflection with at most {self.limit} characters.").ask()
+                                 f"Please enter a reflection with at most {self.limit} characters.")
 
 
 # Originally prompt_questionnaire(). Holds the ordered list of Question objects.
@@ -98,50 +102,3 @@ class Questionnaire:
         except (KeyboardInterrupt, EOFError):
             print("\n\nSurvey cancelled.")
             return None
-
-'''
-class AssessmentResults:
-    def __init__(self, results):
-        self.results = results
-
-    #Load from json (empty results if the file is missing or invalid)
-    @classmethod
-    def load(cls, filename):
-        try:
-            with open(filename, "r", encoding="utf-8") as file:
-                return cls(json.load(file))
-        except (FileNotFoundError, json.JSONDecodeError):
-            return cls({})
-
-    #Output AI and logic results to the user (was risk_assessment)
-    def display(self):
-        results = self.results
-        print("\n--- Mental Health Assessment Results ---")
-        #AI risk score & risk tier
-        print(f"Mental Wellness Risk Score: {results.get('mental_wellness_risk_score', 'N/A')} / 100 "
-              f"({results.get('mental_wellness_risk_tier', 'Unknown')} Risk)")
-        #Burnout risk score
-        print(f"Burnout Risk Score: {results.get('burnout_risk_score', 'N/A')} / 100")
-        #Primary stressors
-        print(f"Primary Stressor: {results.get('primary_stressor', 'N/A')}")
-        #Note to self: Check if there may be multiple stressors
-
-        #Recommendations
-        print(f"\nRecommendation(s):\n{results.get('personalized_recommendations', 'None')}\n")
-
-        #Warnings
-        warnings = results.get("warnings", [])
-        if warnings:
-            print("Please heed these warning(s):")
-            print("\n".join(warnings))
-            print()
-
-        #Crisis alert
-        if results.get("crisis_alert"):
-            print("!! You may be in crisis. Please contact a crisis helpline or emergency services now,")
-            print("   or reach out to someone you trust. You do not have to go through this alone.\n")
-
-        #Suggest counseling if needed
-        if results.get("counselling_recommendation"):
-            print("Alert: You are advised to seek counseling.\n")
-'''
