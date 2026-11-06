@@ -328,32 +328,21 @@ class UserDataManager:
 
         return success
 
-
-
-
-
-
-
-
-
-
-class DataManager:
-
-    def __init__(self, collection):
-        self.__storage = MongoDBStorage(collection)
+# =========================================================
+# 7. ASSESSMENT DATA MANAGER
+# =========================================================
+class AssessmentDataManager:
+    def __init__(self, storage):
+        self.__storage = storage
         self.__records = []
 
-        # Load existing assessment records
         self.load_records()
 
-    # Load records from MongoDB and convert them into objects
     def load_records(self):
         documents = self.__storage.load()
-
         self.__records = []
 
         for document in documents:
-
             record = AssessmentRecord(
                 user_input=document["user_input"],
                 ai_output=document["ai_output"],
@@ -367,9 +356,7 @@ class DataManager:
 
         return self.__records
 
-    # Save a new assessment record
     def save(self, record):
-
         if not isinstance(record, AssessmentRecord):
             return False
 
@@ -377,39 +364,31 @@ class DataManager:
 
         success = self.__storage.save(record_data)
 
-        if success:
+        if success is not None:
             self.__records.append(record)
             return True
 
         return False
 
-    # Merge outputs from the different managers
     def merge_record(self, user_input, ai_output, logic_output):
-
         return AssessmentRecord(
             user_input,
             ai_output,
             logic_output
         )
 
-    # Get all assessment records
     def get_records(self):
+        return self.__records.copy()
 
-        return self.__records
-
-    # Get assessment records belonging to a user
     def get_user_records(self, user_id):
-
         user_records = []
 
         for record in self.__records:
-
             user_input = record.get_user_input()
 
             if user_input.get("user_id") == user_id:
                 user_records.append(record)
 
-        # Sort records by date and time
         user_records.sort(
             key=lambda record: datetime.strptime(
                 record.get_date() + " " + record.get_time(),
@@ -420,9 +399,7 @@ class DataManager:
 
         return user_records
 
-    # Get the latest assessment record for a user
     def get_latest_user_record(self, user_id):
-
         records = self.get_user_records(user_id)
 
         if records:
@@ -430,71 +407,42 @@ class DataManager:
 
         return None
 
-    # Get selected assessment information for a user
     def get_user_int_records(self, records, user_id):
-
         user_records = []
 
         for record in records:
-
             user_input = record.get_user_input()
             ai_output = record.get_ai_output()
 
             if user_input.get("user_id") == user_id:
-
                 user_records.append({
                     "date": record.get_date(),
-
-                    "sleep_duration": user_input.get(
-                        "sleep_duration"
-                    ),
-
-                    "focus_level": user_input.get(
-                        "focus_level"
-                    ),
-
-                    "stress_level": user_input.get(
-                        "stress_level"
-                    ),
-
-                    "social_activity_level": user_input.get(
-                        "social_activity_level"
-                    ),
-
-                    "mental_wellness_risk_score": ai_output.get(
-                        "mental_wellness_risk_score"
-                    ),
-
-                    "burnout_risk_score": ai_output.get(
-                        "burnout_risk_score"
-                    )
+                    "sleep_duration": user_input.get("sleep_duration"),
+                    "focus_level": user_input.get("focus_level"),
+                    "stress_level": user_input.get("stress_level"),
+                    "social_activity_level": user_input.get("social_activity_level"),
+                    "mental_wellness_risk_score": ai_output.get("mental_wellness_risk_score"),
+                    "burnout_risk_score": ai_output.get("burnout_risk_score")
                 })
 
         return user_records
 
-    # Replace today's assessment record for a user
     def replace_user_record(self, user_id, record):
-
         if not isinstance(record, AssessmentRecord):
             return False
 
-        # Check that the replacement belongs to the correct user
         if record.get_user_input().get("user_id") != user_id:
             return False
 
-        # Get today's date in Singapore timezone
         today = datetime.now(
             ZoneInfo("Asia/Singapore")
         ).strftime("%d-%m-%Y")
 
-        # Ensure the replacement record is dated today
         if record.get_date() != today:
             return False
 
-        # Convert the assessment object into a dictionary
         record_data = record.to_dict()
 
-        # Replace the existing MongoDB document
         success = self.__storage.replace_today(
             user_id,
             today,
@@ -502,14 +450,11 @@ class DataManager:
         )
 
         if success:
-
             updated_records = []
 
             for existing_record in self.__records:
-
                 user_input = existing_record.get_user_input()
 
-                # Keep records belonging to other users or dates
                 if not (
                     user_input.get("user_id") == user_id
                     and existing_record.get_date() == today
@@ -517,16 +462,13 @@ class DataManager:
                     updated_records.append(existing_record)
 
             updated_records.append(record)
-
             self.__records = updated_records
 
             return True
 
         return False
 
-    # Get previous assessment attempts
     def get_previous_attempts(self, user_id):
-
         records = self.get_user_records(user_id)
 
         today = datetime.now(
@@ -536,9 +478,7 @@ class DataManager:
         previous_attempts = []
 
         for record in records:
-
             if record.get_date() != today:
-
                 previous_attempts.append({
                     **record.get_user_input(),
                     **record.get_ai_output()
@@ -546,162 +486,277 @@ class DataManager:
 
         return previous_attempts
 
+# =========================================================
+# 8. MAIN DATA MANAGER
+# =========================================================
+
+class DataManager:
+    """
+    Central manager that provides access to
+    user and assessment data operations.
+    """
+
+    def __init__(self, user_collection, assessment_collection):
+
+        # Create storage objects
+        user_storage = MongoDBStorage(
+            user_collection,
+            unique_fields=["username"]
+        )
+
+        assessment_storage = MongoDBStorage(
+            assessment_collection
+        )
+
+        # Create individual managers
+        self.__user_manager = UserDataManager(
+            user_storage
+        )
+
+        self.__assessment_manager = AssessmentDataManager(
+            assessment_storage
+        )
+
+    # -------------------------
+    # USER OPERATIONS
+    # -------------------------
+
+    def create_user(self, username, password):
+        return self.__user_manager.create_user(
+            username, password
+        )
+
+    def get_users(self):
+        return self.__user_manager.get_users()
+
+    def get_user_by_id(self, user_id):
+        return self.__user_manager.get_user_by_id(
+            user_id
+        )
+
+    def get_user_by_username(self, username):
+        return self.__user_manager.get_user_by_username(
+            username
+        )
+
+    def update_user(self, user_id, updates):
+        return self.__user_manager.update_user(
+            user_id, updates
+        )
+
+    def delete_user(self, user_id):
+        return self.__user_manager.delete_user(user_id)
+
+    # -------------------------
+    # ASSESSMENT OPERATIONS
+    # -------------------------
+
+    def load_records(self):
+        return self.__assessment_manager.load_records()
+
+    def merge_record(self, user_input, ai_output, logic_output):
+        return self.__assessment_manager.merge_record(
+            user_input, ai_output, logic_output
+        )
+
+    def save(self, record):
+        return self.__assessment_manager.save(record)
+
+    def get_records(self):
+        return self.__assessment_manager.get_records()
+
+    def get_user_records(self, user_id):
+        return self.__assessment_manager.get_user_records(
+            user_id
+        )
+
+    def get_latest_user_record(self, user_id):
+        return self.__assessment_manager.get_latest_user_record(
+            user_id
+        )
+
+    def get_user_int_records(self, records, user_id):
+        return self.__assessment_manager.get_user_int_records(
+            records, user_id
+        )
+
+    def replace_user_record(self, user_id, record):
+        return self.__assessment_manager.replace_user_record(
+            user_id, record
+        )
+
+    def get_previous_attempts(self, user_id):
+        return self.__assessment_manager.get_previous_attempts(
+            user_id
+        )
+
+
+# =========================================================
+# 9. TESTING
+# =========================================================
+
 
 if __name__ == "__main__":
 
-    print("\n========== DATA MANAGER TESTING ==========\n")
-
     # Initialise DataManager
-    data_manager = DataManager(assessment_records)
+    data_manager = DataManager(user_records, assessment_records)
 
-    # ----------------------------------
-    # 1. Test load_records()
-    # ----------------------------------
-    print("1. Testing load_records()")
+    print("\n========== USER TESTING ==========")
 
-    records = data_manager.load_records()
+    # 1. Create a test user
+    username = "test_user_" + str(uuid.uuid4())[:8]
 
-    print("Total records loaded:", len(records))
+    # Replace this with a properly hashed test password
+    hashed_password = "test_hashed_password"
 
+    user_id = data_manager.create_user(
+        username,
+        hashed_password
+    )
 
-    # ----------------------------------
-    # 2. Test merge_record()
-    # ----------------------------------
-    print("\n2. Testing merge_record()")
+    if user_id:
+        print("User created successfully!")
+        print("User ID:", user_id)
+        print("Username:", username)
+    else:
+        print("Failed to create user.")
 
-    user_input =  {
-            "user_id": "3",
-            "sleep_duration": 1.0,
-            "stress_level": 1,
-            "focus_level": 1,
-            "academic_workload": 1,
-            "mood": "Motivated",
-            "social_activity_level": 1,
-            "reflection": "sad"
-            }
-    
+    # 2. Retrieve user by ID
+    print("\n--- Retrieve User By ID ---")
+
+    user = data_manager.get_user_by_id(user_id)
+
+    if user:
+        print("User ID:", user.get_user_id())
+        print("Username:", user.get_username())
+        print("Password:", user.get_password())
+    else:
+        print("User not found.")
+
+    # 3. Retrieve user by username
+    print("\n--- Retrieve User By Username ---")
+
+    user = data_manager.get_user_by_username(username)
+
+    if user:
+        print("Found user:", user.get_username())
+    else:
+        print("User not found.")
+
+    print("\n========== ASSESSMENT TESTING ==========")
+
+    # 4. Create assessment input
+    user_input = {
+        "user_id": user_id,
+        "sleep_duration": 7,
+        "stress_level": 3,
+        "focus_level": 4,
+        "academic_workload": 3,
+        "mood": "Good",
+        "social_activity_level": 4,
+        "reflection": "I feel quite productive today."
+    }
+
     ai_output = {
-            "burnout_risk_score": 50,
-            "crisis_alert": True,
-            "mental_wellness_risk_score": 85,
-            "personalized_recommendations": "Your sleep duration of only one hour is critically low and poses an immediate danger to your physical and cognitive health. Please prioritize immediate rest or contact a medical professional, as your current level of sleep deprivation is unsustainable and requires urgent attention.",
-            "primary_stressor": "Sleep Deprivation",
-            "sentiment": "Neutral"
-            }
-    
-    logic_output = {
-            "mental_wellness_risk_tier": "High",
-            "warnings": [],
-            "route": "Urgent support",
-            "counselling_recommendation": True,
-            "display_messages": [
-                "You slept less than 7 hours. Try to get more sleep."
-            ]
-            }
+        "mental_wellness_risk_score": 25,
+        "sentiment": "Positive",
+        "burnout_risk_score": 20,
+        "crisis_alert": False,
+        "primary_stressor": "Academic workload",
+        "personalized_recommendations": [
+            "Maintain a consistent sleep schedule.",
+            "Take regular study breaks."
+        ]
+    }
 
-    record = data_manager.merge_record(
+    logic_output = {
+        "mental_wellness_risk_tier": "Low",
+        "warnings": None,
+        "counselling_recommendation": False
+    }
+
+    # 5. Merge assessment data into an AssessmentRecord
+    assessment = data_manager.merge_record(
         user_input,
         ai_output,
         logic_output
     )
 
-    print("Record created:", record.to_dict())
+    # 6. Save assessment record
+    success = data_manager.save(assessment)
 
-
-    # ----------------------------------
-    # 3. Test save()
-    # ----------------------------------
-    print("\n3. Testing save()")
-
-    success = data_manager.save(record)
-
-    print("Record saved:", success)
-
-
-    # ----------------------------------
-    # 4. Test get_records()
-    # ----------------------------------
-    print("\n4. Testing get_records()")
-
-    all_records = data_manager.get_records()
-
-    print("Total records:", len(all_records))
-
-
-    # ----------------------------------
-    # 5. Test get_user_records()
-    # ----------------------------------
-    print("\n5. Testing get_user_records()")
-
-    user_records = data_manager.get_user_records("1")
-
-    print("User records:", len(user_records))
-
-
-    # ----------------------------------
-    # 6. Test get_latest_user_record()
-    # ----------------------------------
-    print("\n6. Testing get_latest_user_record()")
-
-    latest_record = data_manager.get_latest_user_record(
-        "1"
-    )
-
-    if latest_record:
-        print("Latest record:", latest_record.to_dict())
+    if success:
+        print("Assessment saved successfully!")
+        print("Record ID:", assessment.get_record_id())
+        print("User ID:", assessment.get_user_input()["user_id"])
+        print("Date:", assessment.get_date())
+        print("Time:", assessment.get_time())
     else:
-        print("No records found.")
+        print("Failed to save assessment.")
 
+    # 7. Retrieve all assessments belonging to this user
+    print("\n--- User Assessment History ---")
 
-    # ----------------------------------
-    # 7. Test get_user_int_records()
-    # ----------------------------------
-    print("\n7. Testing get_user_int_records()")
+    records = data_manager.get_user_records(user_id)
 
-    selected_records = data_manager.get_user_int_records(
-        all_records,
-        "1"
+    for record in records:
+        print("Record ID:", record.get_record_id())
+        print("Date:", record.get_date())
+        print("Stress Level:", record.get_user_input()["stress_level"])
+        print("Risk Score:", record.get_ai_output()["mental_wellness_risk_score"])
+        print("----------------------------")
+
+    # 8. Retrieve latest assessment
+    print("\n--- Latest Assessment ---")
+
+    latest = data_manager.get_latest_user_record(user_id)
+
+    if latest:
+        print("Latest Record ID:", latest.get_record_id())
+        print("Date:", latest.get_date())
+        print("Risk Score:", latest.get_ai_output()["mental_wellness_risk_score"])
+    else:
+        print("No assessment found.")
+
+    # 9. Retrieve previous attempts
+    print("\n--- Previous Attempts ---")
+
+    previous_attempts = data_manager.get_previous_attempts(user_id)
+
+    print("Number of previous attempts:", len(previous_attempts))
+
+    for attempt in previous_attempts:
+        print(attempt)
+
+    # 10. Update user
+    print("\n========== UPDATE USER ==========")
+
+    update_success = data_manager.update_user(
+        user_id,
+        {"username": username + "_updated"}
     )
 
-    print("Selected assessment information:")
-    print(selected_records)
+    if update_success:
+        print("Username updated successfully!")
+    else:
+        print("Failed to update username.")
 
+    # Verify updated username
+    updated_user = data_manager.get_user_by_id(user_id)
 
-    # ----------------------------------
-    # 8. Test replace_user_record()
-    # ----------------------------------
-    print("\n8. Testing replace_user_record()")
+    if updated_user:
+        print("Updated username:", updated_user.get_username())
 
-    updated_user_input = {
-        **user_input,
-        "stress_level": 2,
-        "reflection": "Feeling less stressed today."
-    }
+    # 11. Delete test user
+    # Uncomment this section when you are ready to delete the test user.
 
-    updated_record = data_manager.merge_record(
-        updated_user_input,
-        ai_output,
-        logic_output
-    )
+    # print("\n========== DELETE USER ==========")
+    # delete_success = data_manager.delete_user(user_id)
+    #
+    # if delete_success:
+    #     print("Test user deleted successfully!")
+    # else:
+    #     print("Failed to delete test user.")
 
-    success = data_manager.replace_user_record(
-        "1",
-        updated_record
-    )
+    client.close()
 
-    print("Record replaced:", success)
-
-
-    # ----------------------------------
-    # 9. Test get_previous_attempts()
-    # ----------------------------------
-    print("\n9. Testing get_previous_attempts()")
-
-    previous_attempts = data_manager.get_previous_attempts(
-        "1"
-    )
-
-    print("Previous attempts:", previous_attempts)
-
-
-    print("\n========== TESTING COMPLETED ==========")
