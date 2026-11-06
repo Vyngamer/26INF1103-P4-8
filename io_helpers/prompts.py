@@ -73,8 +73,8 @@ class PasswordPrompt(TextPrompt):
 
     def read(self):
         if sys.stdin.isatty():
-            return pwinput.pwinput(prompt=self.message)
-        return input(self.message)
+            return pwinput.pwinput(prompt=self.message).strip()
+        return input(self.message).strip()
 
 
 # Number input with range validation.
