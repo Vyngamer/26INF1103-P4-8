@@ -1,27 +1,29 @@
 import os
 import uuid
+from abc import ABC, abstractmethod
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from pymongo import MongoClient, ASCENDING
-from pymongo.errors import PyMongoError
+from pymongo.errors import PyMongoError, DuplicateKeyError
 from dotenv import load_dotenv
+from bson import ObjectId
 
-# Load environment variables
+
+# =========================================================
+# 1. MONGODB CONNECTION
+# =========================================================
 load_dotenv()
 
-# Retrieve MongoDB connection string
 MONGODB_URI = os.getenv("MONGODB_URI")
 
 if not MONGODB_URI:
     raise ValueError("MONGODB_URI is missing from .env")
 
-# Connect to MongoDB Atlas
 client = MongoClient(
     MONGODB_URI,
     serverSelectionTimeoutMS=5000
 )
 
-# Test connection
 try:
     client.admin.command("ping")
     print("Successfully connected to MongoDB Atlas!")
@@ -30,9 +32,36 @@ except PyMongoError as error:
     client.close()
     raise ConnectionError(f"MongoDB connection failed: {error}")
 
-# Select database and collection
 project_db = client["student_wellbeing_db"]
+
 assessment_records = project_db["assessment_records"]
+user_records = project_db["user_records"]
+
+# =========================================================
+# 2. ABSTRACT STORAGE INTERFACE
+# =========================================================
+class StorageInterface(ABC):
+
+    @abstractmethod
+    def load(self):
+        pass
+
+    @abstractmethod
+    def save(self, data):
+        pass
+
+    @abstractmethod
+    def update(self, identifier, updates):
+        pass
+
+    @abstractmethod
+    def delete(self, identifier):
+        pass
+
+
+
+
+
 
 class MongoDBStorage:
 
@@ -358,7 +387,7 @@ if __name__ == "__main__":
     print("\n2. Testing merge_record()")
 
     user_input =  {
-            "user_id": "1",
+            "user_id": "3",
             "sleep_duration": 1.0,
             "stress_level": 1,
             "focus_level": 1,
