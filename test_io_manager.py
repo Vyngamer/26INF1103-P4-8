@@ -3,8 +3,7 @@ from io_manager import (Session, IOManager, Menu, SurveyAction, LoginAction,
                         LogoutAction, ExitAction, BackAction, AssessmentHistory,
                         YesNoPrompt, Questionnaire)
 from io_helpers.console import Console
-from io_helpers.user import AccountResult
-
+from io_helpers.account_models import AccountResult
 # --- Session Tests ---
 
 #Test that a fresh session initializes correctly

@@ -6,7 +6,7 @@ from matplotlib.backends import backend_registry, BackendFilter
 from abc import ABC, abstractmethod 
 from io_helpers.questionnaire import Questionnaire
 from io_helpers.prompts import ChoicePrompt, RangePrompt, YesNoPrompt
-from io_helpers.user import AccountService
+from io_helpers.account_service import AccountService
 from data_manager import get_user_records, get_user_int_records
 from io_helpers.history import AssessmentHistory, AssessmentHistoryTable, AssessmentDetailView
 from io_helpers.console import Console
