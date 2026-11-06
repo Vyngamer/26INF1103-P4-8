@@ -20,13 +20,6 @@ class AssessmentHistory:
     def records(self):
         return get_user_records(self.user_id, self.filename)
 
-    '''
-    #The newest record, or None if there are none
-    def latest(self):
-        records = self.records()
-        return records[0] if records else None
-    '''
-
     #Return all of the user's records dated today (newest first)
     def todays_records(self):
         today = datetime.now().strftime(self.DATE_FORMAT)
