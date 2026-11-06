@@ -117,7 +117,7 @@ class IOManager:
                 Console.pause()
                 return None
 
-        return Questionnaire().run()
+        return Questionnaire().run(uid)
 
     # Change username
     def change_username(self):
