@@ -45,25 +45,25 @@ class Prompt(ABC):
         pass
 
 
-# Non-empty text input (whitespace trimmed)
+# Non-empty text input (whitespace trimmed), with an optional maximum length
 class TextPrompt(Prompt):
     EMPTY_MESSAGE = "Input cannot be empty. Please try again."
+
+    def __init__(self, message, max_length=None, too_long_msg=None):
+        super().__init__(message)
+        self.max_length = max_length
+        if max_length is not None and too_long_msg is None:
+            too_long_msg = f"Please enter at most {max_length} characters."
+        self.too_long_msg = too_long_msg
 
     def convert(self, raw):
         if not raw:
             raise InvalidInput(self.EMPTY_MESSAGE)
         return raw
 
-
-# TextPrompt with a maximum length (For Reflection Question). Raises InvalidInput if too long.
-class LimitedTextPrompt(TextPrompt):
-    def __init__(self, message, limit, too_long_msg):
-        super().__init__(message)
-        self.limit = limit
-        self.too_long_msg = too_long_msg
-
+    # Check for maximum length if specified
     def validate(self, value):
-        if len(value) > self.limit:
+        if self.max_length is not None and len(value) > self.max_length:
             raise InvalidInput(self.too_long_msg)
 
 
@@ -73,8 +73,8 @@ class PasswordPrompt(TextPrompt):
 
     def read(self):
         if sys.stdin.isatty():
-            return pwinput.pwinput(prompt=self.message)
-        return input(self.message)
+            return pwinput.pwinput(prompt=self.message).strip()
+        return input(self.message).strip()
 
 
 # Number input with range validation.

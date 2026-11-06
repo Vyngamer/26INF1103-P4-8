@@ -33,6 +33,6 @@ class PasswordHasher:
                 return False
             actual = self._derive(password, bytes.fromhex(salt_hex), int(iterations))
             expected = bytes.fromhex(digest_hex)
-        except (ValueError, OverflowError):
+        except (ValueError, OverflowError, AttributeError):
             return False
         return hmac.compare_digest(actual, expected)
