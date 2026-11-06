@@ -166,7 +166,7 @@ def test_run_until_exit(mock_input, capsys):
 @patch.object(AssessmentHistory, 'todays_records', return_value=[{'time': '10:00:00', 'record_id': 'abc'}])
 @patch.object(Console, 'pause')
 def test_survey_existing_record_kept(mock_pause, mock_todays_records, mock_yes_no, capsys):
-    result = IOManager().collect_responses("test_uuid")    # CHANGED: was SurveyAction()
+    result = IOManager().collect_responses("test_uuid")
 
     captured = capsys.readouterr()
     assert result is None
@@ -178,10 +178,10 @@ def test_survey_existing_record_kept(mock_pause, mock_todays_records, mock_yes_n
 @patch.object(Questionnaire, 'run', return_value={"user_id": None, "mood": "Calm"})
 @patch.object(AssessmentHistory, 'todays_records', return_value=[])
 def test_survey_runs_questionnaire_when_none_today(mock_todays_records, mock_run):
-    result = IOManager().collect_responses("test_uuid")    # CHANGED: was SurveyAction()
+    result = IOManager().collect_responses("test_uuid")
 
     assert result == {"user_id": None, "mood": "Calm"}
-    mock_run.assert_called_once_with("test_uuid")    # CHANGED: the user's id is now passed to Questionnaire.run()
+    mock_run.assert_called_once_with("test_uuid")
 
 # survey() hands the answers to the process_responses function given to IOManager
 @patch.object(Questionnaire, 'run', return_value={"user_id": None, "mood": "Calm"})
