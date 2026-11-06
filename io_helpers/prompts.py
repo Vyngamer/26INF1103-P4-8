@@ -52,7 +52,9 @@ class TextPrompt(Prompt):
     def __init__(self, message, max_length=None, too_long_msg=None):
         super().__init__(message)
         self.max_length = max_length
-        self.too_long_msg = too_long_msg or f"Please enter at most {max_length} characters."
+        if max_length is not None and too_long_msg is None:
+            too_long_msg = f"Please enter at most {max_length} characters."
+        self.too_long_msg = too_long_msg
 
     def convert(self, raw):
         if not raw:
