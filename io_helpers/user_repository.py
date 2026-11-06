@@ -4,7 +4,7 @@ User storage (users.json)
 
 import json
 import os
-from io_helpers.account_models import User, CorruptDatabaseError
+from io_helpers.account_models import User, AccountError
 
 DATABASE = "users.json"
 
@@ -14,7 +14,7 @@ class UserRepository:
     def __init__(self, path=DATABASE):
         self.path = path
 
-    #Load users list. [] if the file doesn't exist yet. Raises CorruptDatabaseError if corrupted
+    #Load users list. [] if the file doesn't exist yet. Raises AccountError if corrupted
     def load(self):
         if not os.path.exists(self.path):
             return []
@@ -22,7 +22,7 @@ class UserRepository:
             with open(self.path, "r", encoding="utf-8") as file:
                 return [User.from_dict(data) for data in json.load(file)]
         except (json.JSONDecodeError, TypeError, KeyError):
-            raise CorruptDatabaseError()
+            raise AccountError("User database is corrupted. Please check users.json.")
 
     #Save users list (write to a temp file first for program crash handling)
     def save(self, users):

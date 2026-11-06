@@ -33,9 +33,3 @@ class AccountResult:
 # Turned into a failed AccountResult before reaching the caller.
 class AccountError(Exception):
     pass
-
-
-# Raised when users.json cannot be parsed
-class CorruptDatabaseError(AccountError):
-    def __init__(self):
-        super().__init__("User database is corrupted. Please check users.json.")

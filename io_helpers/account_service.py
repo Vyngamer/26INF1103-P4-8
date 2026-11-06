@@ -8,7 +8,7 @@ from io_helpers.hasher import PasswordHasher
 from io_helpers.prompts import TextPrompt, PasswordPrompt
 from io_helpers.account_models import User, AccountResult, AccountError
 from io_helpers.user_repository import UserRepository
-from io_helpers.validators import UsernameValidator, PasswordValidator
+from io_helpers.validators import username_errors, password_errors, MIN_PASSWORD_LENGTH    # CHANGED: validator classes are now functions
 
 
 # Decorator for AccountService actions
@@ -25,19 +25,17 @@ def account_action(method):
 
 # All account actions (was user_register / user_login / change_username / change_password).
 class AccountService:
-    def __init__(self, repository=None, passwords=None,
-                 username_rules=None, password_rules=None):
+    # CHANGED: username_rules / password_rules arguments removed (validators are now plain functions)
+    def __init__(self, repository=None, passwords=None):
         self.repository = repository or UserRepository()
         self.passwords = passwords or PasswordHasher()
-        self.username_rules = username_rules or UsernameValidator()
-        self.password_rules = password_rules or PasswordValidator()
 
     #Prompt for a username and reject it if invalid or already taken
     #Does not check if user's own name is taken, allowing them to change their own username
     #To the same name in diff case (e.g. "Alice" -> "alice")
     def _prompt_unique_username(self, users, prompt, current=None):
         username = TextPrompt(prompt).ask()
-        problems = self.username_rules.errors(username)
+        problems = username_errors(username)    # CHANGED: was self.username_rules.errors()
         if problems:
             raise AccountError(" ".join(problems))
         existing = self.repository.find_by_username(users, username)
@@ -55,9 +53,10 @@ class AccountService:
 
     #Ask for a new password twice and return it (was prompt_new_password)
     def _prompt_new_password(self, noun="Password"):
-        print(f"Password must:\n1. Be at least {self.password_rules.min_length} characters long\n2. Contain at least one number & one special character (e.g. ! @ # $ %)\n3. Have no spaces at the start or end")
+        # CHANGED: uses MIN_PASSWORD_LENGTH instead of self.password_rules.min_length
+        print(f"Password must:\n1. Be at least {MIN_PASSWORD_LENGTH} characters long\n2. Contain at least one number & one special character (e.g. ! @ # $ %)\n3. Have no spaces at the start or end")
         password = PasswordPrompt(f"Please Enter A {noun}: ").ask()
-        problems = self.password_rules.errors(password)
+        problems = password_errors(password)    # CHANGED: was self.password_rules.errors()
         if problems:
             raise AccountError("Password must have: " + ", ".join(problems) + ".")
         confirm_password = PasswordPrompt(f"Please Re-enter The {noun}: ").ask()
