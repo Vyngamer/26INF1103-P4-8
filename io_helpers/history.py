@@ -147,36 +147,3 @@ class AssessmentHistoryTable(ReportView):
 
         print("-" * self.width)
         print(f"Total assessments: {len(self.records)}")
-
-'''
-Note that below is the required format for the return value for each of the 3 layers
-------------------------------------------------------------------------------
-user_input = {
-    "user_id": 1,
-    "sleep_duration": 8,
-    "stress_level": 2,
-    "focus_level": 2,
-    "academic_workload": 9,
-    "mood": "Exhausted",
-    "social_activity_level": 3,
-    "reflection": "not enough sleep"
-    }
-
-ai_output = {
-    "conversation_id": 10,
-    "mental_wellness_risk_score": 78,
-    "sentiment": "Negative",
-    "burnout_risk_score": 82,
-    "crisis_alert": False,
-    "primary_stressor": "Assignment deadlines",
-    "personalized_recommendations": "Prioritise sleep and manage deadlines."
-    }
-
-logic_output = {
-    "mental_wellness_risk_tier": "High",
-    "warnings": ["High Burnout Warning"],
-    "route": "Urgent support",
-    "counselling_recommendation": True
-    }
-------------------------------------------------------------------------------
-'''
