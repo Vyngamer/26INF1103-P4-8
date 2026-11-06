@@ -2,7 +2,6 @@
 Assessment trends graph
 '''
 
-# graph is actually shown (saves ~0.8s at program start-up)
 from data_manager import get_user_records, get_user_int_records
 from io_helpers.console import Console
 
