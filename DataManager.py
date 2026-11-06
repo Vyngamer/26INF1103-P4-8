@@ -158,6 +158,29 @@ class MongoDBStorage(StorageInterface):
 # =========================================================
 # 4. USER RECORD
 # =========================================================
+class UserRecord:
+
+    def __init__(self, username, password, user_id=None):
+
+        self.__user_id = user_id
+        self.__username = username
+        self.__password = password
+
+    def get_user_id(self):
+        return self.__user_id
+
+    def get_username(self):
+        return self.__username
+
+    def get_password(self):
+        return self.__password
+
+    # Convert user object into dictionary
+    def to_dict(self):
+        return {
+            "username": self.__username,
+            "password": self.__password
+        }
 
 class AssessmentRecord:
     def __init__(self, user_input, ai_output, logic_output, record_id=None, date=None, time=None):
