@@ -8,7 +8,7 @@ hasher           - Salted password hashing (PasswordHasher)
 history          - Assessment history and report views
 prompts          - Input prompt classes that re-ask until the answer is valid
 questionnaire    - Survey questions and the Questionnaire runner
+trends           - Assessment trends graph (show_trends)
 user_repository  - users.json storage (UserRepository)
 validators       - Username and password rules (username_errors, password_errors)
 '''
-# CHANGED: user.py was split into account_models, account_service, user_repository and validators
