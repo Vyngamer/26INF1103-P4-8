@@ -1,4 +1,4 @@
-from CurrentAttempt import CurrentAttempt
+from .CurrentAttempt import CurrentAttempt
 
 class RiskTierClassifier:
     """Classifies the risk tier of a current attempt based on its attributes."""

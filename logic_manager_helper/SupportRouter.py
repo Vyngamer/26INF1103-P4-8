@@ -1,4 +1,4 @@
-from CurrentAttempt import CurrentAttempt
+from .CurrentAttempt import CurrentAttempt
 
 class SupportRouter:
     def decide(self, current: CurrentAttempt, tier: str, warnings: list[str]) -> str:
