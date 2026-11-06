@@ -2,8 +2,7 @@
 Assessment trends graph
 '''
 
-import matplotlib.pyplot as plt
-from matplotlib.backends import backend_registry, BackendFilter
+# graph is actually shown (saves ~0.8s at program start-up)
 from data_manager import get_user_records, get_user_int_records
 from io_helpers.console import Console
 
@@ -21,6 +20,8 @@ CHARTS = [
 
 #Check if matplotlib can open a window (False when there is no display, e.g. headless Docker)
 def can_show_window():
+    import matplotlib.pyplot as plt    # NEW: lazy import
+    from matplotlib.backends import backend_registry, BackendFilter    # NEW: lazy import
     interactive = backend_registry.list_builtin(BackendFilter.INTERACTIVE)
     return plt.get_backend().lower() in [b.lower() for b in interactive]
 
@@ -32,6 +33,8 @@ def show_trends(uid, db, output_file=OUTPUT_FILE):
         print("You do not have enough records to do this comparison\nYou need to have at least 2 survey attempts")
         Console.pause()
         return
+
+    import matplotlib.pyplot as plt
 
     #As records are stored newest first; reverse so the graph runs oldest -> newest
     required_data = get_user_int_records(user_records, uid)[::-1]
