@@ -21,7 +21,7 @@ class UserRepository:
         try:
             with open(self.path, "r", encoding="utf-8") as file:
                 return [User.from_dict(data) for data in json.load(file)]
-        except (json.JSONDecodeError, TypeError, KeyError):
+        except (json.JSONDecodeError, TypeError, KeyError, UnicodeDecodeError):
             raise AccountError("User database is corrupted. Please check users.json.")
 
     #Save users list (write to a temp file first for program crash handling)
