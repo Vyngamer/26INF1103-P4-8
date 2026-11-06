@@ -58,34 +58,83 @@ class StorageInterface(ABC):
     def delete(self, identifier):
         pass
 
+# =========================================================
+# 3. MONGODB STORAGE
+# =========================================================
+class MongoDBStorage(StorageInterface):
 
-
-
-
-
-class MongoDBStorage:
-
-    def __init__(self, collection):
+    def __init__(self, collection, unique_fields=None):
         self.__collection = collection
 
-    # Load all assessment records
+        # Create unique indexes when needed
+        if unique_fields:
+            for field in unique_fields:
+                self.__collection.create_index(
+                    [(field, ASCENDING)],
+                    unique=True
+                )
+
+    # Load all documents
     def load(self):
         try:
-            documents = self.__collection.find({}, {"_id": 0})
-            return list(documents)
+            return list(self.__collection.find({}))
 
         except PyMongoError as error:
             print(f"Error loading records: {error}")
             return []
 
-    # Save a new assessment record
-    def save(self, record):
+    # Insert a new document
+    def save(self, data):
         try:
-            self.__collection.insert_one(record)
-            return True
+            result = self.__collection.insert_one(data)
+            return str(result.inserted_id)
+
+        except DuplicateKeyError:
+            print("Duplicate record detected.")
+            return None
 
         except PyMongoError as error:
             print(f"Error saving record: {error}")
+            return None
+    
+    # Find one document
+    def find_one(self, query):
+        try:
+            return self.__collection.find_one(query)
+
+        except PyMongoError as error:
+            print(f"Error retrieveing record: {error}")
+            return None
+
+    # Update an existing document
+    def update(self, identifier, updates):
+        try:
+            result = self.__collection.update_one(
+                {"_id": ObjectId(identifier)},
+                {"$set": updates}
+            )
+
+            return result.matched_count > 0
+
+        except DuplicateKeyError:
+            print("Duplicate value detected.")
+            return False
+
+        except (PyMongoError, ValueError) as error:
+            print(f"Error updating record: {error}")
+            return False
+
+    # Delete a document
+    def delete(self, identifier):
+        try:
+            result = self.__collection.delete_one({
+                "_id": ObjectId(identifier)
+            })
+
+            return result.deleted_count > 0
+
+        except (PyMongoError, ValueError) as error:
+            print(f"Error deleting record: {error}")
             return False
 
     # Replace today's assessment record for a user
@@ -105,6 +154,10 @@ class MongoDBStorage:
         except PyMongoError as error:
             print(f"Error replacing assessment record: {error}")
             return False
+
+# =========================================================
+# 4. USER RECORD
+# =========================================================
 
 class AssessmentRecord:
     def __init__(self, user_input, ai_output, logic_output, record_id=None, date=None, time=None):
