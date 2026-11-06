@@ -42,9 +42,10 @@ class Questionnaire:
         return key.replace('_', ' ').title()
 
     # Ask every question and return a dictionary of responses (None if cancelled)
-    def run(self):
+    # CHANGED: takes the user's id so callers no longer need to fill in a "user_id": None placeholder
+    def run(self, user_id=None):
         responses = {
-            "user_id": None
+            "user_id": user_id
         }
         try:
             for i, (key, prompt) in enumerate(self.questions, start=1): 
