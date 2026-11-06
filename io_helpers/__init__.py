@@ -11,4 +11,5 @@ questionnaire    - Survey questions and the Questionnaire runner
 trends           - Assessment trends graph (show_trends)
 user_repository  - users.json storage (UserRepository)
 validators       - Username and password rules (username_errors, password_errors)
+session          - Session state (Session)
 '''
