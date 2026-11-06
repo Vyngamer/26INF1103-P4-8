@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<body data-page="dashboard">
+  <div class="app">
+
+  {% include 'navbar.html' %}	
+
+    <main class="main">
+      <div class="page-head">
+	      <h1>Welcome back, <span data-first-name>{{ user_details.username }}</span></h1>
+        <p>Your dashboard is ready. Review your last wellness check and start a new one whenever you’re ready.</p>
+      </div>
+
+      <div class="dash-grid">
+        <!-- Left column -->
+        <div class="stack">
+          <section class="score-card" aria-label="Overall wellness">
+            <p class="label">Overall wellness</p>
+	    <p class="value"><span id="overallScore">72</span>/100</p>
+            <div class="meta">
+              <span class="muted">Last check</span>
+              <strong id="lastCheck">2 Nov 2026 · 9:30 AM</strong>
+            </div>
+            <p class="meta muted" id="comparedWith" style="margin-top:10px">Compared with 26 Oct 2026 · 66/100</p>
+          </section>
+
+          <section class="card">
+            <h2 class="card-title">Previous attempt</h2>
+            <p class="card-sub" data-latest-date>2 Nov 2026 · 9:30 AM</p>
+            <div class="tiles-2">
+		    <div class="tile"><p class="t-label">Mental Wellness score</p><p class="t-value" id="tWellness">{{ previous_attempt.mental_wellness_score }}/100</p></div>
+              <div class="tile"><p class="t-label">Burnout Risk Score</p><p class="t-value" id="tBurnout">{{ previous_attempt.burnout_risk_score }}/100</p></div>
+            </div>
+            <div class="tiles-4">
+		    <div class="tile lav"><p class="t-label">Sleep hours</p><p class="t-value" id="tSleep">{{ previous_attempt.sleep_duration }}/24</p></div>
+		    <div class="tile lav"><p class="t-label">Focus Level</p><p class="t-value" id="tFocus">{{ previous_attempt.focus_level }}/10</p></div>
+              <div class="tile lav"><p class="t-label">Stress Level</p><p class="t-value" id="tStress">{{ previous_attempt.stress_level }}/10</p></div>
+              <div class="tile lav"><p class="t-label">Social Activity Level</p><p class="t-value" id="tSocial">{{ previous_attempt.social_activity_level }}/10</p></div>
+            </div>
+            <div class="compare-box">
+              <h4>Comparison</h4>
+	      <ul class="bullets">
+	      {% for message in previous_attempt.display_messages %} 
+	         <li>{{ message }}</li>	
+	      {% endfor %}
+	      </ul>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right column -->
+        <div class="stack">
+          <section class="card next-check">
+            <h2 class="card-title">Ready for your next check?</h2>
+            <p class="card-sub">Start a new wellness check now, or review your previous results before continuing.</p>
+            <div class="actions">
+	        <a href={{ url_for('wellness_check') }}  class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5-12-7.5z"/></svg>
+                Start wellness check
+              </a>
+              <a href="history.html" class="btn btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+                View past results
+              </a>
+            </div>
+            <div class="footer-row"><span>Last completed check</span><strong data-latest-date>2 Nov 2026 · 9:30 AM</strong></div>
+          </section>
+
+          <section class="card">
+            <h2 class="card-title">Insights</h2>
+            <p class="card-sub">A quick snapshot from your last check</p>
+            <div class="insight"><h4>High Burnout Warning (Sleep)</h4><p>Your burnout risk score was high and you had little sleep</p></div>
+            <div class="insight"><h4>Burnout Warning (Workload)</h4><p>Your burnout risk score was high as well as your workload</p></div>
+            <div class="insight"><h4>Social Withdrawal Risk</h4><p>Your mood wasn’t too good and your social activity level was low</p></div>
+            <div class="insight advice"><h4>Advice For You (AI Generated)</h4><p>Stress management remains the area with the most room for improvement. A new check can help you track progress and identify small changes to build on.</p></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+{% endblock %}

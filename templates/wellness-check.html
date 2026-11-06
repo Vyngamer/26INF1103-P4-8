@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<body data-page="wellness">
+  <div class="app">
+  
+  {% include 'navbar.html' %}
+
+    <main class="main">
+      <div class="page-head">
+        <h1>Wellness check</h1>
+        <p>A quick conversation to understand how you’re feeling today. I’ll ask a few questions, and you can choose the responses that feel most like you.</p>
+      </div>
+
+      <section class="card chat-card">
+        <div class="chat-head">
+          <div>
+            <h2 class="card-title">Conversation</h2>
+            <p class="card-sub">A calm, guided exchange to understand your wellbeing today.</p>
+          </div>
+          <span class="badge">AI assistant</span>
+        </div>
+
+        <div class="chat-log" id="chatLog" aria-live="polite">
+	</div>
+	
+        <div class="quick-replies" id="quickReplies"></div>
+
+        <form class="chat-input" id="chatForm" autocomplete="off">
+          <label for="chatInput" class="visually-hidden">Write a message</label>
+          <input type="text" id="chatInput" name="msg" placeholder="Write a message">
+          <button type="submit" class="send" id="sendBtn" aria-label="Send message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="M21 3l-7 18-4-7-7-4 18-7z"/></svg>
+          </button>
+        </form>
+        <p class="chat-progress" id="chatProgress"></p>
+
+        <div class="chat-done" id="chatDone">
+          <p><strong>All done.</strong> Your results are ready.</p>
+          <a href="results.html" class="btn btn-primary">See my results</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+	$(document).ready(function() {
+			$('#chatForm').on('submit', function() {
+					var rawText = $('#chatInput').val();
+					var userHtml = '<div class="msg user"><div class="avatar">YT</div><div class="bubble">' + rawText + '</div></div>';
+					var botTypingHtml = '<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div'
+
+					$('#chatLog').append(userHtml);
+					$('#chatLog').append(botTypingHtml);
+
+					$('#chatInput').val('');
+					$('#sendBtn').prop('disabled', true);
+					$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+					event.preventDefault();
+
+					$.ajax({
+						data: {
+								msg: rawText,
+						},
+						type: 'POST',
+						url: '/get'
+						}).done(function(data) {
+								botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data + '</div></div>';
+								$('#botTyping').remove();
+								$('#chatLog').append($.parseHTML(botHtml));
+								$('#sendBtn').prop('disabled', false);
+								$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+								event.preventDefault();
+							})
+			})
+	});
+</script>
+
+</body>
+</html>
+
+{% endblock %}
