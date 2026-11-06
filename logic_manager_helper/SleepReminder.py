@@ -1,4 +1,4 @@
-from CurrentAttempt import CurrentAttempt
+from .CurrentAttempt import CurrentAttempt
 
 class SleepReminder:
     """Check the current attempt without using history."""
