@@ -15,17 +15,13 @@ USERNAME_RULES = "Username must be 3-20 characters long and contain only letters
 def username_errors(value):
     return [] if USERNAME_PATTERN.match(value) else [USERNAME_RULES]
 
-# Validates a password: >= 4 characters, >= 1 number, >= 1 special character, no spaces at start or end
+# Validates a password: >= 4 characters, >= 1 number, >= 1 special character
 def password_errors(value, min_length=MIN_PASSWORD_LENGTH):
     problems = []
 
     # Check for minimum length
     if len(value) < min_length:
         problems.append(f"at least {min_length} characters")
-
-    # Check for no spaces
-    if value != value.strip():
-        problems.append("no spaces at the start or end")
 
     # Check for at least one number
     if not any(char.isdigit() for char in value):
