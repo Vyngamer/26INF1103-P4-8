@@ -12,6 +12,7 @@ from bson import ObjectId
 # =========================================================
 # 1. MONGODB CONNECTION
 # =========================================================
+
 load_dotenv()
 
 MONGODB_URI = os.getenv("MONGODB_URI")
@@ -40,6 +41,7 @@ user_records = project_db["user_records"]
 # =========================================================
 # 2. ABSTRACT STORAGE INTERFACE
 # =========================================================
+
 class StorageInterface(ABC):
 
     @abstractmethod
@@ -61,6 +63,7 @@ class StorageInterface(ABC):
 # =========================================================
 # 3. MONGODB STORAGE
 # =========================================================
+
 class MongoDBStorage(StorageInterface):
 
     def __init__(self, collection, unique_fields=None):
@@ -77,7 +80,8 @@ class MongoDBStorage(StorageInterface):
     # Load all documents
     def load(self):
         try:
-            return list(self.__collection.find({}))
+            documents = self.__collection.find({})
+            return list(documents)
 
         except PyMongoError as error:
             print(f"Error loading records: {error}")
@@ -107,17 +111,17 @@ class MongoDBStorage(StorageInterface):
             return None
 
     # Update an existing document
-    def update(self, identifier, updates):
+    def update(self, query, updates):
         try:
             result = self.__collection.update_one(
-                {"_id": ObjectId(identifier)},
+                query,
                 {"$set": updates}
             )
 
             return result.matched_count > 0
 
-        except DuplicateKeyError:
-            print("Duplicate value detected.")
+        except DuplicateKeyError as error:
+            print(f"Duplicate value: {error}")
             return False
 
         except (PyMongoError, ValueError) as error:
@@ -125,15 +129,12 @@ class MongoDBStorage(StorageInterface):
             return False
 
     # Delete a document
-    def delete(self, identifier):
+    def delete(self, query):
         try:
-            result = self.__collection.delete_one({
-                "_id": ObjectId(identifier)
-            })
-
+            result = self.__collection.delete_one(query)
             return result.deleted_count > 0
 
-        except (PyMongoError, ValueError) as error:
+        except PyMongoError as error:
             print(f"Error deleting record: {error}")
             return False
 
@@ -158,11 +159,14 @@ class MongoDBStorage(StorageInterface):
 # =========================================================
 # 4. USER RECORD
 # =========================================================
+
 class UserRecord:
-
     def __init__(self, username, password, user_id=None):
+        if user_id is None:
+            self.__user_id = str(uuid.uuid4())
+        else:
+            self.__user_id = user_id
 
-        self.__user_id = user_id
         self.__username = username
         self.__password = password
 
@@ -175,12 +179,16 @@ class UserRecord:
     def get_password(self):
         return self.__password
 
-    # Convert user object into dictionary
     def to_dict(self):
         return {
+            "user_id": self.__user_id,
             "username": self.__username,
             "password": self.__password
         }
+
+# =========================================================
+# 5. ASSESSMENT RECORD
+# =========================================================
 
 class AssessmentRecord:
     def __init__(self, user_input, ai_output, logic_output, record_id=None, date=None, time=None):
@@ -229,6 +237,105 @@ class AssessmentRecord:
             "ai_output": self.__ai_output,
             "logic_output": self.__logic_output
         }
+    
+# =========================================================
+# 6. USER DATA MANAGER
+# =========================================================
+
+class UserDataManager:
+
+    def __init__(self, storage):
+        self.__storage = storage
+        self.__users = []
+
+        self.load_users()
+
+    # Load users from MongoDB
+    def load_users(self):
+        documents = self.__storage.load()
+        self.__users = []
+
+        for document in documents:
+            user = UserRecord(
+                username=document["username"],
+                password=document["password"],
+                user_id=str(document["user_id"])
+            )
+
+            self.__users.append(user)
+
+        return self.__users
+
+    def get_users(self):
+        return self.__users.copy()
+
+    def create_user(self, username, password):
+        user = UserRecord(username, password)
+
+        success = self.__storage.save(user.to_dict())
+
+        if success is not None:
+            self.__users.append(user)
+            return user.get_user_id()
+
+        return None
+
+    def get_user_by_id(self, user_id):
+        document = self.__storage.find_one({"user_id": user_id})
+
+        if document is None:
+            return None
+
+        return UserRecord(
+            username=document["username"],
+            password=document["password"],
+            user_id=document["user_id"]
+        )
+
+    def get_user_by_username(self, username):
+        document = self.__storage.find_one({"username": username})
+
+        if document is None:
+            return None
+
+        return UserRecord(
+            username=document["username"],
+            password=document["password"],
+            user_id=document["user_id"]
+        )
+
+    def update_user(self, user_id, updates):
+        allowed_fields = {"username", "password"}
+
+        if not updates or not set(updates.keys()).issubset(allowed_fields):
+            return False
+
+        success = self.__storage.update(
+            {"user_id": user_id},
+            updates
+        )
+
+        if success:
+            self.load_users()
+
+        return success
+
+    def delete_user(self, user_id):
+        success = self.__storage.delete({"user_id": user_id})
+
+        if success:
+            self.load_users()
+
+        return success
+
+
+
+
+
+
+
+
+
 
 class DataManager:
 
