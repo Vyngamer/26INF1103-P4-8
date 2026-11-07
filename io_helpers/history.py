@@ -8,22 +8,15 @@ from data_manager import get_user_records
 from io_helpers.console import Console
 
 
-# One user's saved assessments in a records file
-class AssessmentHistory:
-    DATE_FORMAT = "%d-%m-%Y"
+DATE_FORMAT = "%d-%m-%Y"    # CHANGED: was AssessmentHistory.DATE_FORMAT
 
-    def __init__(self, user_id, filename):
-        self.user_id = user_id
-        self.filename = filename
 
-    #All of the user's records (newest first)
-    def records(self):
-        return get_user_records(self.user_id, self.filename)
-
-    #Return all of the user's records dated today (newest first)
-    def todays_records(self):
-        today = datetime.now().strftime(self.DATE_FORMAT)
-        return [record for record in self.records() if record["date"] == today]
+# CHANGED: AssessmentHistory class replaced by this function. Its records() method only called
+# data_manager.get_user_records(), so io_manager.py now calls that directly.
+#Return all of the user's records dated today (newest first)
+def todays_records(user_id, filename):
+    today = datetime.now().strftime(DATE_FORMAT)
+    return [record for record in get_user_records(user_id, filename) if record["date"] == today]
 
 
 # Abstract base class for a titled report printed to the console

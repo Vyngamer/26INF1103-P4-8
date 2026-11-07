@@ -1,6 +1,7 @@
 from unittest.mock import patch, MagicMock
 import pytest
-from io_manager import (IOManager, AssessmentHistory, YesNoPrompt, Questionnaire)
+from io_manager import (IOManager, YesNoPrompt, Questionnaire)
+from io_helpers.history import todays_records
 from io_helpers.console import Console
 from io_helpers.session import Session
 from io_helpers.account_models import AccountResult
@@ -163,7 +164,7 @@ def test_run_until_exit(mock_input, capsys):
 
 #Test that a user with an existing survey today is prevented from overwriting if they say 'no'
 @patch.object(YesNoPrompt, 'ask', return_value=False)
-@patch.object(AssessmentHistory, 'todays_records', return_value=[{'time': '10:00:00', 'record_id': 'abc'}])
+@patch('io_manager.todays_records', return_value=[{'time': '10:00:00', 'record_id': 'abc'}]) 
 @patch.object(Console, 'pause')
 def test_survey_existing_record_kept(mock_pause, mock_todays_records, mock_yes_no, capsys):
     result = IOManager().collect_responses("test_uuid")
@@ -176,7 +177,7 @@ def test_survey_existing_record_kept(mock_pause, mock_todays_records, mock_yes_n
 
 # With no existing assessment today, the questionnaire runs straight away
 @patch.object(Questionnaire, 'run', return_value={"user_id": None, "mood": "Calm"})
-@patch.object(AssessmentHistory, 'todays_records', return_value=[])
+@patch('io_manager.todays_records', return_value=[])
 def test_survey_runs_questionnaire_when_none_today(mock_todays_records, mock_run):
     result = IOManager().collect_responses("test_uuid")
 
@@ -185,7 +186,7 @@ def test_survey_runs_questionnaire_when_none_today(mock_todays_records, mock_run
 
 # survey() hands the answers to the process_responses function given to IOManager
 @patch.object(Questionnaire, 'run', return_value={"user_id": None, "mood": "Calm"})
-@patch.object(AssessmentHistory, 'todays_records', return_value=[])
+@patch('io_manager.todays_records', return_value=[])
 def test_survey_passes_responses_to_function(mock_todays_records, mock_run):
     received = []
     app = IOManager(process_responses=lambda session, responses: received.append((session.uid, responses)))
@@ -196,7 +197,7 @@ def test_survey_passes_responses_to_function(mock_todays_records, mock_run):
 
 # Check that survey() still runs without errors when no process_responses function is provided
 @patch.object(Questionnaire, 'run', return_value={"user_id": None, "mood": "Calm"})
-@patch.object(AssessmentHistory, 'todays_records', return_value=[])
+@patch('io_manager.todays_records', return_value=[]) 
 def test_survey_without_function(mock_todays_records, mock_run):
     app = IOManager()
     app.session.log_in("123", "test")
@@ -206,7 +207,7 @@ def test_survey_without_function(mock_todays_records, mock_run):
 # --- History Tests ---
 
 # Check that history() prints a message and returns without showing a menu when there are no records
-@patch.object(AssessmentHistory, 'records', return_value=[])
+@patch('io_manager.get_user_records', return_value=[])
 def test_history_no_records(mock_records, capsys):
     app = IOManager()
     app.session.log_in("123", "test")
@@ -215,13 +216,25 @@ def test_history_no_records(mock_records, capsys):
 
 # Check that choosing "Back" in the history sub-menu leaves history()
 @patch('io_manager.AssessmentHistoryTable')
-@patch.object(AssessmentHistory, 'records', return_value=[{"dummy": True}])
+@patch('io_manager.get_user_records', return_value=[{"dummy": True}])
 @patch('builtins.input', return_value="2")    # option 2 = Back
 def test_history_back(mock_input, mock_records, mock_table):
     app = IOManager()
     app.session.log_in("123", "test")
     app.history()
     mock_table.assert_called_once_with([{"dummy": True}])
+
+# Check that todays_records() keeps only records dated today, in the same (newest first) order
+@patch('io_helpers.history.get_user_records')
+def test_todays_records(mock_records):
+    from datetime import datetime
+    today = datetime.now().strftime("%d-%m-%Y")
+    mock_records.return_value = [{"date": today, "time": "15:00:00"},
+                                 {"date": "01-01-2000", "time": "09:00:00"},
+                                 {"date": today, "time": "10:00:00"}]
+    assert todays_records("123", "records.json") == [{"date": today, "time": "15:00:00"},
+                                                     {"date": today, "time": "10:00:00"}]
+    mock_records.assert_called_once_with("123", "records.json")
 
 # --- Validator Tests ---
 

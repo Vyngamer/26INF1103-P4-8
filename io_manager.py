@@ -5,7 +5,8 @@ Main I/O Layer
 from io_helpers.questionnaire import Questionnaire
 from io_helpers.prompts import ChoicePrompt, RangePrompt, YesNoPrompt
 from io_helpers.account_service import AccountService
-from io_helpers.history import AssessmentHistory, AssessmentHistoryTable, AssessmentDetailView
+from io_helpers.history import todays_records, AssessmentHistoryTable, AssessmentDetailView
+from data_manager import get_user_records
 from io_helpers.trends import show_trends
 from io_helpers.console import Console
 from io_helpers.session import Session
@@ -106,7 +107,7 @@ class IOManager:
     #Run the questionnaire. Returns the answers, or None if the user kept today's assessment
     def collect_responses(self, uid):
         #If the user already has an assessment today, ask before replacing it
-        todays = AssessmentHistory(uid, self.db).todays_records()
+        todays = todays_records(uid, self.db)
         if todays:
             print(f"\nYou have already completed an assessment today (at {todays[0]['time']}).")
 
@@ -149,10 +150,9 @@ class IOManager:
     # Show assessment history, then secondary menu for further details
     def history(self):
         submenu = [("View Assessment Details", self.history_details), ("Back", None)]
-        history = AssessmentHistory(self.session.uid, self.db)
         while True:
             #Show the table again after every action, so it is always up to date
-            records = history.records()
+            records = get_user_records(self.session.uid, self.db)
             if not records:
                 print("\nNo assessment history found.")
                 return
@@ -164,7 +164,7 @@ class IOManager:
 
     # View one assessment from the history table in detail.
     def history_details(self):
-        records = AssessmentHistory(self.session.uid, self.db).records()
+        records = get_user_records(self.session.uid, self.db)
         number = self.prompt_assessment_number(len(records))
         if number == 0:
             return
