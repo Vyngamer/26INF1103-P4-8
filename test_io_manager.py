@@ -12,6 +12,10 @@ from io_helpers.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors, USERNAME_RULES
 from io_helpers.prompts import TextPrompt, RangePrompt, ChoicePrompt
 from io_helpers.trends import show_trends
+from io_helpers.survey_response import SurveyResponse
+
+# NEW: a completed survey, used by the survey tests below
+SAMPLE_RESPONSE = SurveyResponse("123", 7.5, 5, 6, 4, "Calm", 3, "Good week")
 # --- Session Tests ---
 
 #Test that a fresh session initializes correctly
@@ -176,16 +180,16 @@ def test_survey_existing_record_kept(mock_pause, mock_todays_records, mock_yes_n
     mock_pause.assert_called_once()
 
 # With no existing assessment today, the questionnaire runs straight away
-@patch.object(Questionnaire, 'run', return_value={"user_id": None, "mood": "Calm"})
+@patch.object(Questionnaire, 'run', return_value=SAMPLE_RESPONSE)
 @patch('io_manager.todays_records', return_value=[])
 def test_survey_runs_questionnaire_when_none_today(mock_todays_records, mock_run):
     result = IOManager().collect_responses("test_uuid")
 
-    assert result == {"user_id": None, "mood": "Calm"}
+    assert result is SAMPLE_RESPONSE
     mock_run.assert_called_once_with("test_uuid")
 
 # survey() hands the answers to the process_responses function given to IOManager
-@patch.object(Questionnaire, 'run', return_value={"user_id": None, "mood": "Calm"})
+@patch.object(Questionnaire, 'run', return_value=SAMPLE_RESPONSE)
 @patch('io_manager.todays_records', return_value=[])
 def test_survey_passes_responses_to_function(mock_todays_records, mock_run):
     received = []
@@ -193,10 +197,10 @@ def test_survey_passes_responses_to_function(mock_todays_records, mock_run):
     app.session.log_in("123", "test")
     app.survey()
 
-    assert received == [("123", {"user_id": None, "mood": "Calm"})]
+    assert received == [("123", SAMPLE_RESPONSE)]
 
 # Check that survey() still runs without errors when no process_responses function is provided
-@patch.object(Questionnaire, 'run', return_value={"user_id": None, "mood": "Calm"})
+@patch.object(Questionnaire, 'run', return_value=SAMPLE_RESPONSE)
 @patch('io_manager.todays_records', return_value=[]) 
 def test_survey_without_function(mock_todays_records, mock_run):
     app = IOManager()
@@ -316,9 +320,27 @@ def test_yes_no_prompt(mock_input):
 # Check that run() asks every question in order and stores the user's id
 @patch('builtins.input', side_effect=["7.5", "5", "6", "4", "2", "3", "Good week"])
 def test_questionnaire_run(mock_input):
-    assert Questionnaire().run("123") == {
+    response = Questionnaire().run("123")
+    assert isinstance(response, SurveyResponse)
+    assert response == SAMPLE_RESPONSE
+    assert response.mood == "Calm" and response.sleep_duration == 7.5
+
+# --- Survey Response Tests ---
+
+# to_dict() gives the same dictionary format as before (user_id first, then each question in order)
+def test_survey_response_to_dict():
+    assert SAMPLE_RESPONSE.to_dict() == {
         "user_id": "123", "sleep_duration": 7.5, "stress_level": 5, "focus_level": 6,
         "academic_workload": 4, "mood": "Calm", "social_activity_level": 3, "reflection": "Good week"}
+    assert list(SAMPLE_RESPONSE.to_dict())[0] == "user_id"
+
+# from_dict() and to_dict() round-trip; a missing answer is rejected
+def test_survey_response_from_dict():
+    assert SurveyResponse.from_dict(SAMPLE_RESPONSE.to_dict()) == SAMPLE_RESPONSE
+    incomplete = SAMPLE_RESPONSE.to_dict()
+    del incomplete["mood"]
+    with pytest.raises(TypeError):
+        SurveyResponse.from_dict(incomplete)
 
 # Check that Ctrl+C during the survey cancels it and returns None
 @patch('builtins.input', side_effect=KeyboardInterrupt)
