@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from AssessmentRecord import AssessmentRecord
+from data_manager_helper.AssessmentRecord import AssessmentRecord
 
 class AssessmentManager:
     def __init__(self, storage):

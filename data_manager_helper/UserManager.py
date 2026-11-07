@@ -1,4 +1,4 @@
-from UserRecord import UserRecord
+from data_manager_helper.UserRecord import UserRecord
 
 # Manages user records stored in MongoDB
 class UserManager:

@@ -1,6 +1,6 @@
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
-from StorageInterface import StorageInterface
+from data_manager_helper.StorageInterface import StorageInterface
 
 # Implements database storage operations using MongoDB
 class MongoDBStorage(StorageInterface):
