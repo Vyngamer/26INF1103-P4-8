@@ -17,12 +17,12 @@ class IOManager:
     MENU_HEADING = "\n---------MENU---------"
     MENU_FOOTER = "----------------------\n"
 
-    def __init__(self, process_responses=None, data=None,
+    def __init__(self, data, process_responses=None,
                  title="STUDENT WELLBEING SUPPORT SYSTEM", accounts=None):
         self.title = title
-        self._data = data
+        self.data = data
         self.session = Session()
-        self._accounts = accounts
+        self.accounts = accounts or AccountService(data)
         self.process_responses = process_responses
 
         # Menu Lists
@@ -40,21 +40,6 @@ class IOManager:
             ("View Assessment Trends", self.trends),
             ("Logout", self.logout),
         ]
-
-    # Shared DataManager object. If none was passed in, one is created the first time it is needed
-    # not in __init__, because creating one connects to MongoDB Atlas
-    @property
-    def data(self):
-        if self._data is None:
-            self._data = DataManager()
-        return self._data
-
-    # Shared AccountService for every account action, using the same DataManager
-    @property
-    def accounts(self):
-        if self._accounts is None:
-            self._accounts = AccountService(self.data)
-        return self._accounts
 
     # Show a menu, then return the method for the chosen option
     # (None for an option with no method, e.g. "Back")
@@ -198,7 +183,7 @@ def main():
             Console.error(f"Could not open the database: {error}")
             return
         try:
-            IOManager(data=data).run()
+            IOManager(data).run()
         finally:
             data.close()    # always close the MongoDB connection
     except (KeyboardInterrupt, EOFError):
