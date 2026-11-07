@@ -1,21 +1,48 @@
 from unittest.mock import patch, MagicMock
 import pytest
 from io_manager import (IOManager, YesNoPrompt, Questionnaire)
-from io_helpers.history import todays_records
+from io_helpers.history import todays_records, AssessmentHistoryTable, AssessmentDetailView
 from io_helpers.console import Console
 from io_helpers.session import Session
 from io_helpers.account_models import AccountResult
-from io_helpers.account_models import User, AccountError
 from io_helpers.account_service import AccountService
-from io_helpers.user_repository import UserRepository
+from data_manager_helper.UserRecord import UserRecord
 from io_helpers.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors, USERNAME_RULES
 from io_helpers.prompts import TextPrompt, RangePrompt, ChoicePrompt
 from io_helpers.trends import show_trends
 from io_helpers.survey_response import SurveyResponse
 
-# NEW: a completed survey, used by the survey tests below
+# Sample completed survey, used by the survey tests below
 SAMPLE_RESPONSE = SurveyResponse("123", 7.5, 5, 6, 4, "Calm", 3, "Good week")
+
+
+# Mock data manager so that test do not create a real DataManager (that would connect to MongoDB Atlas).
+@pytest.fixture(autouse=True)
+def no_real_database():
+    with patch('io_manager.DataManager') as mock_data_manager:
+        yield mock_data_manager
+
+def fake_record(date="01-01-2026", time="10:00:00"):
+    record = MagicMock()
+    record.get_date.return_value = date
+    record.get_time.return_value = time
+    record.get_user_input.return_value = SAMPLE_RESPONSE.to_dict()
+    record.get_ai_output.return_value = {
+        "mental_wellness_risk_score": 40, "burnout_risk_score": 55, "sentiment": "Neutral",
+        "crisis_alert": False, "primary_stressor": "Exams", "personalized_recommendations": "Take breaks"}
+    record.get_logic_output.return_value = {
+        "mental_wellness_risk_tier": "Moderate", "route": "Self-help", "warnings": [],
+        "counselling_recommendation": False, "display_messages": []}
+    return record
+
+
+# Mock DataManager that returns the given records
+def fake_data(records=()):
+    data = MagicMock()
+    data.get_user_records.return_value = list(records)
+    return data
+
 # --- Session Tests ---
 
 #Test that a fresh session initializes correctly
@@ -168,14 +195,16 @@ def test_run_until_exit(mock_input, capsys):
 
 #Test that a user with an existing survey today is prevented from overwriting if they say 'no'
 @patch.object(YesNoPrompt, 'ask', return_value=False)
-@patch('io_manager.todays_records', return_value=[{'time': '10:00:00', 'record_id': 'abc'}]) 
+@patch('io_manager.todays_records', return_value=[fake_record(time="10:00:00")])
 @patch.object(Console, 'pause')
 def test_survey_existing_record_kept(mock_pause, mock_todays_records, mock_yes_no, capsys):
-    result = IOManager().collect_responses("test_uuid")
+    data = fake_data()
+    result = IOManager(data=data).collect_responses("test_uuid")
 
     captured = capsys.readouterr()
     assert result is None
-    assert "You have already completed an assessment today" in captured.out
+    mock_todays_records.assert_called_once_with(data, "test_uuid")
+    assert "You have already completed an assessment today (at 10:00:00)" in captured.out
     assert "Your existing assessment for today has been kept." in captured.out
     mock_pause.assert_called_once()
 
@@ -211,34 +240,74 @@ def test_survey_without_function(mock_todays_records, mock_run):
 # --- History Tests ---
 
 # Check that history() prints a message and returns without showing a menu when there are no records
-@patch('io_manager.get_user_records', return_value=[])
-def test_history_no_records(mock_records, capsys):
-    app = IOManager()
+def test_history_no_records(capsys):
+    app = IOManager(data=fake_data([]))
     app.session.log_in("123", "test")
     app.history()
     assert "No assessment history found." in capsys.readouterr().out
 
 # Check that choosing "Back" in the history sub-menu leaves history()
 @patch('io_manager.AssessmentHistoryTable')
-@patch('io_manager.get_user_records', return_value=[{"dummy": True}])
 @patch('builtins.input', return_value="2")    # option 2 = Back
-def test_history_back(mock_input, mock_records, mock_table):
-    app = IOManager()
+def test_history_back(mock_input, mock_table):
+    record = fake_record()
+    data = fake_data([record])
+    app = IOManager(data=data)
     app.session.log_in("123", "test")
     app.history()
-    mock_table.assert_called_once_with([{"dummy": True}])
+    data.get_user_records.assert_called_once_with("123")
+    mock_table.assert_called_once_with([record])
+
+# Check that history_details() shows the record with the chosen No. (1 = first row of the table)
+@patch('io_manager.AssessmentDetailView')
+@patch.object(Console, 'pause')
+@patch('builtins.input', return_value="2")
+def test_history_details_shows_chosen_record(mock_input, mock_pause, mock_view):
+    records = [fake_record(time="15:00:00"), fake_record(time="10:00:00")]
+    app = IOManager(data=fake_data(records))
+    app.session.log_in("123", "test")
+    app.history_details()
+    mock_view.assert_called_once_with(records[1])
 
 # Check that todays_records() keeps only records dated today, in the same (newest first) order
-@patch('io_helpers.history.get_user_records')
-def test_todays_records(mock_records):
+def test_todays_records():
     from datetime import datetime
     today = datetime.now().strftime("%d-%m-%Y")
-    mock_records.return_value = [{"date": today, "time": "15:00:00"},
-                                 {"date": "01-01-2000", "time": "09:00:00"},
-                                 {"date": today, "time": "10:00:00"}]
-    assert todays_records("123", "records.json") == [{"date": today, "time": "15:00:00"},
-                                                     {"date": today, "time": "10:00:00"}]
-    mock_records.assert_called_once_with("123", "records.json")
+    records = [fake_record(today, "15:00:00"), fake_record("01-01-2000", "09:00:00"), fake_record(today, "10:00:00")]
+    data = fake_data(records)
+    assert todays_records(data, "123") == [records[0], records[2]]
+    data.get_user_records.assert_called_once_with("123")
+
+# Check that the history table reads each record through its getters
+def test_history_table_shows_records(capsys):
+    AssessmentHistoryTable([fake_record("02-01-2026", "09:30:00")]).show()
+    out = capsys.readouterr().out
+    assert "02-01-2026" in out and "09:30:00" in out and "Moderate" in out and "Calm" in out
+    assert "Total assessments: 1" in out
+
+# Check that the detail view reads the record through its getters
+def test_detail_view_shows_record(capsys):
+    AssessmentDetailView(fake_record("02-01-2026", "09:30:00")).show()
+    out = capsys.readouterr().out
+    assert "Date      : 02-01-2026" in out
+    assert "Sleep Duration       : 7.5 hours" in out
+    assert "Primary Stressor     : Exams" in out
+    assert "Counselling Required : No" in out
+
+# --- DataManager Sharing Tests ---
+
+# Check that a DataManager passed in is used as-is, and no new one is created
+def test_uses_given_data_manager(no_real_database):
+    data = fake_data()
+    assert IOManager(data=data).data is data
+    no_real_database.assert_not_called()
+
+# Check that one DataManager is created on first use and then reused
+def test_creates_one_data_manager_when_needed(no_real_database):
+    app = IOManager()
+    no_real_database.assert_not_called()    # not connected just by creating the IOManager
+    assert app.data is app.data
+    no_real_database.assert_called_once()
 
 # --- Validator Tests ---
 
@@ -352,53 +421,66 @@ def test_questionnaire_cancelled(mock_input, capsys):
 def test_questionnaire_heading():
     assert Questionnaire.heading("social_activity_level") == "Social Activity Level"
 
-# --- User Repository Tests ---
-
-# Check that save then load gives back the same users; a missing file loads as []
-def test_repository_save_and_load(tmp_path):
-    repo = UserRepository(str(tmp_path / "users.json"))
-    assert repo.load() == []
-    users = [User("1", "Alice", "hash")]
-    repo.save(users)
-    assert repo.load() == users
-
-# Check that every kind of damaged users.json gives the "corrupted" AccountError instead of crashing
-@pytest.mark.parametrize("content", [b"{not json", b'{"user_id": "1"}', b'[{"user_id": "1"}]', b"\xff\xfe\x00"])
-def test_repository_corrupted_file(tmp_path, content):
-    path = tmp_path / "users.json"
-    path.write_bytes(content)
-    with pytest.raises(AccountError, match="corrupted"):
-        UserRepository(str(path)).load()
-
-# Check that username lookup ignores case; id lookup is exact
-def test_repository_find():
-    users = [User("1", "Alice", "h"), User("2", "Bob", "h")]
-    assert UserRepository.find_by_username(users, "aLiCe") is users[0]
-    assert UserRepository.find_by_username(users, "Carol") is None
-    assert UserRepository.find_by_id(users, "2") is users[1]
-    assert UserRepository.find_by_id(users, "3") is None
-
 # --- Account Service Tests ---
 
-# Test that AccountService using a temp users file and a fast hasher works correctly
-def make_accounts(tmp_path):
-    return AccountService(UserRepository(str(tmp_path / "users.json")), PasswordHasher(iterations=1000))
+# Stand-in for DataManager's user methods, behaving like UserManager + MongoDBStorage:
+class FakeUserData:
+    def __init__(self):
+        self.users = []
+        self.fail_saves = False    # set True to act like a MongoDB error
+
+    def get_users(self):
+        return self.users.copy()
+
+    def get_user_by_id(self, user_id):
+        return next((u for u in self.users if u.get_user_id() == user_id), None)
+
+    def get_user_by_username(self, username):
+        return next((u for u in self.users if u.get_username() == username), None)
+
+    def _taken(self, username, uid=None):
+        return any(u.get_username() == username and u.get_user_id() != uid for u in self.users)
+
+    def create_user(self, username, password):
+        if self.fail_saves or self._taken(username):
+            print("Error: A record with the same unique value already exists.")
+            return None
+        user = UserRecord(username, password)
+        self.users.append(user)
+        return user.get_user_id()
+
+    def update_user(self, user_id, updates):
+        user = self.get_user_by_id(user_id)
+        if self.fail_saves or ("username" in updates and self._taken(updates["username"], user_id)):
+            print("Error: Update violates a unique field constraint.")
+            return False
+        data = {**user.to_dict(), **updates}
+        self.users[self.users.index(user)] = UserRecord(data["username"], data["password"], user_id)
+        return True
+
+
+# AccountService with a fake DataManager and a fast hasher
+def make_accounts():
+    return AccountService(FakeUserData(), PasswordHasher(iterations=1000))
 
 # Test for register, then log in with the same details (password stored hashed, not plain)
-def test_register_and_login(tmp_path):
-    accounts = make_accounts(tmp_path)
+def test_register_and_login():
+    accounts = make_accounts()
     with patch('builtins.input', side_effect=["Alice", "pass1!", "pass1!"]):
         registered = accounts.register()
-    assert registered.ok and registered.username == "Alice"
-    assert accounts.repository.load()[0].password != "pass1!"
+    assert registered.ok and registered.username == "alice"
+    stored = accounts.data.get_users()[0]
+    assert stored.get_username() == "alice"
+    assert stored.get_password() != "pass1!"
 
-    with patch('builtins.input', side_effect=["alice", "pass1!"]):
+    with patch('builtins.input', side_effect=["ALICE", "pass1!"]):
         logged_in = accounts.login()
     assert logged_in.ok and logged_in.uid == registered.uid
+    assert logged_in.message == "Login successful! Welcome, alice!"
 
 # Test that failed account actions return ok=False with the right message
-def test_account_failures(tmp_path):
-    accounts = make_accounts(tmp_path)
+def test_account_failures():
+    accounts = make_accounts()
     with patch('builtins.input', side_effect=[]):
         assert accounts.login().message == "No users registered yet. Please register first."
     with patch('builtins.input', side_effect=["Alice", "pass1!", "pass1!"]):
@@ -410,26 +492,53 @@ def test_account_failures(tmp_path):
     with patch('builtins.input', side_effect=["Alice", "wrong1!"]):
         assert accounts.login().message == "Invalid username or password."
 
-# Test to change username (own name in a new case is allowed) and change password
-def test_change_username_and_password(tmp_path):
-    accounts = make_accounts(tmp_path)
+# Test to change username (taken names rejected in any case) and change password
+def test_change_username_and_password():
+    accounts = make_accounts()
     with patch('builtins.input', side_effect=["Alice", "pass1!", "pass1!"]):
         uid = accounts.register().uid
-    with patch('builtins.input', side_effect=["ALICE"]):
-        assert accounts.change_username(uid).username == "ALICE"
+    with patch('builtins.input', side_effect=["Bob", "pass1!", "pass1!"]):
+        accounts.register()
+    with patch('builtins.input', side_effect=["BOB"]):
+        assert accounts.change_username(uid).message == "Username already exists, please try again."
+    with patch('builtins.input', side_effect=["Carol"]):
+        assert accounts.change_username(uid).username == "carol"
+    assert accounts.data.get_user_by_id(uid).get_username() == "carol"
     with patch('builtins.input', side_effect=["wrong1!"]):
         assert accounts.change_password(uid).message == "Incorrect current password. Please try again."
     with patch('builtins.input', side_effect=["pass1!", "new2@", "new2@"]):
         assert accounts.change_password(uid).ok
-    with patch('builtins.input', side_effect=["ALICE", "new2@"]):
+    with patch('builtins.input', side_effect=["Carol", "new2@"]):
         assert accounts.login().ok
+
+# IOManager builds its AccountService on first use, with the same DataManager
+def test_accounts_share_data_manager():
+    data = fake_data()
+    app = IOManager(data=data)
+    assert app.accounts.data is data
+    assert app.accounts is app.accounts
 
 # --- Trends Tests ---
 
 # Test that with fewer than 2 records, no graph is drawn
 @patch.object(Console, 'pause')
-@patch('io_helpers.trends.get_user_records', return_value=[{"only": "one"}])
-def test_trends_not_enough_records(mock_records, mock_pause, capsys):
-    show_trends("123", "records.json")
+def test_trends_not_enough_records(mock_pause, capsys):
+    data = fake_data([fake_record()])
+    show_trends(data, "123")
     assert "You do not have enough records" in capsys.readouterr().out
     mock_pause.assert_called_once()
+    data.get_user_int_records.assert_not_called()
+
+# With 2+ records, the graph uses get_user_int_records() and is saved to the output file
+@patch('io_helpers.trends.can_show_window', return_value=False)
+@patch.object(Console, 'pause')
+def test_trends_saves_graph(mock_pause, mock_window, tmp_path):
+    records = [fake_record(), fake_record()]
+    data = fake_data(records)
+    data.get_user_int_records.return_value = [
+        {"sleep_duration": 7, "focus_level": 6, "stress_level": 5, "social_activity_level": 4,
+         "mental_wellness_risk_score": 40, "burnout_risk_score": 50}] * 2
+    output = tmp_path / "graph.png"
+    show_trends(data, "123", output_file=str(output))
+    data.get_user_int_records.assert_called_once_with(records, "123")
+    assert output.exists()
