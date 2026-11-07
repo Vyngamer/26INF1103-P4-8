@@ -110,7 +110,7 @@ def test_console_termination_msg(capsys):
 
 #Test that the correct menu is returned based on login state
 def test_current_menu():
-    app = IOManager()
+    app = IOManager(fake_data())
 
     #When logged out, should return the main menu
     assert app.current_menu() is app.main_menu
@@ -121,7 +121,7 @@ def test_current_menu():
 
 # Check each menu lists the right options, in the right order
 def test_menu_labels():
-    app = IOManager()
+    app = IOManager(fake_data())
     assert [label for label, _ in app.main_menu] == ["Register New User", "Login", "Exit"]
     assert [label for label, _ in app.user_menu] == [
         "Start Survey", "View History", "Change Username",
@@ -130,20 +130,20 @@ def test_menu_labels():
 # Check that choose() returns the method for the chosen option
 @patch('builtins.input', return_value="2")
 def test_choose_returns_method(mock_input):
-    app = IOManager()
+    app = IOManager(fake_data())
     assert app.choose(app.main_menu) == app.login
 
 # Check that choose() returns None for the "Back" option
 @patch('builtins.input', return_value="2")
 def test_choose_back_returns_none(mock_input):
-    app = IOManager()
+    app = IOManager(fake_data())
     assert app.choose([("Something", app.logout), ("Back", None)]) is None
 
 # --- Action Tests ---
 
 #Test that logout updates the session and prints success message
 def test_logout(capsys):
-    app = IOManager()
+    app = IOManager(fake_data())
     app.session.log_in("123", "test")
     app.logout()
 
@@ -154,7 +154,7 @@ def test_logout(capsys):
 
 #Test that exit flags the session as not running (which ends IOManager.run's loop)
 def test_exit(capsys):
-    app = IOManager()
+    app = IOManager(fake_data())
     app.exit()
 
     captured = capsys.readouterr()
@@ -166,7 +166,7 @@ def test_login_success(capsys):
     accounts = MagicMock()
     accounts.login.return_value = AccountResult(True, "Login successful! Welcome, test!",
                                                 uid="123", username="test")
-    app = IOManager(accounts=accounts)
+    app = IOManager(fake_data(), accounts=accounts)
     app.login()
 
     assert app.session.uid == "123"
@@ -177,7 +177,7 @@ def test_login_success(capsys):
 def test_login_failure(capsys):
     accounts = MagicMock()
     accounts.login.return_value = AccountResult(False, "Invalid username or password.")
-    app = IOManager(accounts=accounts)
+    app = IOManager(fake_data(), accounts=accounts)
     app.login()
 
     assert not app.session.is_logged_in()
@@ -186,7 +186,7 @@ def test_login_failure(capsys):
 # Check that run() keeps choosing and running menu options until exit stops the loop
 @patch('builtins.input', return_value="3")    # option 3 on the main menu = Exit
 def test_run_until_exit(mock_input, capsys):
-    app = IOManager()
+    app = IOManager(fake_data())
     app.run()
 
     assert app.session.running is False
@@ -223,7 +223,7 @@ def test_survey_ctrl_c_at_replace_question(mock_input, mock_pause, mock_todays_r
 @patch.object(Questionnaire, 'run', return_value=SAMPLE_RESPONSE)
 @patch('io_manager.todays_records', return_value=[])
 def test_survey_runs_questionnaire_when_none_today(mock_todays_records, mock_run):
-    result = IOManager().collect_responses("test_uuid")
+    result = IOManager(fake_data()).collect_responses("test_uuid")
 
     assert result is SAMPLE_RESPONSE
     mock_run.assert_called_once_with("test_uuid")
@@ -233,7 +233,7 @@ def test_survey_runs_questionnaire_when_none_today(mock_todays_records, mock_run
 @patch('io_manager.todays_records', return_value=[])
 def test_survey_passes_responses_to_function(mock_todays_records, mock_run):
     received = []
-    app = IOManager(process_responses=lambda session, responses: received.append((session.uid, responses)))
+    app = IOManager(fake_data(), process_responses=lambda session, responses: received.append((session.uid, responses)))    # CHANGED: data is now required
     app.session.log_in("123", "test")
     app.survey()
 
@@ -243,7 +243,7 @@ def test_survey_passes_responses_to_function(mock_todays_records, mock_run):
 @patch.object(Questionnaire, 'run', return_value=SAMPLE_RESPONSE)
 @patch('io_manager.todays_records', return_value=[]) 
 def test_survey_without_function(mock_todays_records, mock_run):
-    app = IOManager()
+    app = IOManager(fake_data())
     app.session.log_in("123", "test")
     app.survey()
     mock_run.assert_called_once()
@@ -304,21 +304,6 @@ def test_detail_view_shows_record(capsys):
     assert "Sleep Duration       : 7.5 hours" in out
     assert "Primary Stressor     : Exams" in out
     assert "Counselling Required : No" in out
-
-# --- DataManager Sharing Tests ---
-
-# Check that a DataManager passed in is used as-is, and no new one is created
-def test_uses_given_data_manager(no_real_database):
-    data = fake_data()
-    assert IOManager(data=data).data is data
-    no_real_database.assert_not_called()
-
-# Check that one DataManager is created on first use and then reused
-def test_creates_one_data_manager_when_needed(no_real_database):
-    app = IOManager()
-    no_real_database.assert_not_called()    # not connected just by creating the IOManager
-    assert app.data is app.data
-    no_real_database.assert_called_once()
 
 # --- Startup Tests (main) ---
 
@@ -576,12 +561,12 @@ def test_change_username_and_password():
     with patch('builtins.input', side_effect=["Carol", "new2@"]):
         assert accounts.login().ok
 
-# IOManager builds its AccountService on first use, with the same DataManager
+# IOManager builds its AccountService in __init__, with the same DataManager
 def test_accounts_share_data_manager():
     data = fake_data()
     app = IOManager(data=data)
+    assert app.data is data
     assert app.accounts.data is data
-    assert app.accounts is app.accounts
 
 # --- Trends Tests ---
 
