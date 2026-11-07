@@ -8,7 +8,6 @@ from io_helpers.account_service import AccountService
 from io_helpers.history import todays_records, AssessmentHistoryTable, AssessmentDetailView
 from data_manager import DataManager
 from pymongo.errors import PyMongoError
-from pymongo.errors import PyMongoError
 from io_helpers.trends import show_trends
 from io_helpers.console import Console
 from io_helpers.session import Session
