@@ -7,6 +7,7 @@ from io_helpers.prompts import ChoicePrompt, RangePrompt, YesNoPrompt
 from io_helpers.account_service import AccountService
 from io_helpers.history import todays_records, AssessmentHistoryTable, AssessmentDetailView
 from data_manager import DataManager
+from pymongo.errors import PyMongoError
 from io_helpers.trends import show_trends
 from io_helpers.console import Console
 from io_helpers.session import Session
@@ -115,8 +116,13 @@ class IOManager:
             print(f"\nYou have already completed an assessment today (at {todays[0].get_time()}).")
 
             # Prompt user to confirm if they want to replace today's assessment
-            if not YesNoPrompt("Only one assessment per day is allowed. "
-                               "Replace today's assessment and start a new survey? (y/n): ").ask():
+            try:
+                replace = YesNoPrompt("Only one assessment per day is allowed. "
+                                      "Replace today's assessment and start a new survey? (y/n): ").ask()
+            # Ctrl+C returns to menu
+            except (KeyboardInterrupt, EOFError):
+                replace = False
+            if not replace:
                 print("\nYour existing assessment for today has been kept.")
                 Console.pause()
                 return None
@@ -184,14 +190,20 @@ class IOManager:
 RUN I/O MANAGER DIRECTLY
 '''
 
-if __name__ == "__main__":
-    app = IOManager()
+def main():
     try:
-        app.run()
+        try:
+            data = DataManager()
+        except (ConnectionError, ValueError, PyMongoError) as error:
+            Console.error(f"Could not open the database: {error}")
+            return
+        try:
+            IOManager(data=data).run()
+        finally:
+            data.close()    # always close the MongoDB connection
     except (KeyboardInterrupt, EOFError):
         Console.termination_msg()
-    except (ConnectionError, ValueError) as error:
-        Console.error(f"Could not open the database: {error}")
-    finally:
-        if app._data is not None:    # Close MongoDB connection
-            app.data.close()
+
+
+if __name__ == "__main__":
+    main()
