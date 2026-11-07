@@ -12,4 +12,5 @@ trends           - Assessment trends graph (show_trends)
 user_repository  - users.json storage (UserRepository)
 validators       - Username and password rules (username_errors, password_errors)
 session          - Session state (Session)
+survey_response  - One completed survey's answers (SurveyResponse)
 '''
