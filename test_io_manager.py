@@ -349,6 +349,50 @@ def test_main_ctrl_c(mock_input, no_real_database, while_connecting, capsys):
     if not while_connecting:
         no_real_database.return_value.close.assert_called_once()
 
+# --- Startup Tests (main) ---
+
+# Check that very kind of connection failure gives one clear error and the menu never starts.
+# ConfigurationError is what pymongo raises for a mongodb+srv:// address with no internet
+@pytest.mark.parametrize("error", [ConnectionError("Unable to connect to MongoDB Atlas."),
+                                   ValueError("MONGODB_URI is not configured in the .env file."),
+                                   ConfigurationError("The DNS query name does not exist")])
+@patch.object(IOManager, 'run')
+def test_main_connection_errors(mock_run, no_real_database, error, capsys):
+    no_real_database.side_effect = error
+    main()
+    assert f"ERROR: Could not open the database: {error}" in capsys.readouterr().out
+    mock_run.assert_not_called()
+
+# Check that connection is made at startup, before the first menu, and closed on exit
+def test_main_connects_before_menu(no_real_database, capsys):
+    def first_input(prompt):
+        assert no_real_database.called    # already connected when the menu asks for input
+        return "3"                        # Exit
+    with patch('builtins.input', side_effect=first_input):
+        main()
+    no_real_database.return_value.close.assert_called_once()
+    assert "Program terminated. Thank You!" in capsys.readouterr().out
+
+# Check that an error later in the session is not reported as a database error
+# and the connection is still closed
+@patch.object(IOManager, 'run', side_effect=ValueError("some other bug"))
+def test_main_does_not_hide_other_errors(mock_run, no_real_database, capsys):
+    with pytest.raises(ValueError, match="some other bug"):
+        main()
+    assert "Could not open the database" not in capsys.readouterr().out
+    no_real_database.return_value.close.assert_called_once()
+
+# Check that Ctrl+C while connecting, or during the menu, ends the program politely
+@pytest.mark.parametrize("while_connecting", [True, False])
+@patch('builtins.input', side_effect=KeyboardInterrupt)
+def test_main_ctrl_c(mock_input, no_real_database, while_connecting, capsys):
+    if while_connecting:
+        no_real_database.side_effect = KeyboardInterrupt
+    main()
+    assert "Program terminated. Thank You!" in capsys.readouterr().out
+    if not while_connecting:
+        no_real_database.return_value.close.assert_called_once()
+
 # --- Validator Tests ---
 
 # Test valid and invalid usernames
