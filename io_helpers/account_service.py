@@ -3,13 +3,10 @@ User Account Actions
 '''
 
 import functools
-import uuid
 from io_helpers.hasher import PasswordHasher
 from io_helpers.prompts import TextPrompt, PasswordPrompt
-from io_helpers.account_models import User, AccountResult, AccountError
-from io_helpers.user_repository import UserRepository
+from io_helpers.account_models import AccountResult, AccountError
 from io_helpers.validators import username_errors, password_errors, MIN_PASSWORD_LENGTH
-
 
 # Decorator for AccountService actions
 # Wraps the method so any AccountError raised inside it becomes a failed AccountResult.
@@ -25,36 +22,40 @@ def account_action(method):
 
 # All account actions (was user_register / user_login / change_username / change_password).
 class AccountService:
-    def __init__(self, repository=None, passwords=None):
-        self.repository = repository or UserRepository()
+    def __init__(self, data, passwords=None):
+        self.data = data
         self.passwords = passwords or PasswordHasher()
 
+    # usernames stored & looked up in lowercase
+    # e.g. "Alice" and "alice" get the same account
+    @staticmethod
+    def _ask_username(prompt):
+        return TextPrompt(prompt).ask().lower()
+
     #Prompt for a username and reject it if invalid or already taken
-    #Does not check if user's own name is taken, allowing them to change their own username
-    #To the same name in diff case (e.g. "Alice" -> "alice")
-    def _prompt_unique_username(self, users, prompt, current=None):
-        username = TextPrompt(prompt).ask()
+    #Does not reject the user's own current name (so changing to it is harmless)
+    def _prompt_unique_username(self, prompt, current_uid=None):
+        username = self._ask_username(prompt)
         problems = username_errors(username)
         if problems:
             raise AccountError(" ".join(problems))
-        existing = self.repository.find_by_username(users, username)
-        if existing is not None and existing is not current:
+        existing = self.data.get_user_by_username(username)
+        if existing is not None and existing.get_user_id() != current_uid:
             raise AccountError("Username already exists, please try again.")
         return username
 
-    #Load the users list and the logged-in user (raises AccountError if not found)
+    #Return the logged-in user (raises AccountError if not found)
     def _load_current_user(self, uid):
-        users = self.repository.load()
-        user = self.repository.find_by_id(users, uid)
+        user = self.data.get_user_by_id(uid)
         if user is None:
             raise AccountError("Current user not found.")
-        return users, user
+        return user
 
     #Ask for a new password twice and return it (was prompt_new_password)
     def _prompt_new_password(self, noun="Password"):
         print(f"Password must:\n1. Be at least {MIN_PASSWORD_LENGTH} characters long\n2. Contain at least one number & one special character (e.g. ! @ # $ %)\n(Spaces at the start or end are ignored)")
         password = PasswordPrompt(f"Please Enter A {noun}: ").ask()
-        problems = password_errors(password)    # CHANGED: was self.password_rules.errors()
+        problems = password_errors(password)
         if problems:
             raise AccountError("Password must have: " + ", ".join(problems) + ".")
         confirm_password = PasswordPrompt(f"Please Re-enter The {noun}: ").ask()
@@ -65,53 +66,51 @@ class AccountService:
     #Register New User
     @account_action
     def register(self):
-        users = self.repository.load()
         print("Create a new user")
-        username = self._prompt_unique_username(users, "Please Enter A Username: ")
+        username = self._prompt_unique_username("Please Enter A Username: ")
         password = self._prompt_new_password()
 
-        new_user = User(str(uuid.uuid4()), username, self.passwords.hash(password))
-        users.append(new_user)
-        self.repository.save(users)
-        return AccountResult(True, "Account created successfully!",
-                             uid=new_user.user_id, username=username)
+        uid = self.data.create_user(username, self.passwords.hash(password))
+        if uid is None:
+            raise AccountError("Could not create your account. Please try again.")
+        return AccountResult(True, "Account created successfully!", uid=uid, username=username)
 
     #Login Existing User
     @account_action
     def login(self):
-        users = self.repository.load()
-        if not users:
+        if not self.data.get_users():
             raise AccountError("No users registered yet. Please register first.")
 
-        username = TextPrompt("Please Enter Your Username: ").ask()
+        username = self._ask_username("Please Enter Your Username: ")
         password = PasswordPrompt("Please Enter Your Password: ").ask()
 
-        user = self.repository.find_by_username(users, username)
-        if user is None or not self.passwords.verify(password, user.password):
+        user = self.data.get_user_by_username(username)
+        if user is None or not self.passwords.verify(password, user.get_password()):
             raise AccountError("Invalid username or password.")
 
-        return AccountResult(True, f"Login successful! Welcome, {user.username}!",
-                             uid=user.user_id, username=user.username)
+        return AccountResult(True, f"Login successful! Welcome, {user.get_username()}!",
+                             uid=user.get_user_id(), username=user.get_username())
 
     #Change Username
     @account_action
     def change_username(self, uid):
-        users, user = self._load_current_user(uid)
-        new_username = self._prompt_unique_username(users, "Enter your new username: ", current=user)
+        self._load_current_user(uid)
+        new_username = self._prompt_unique_username("Enter your new username: ", current_uid=uid)
 
-        user.username = new_username
-        self.repository.save(users)
+        if not self.data.update_user(uid, {"username": new_username}):
+            raise AccountError("Could not update your username. Please try again.")
         return AccountResult(True, "Username updated successfully!", username=new_username)
 
     #Change Password
     @account_action
     def change_password(self, uid):
-        users, user = self._load_current_user(uid)
+        user = self._load_current_user(uid)
 
         current_password = PasswordPrompt("Please Enter Your Current Password: ").ask()
-        if not self.passwords.verify(current_password, user.password):
+        if not self.passwords.verify(current_password, user.get_password()):
             raise AccountError("Incorrect current password. Please try again.")
 
-        user.password = self.passwords.hash(self._prompt_new_password("New Password"))
-        self.repository.save(users)
+        new_hash = self.passwords.hash(self._prompt_new_password("New Password"))
+        if not self.data.update_user(uid, {"password": new_hash}):
+            raise AccountError("Could not update your password. Please try again.")
         return AccountResult(True, "Password updated successfully!")

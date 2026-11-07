@@ -2,7 +2,6 @@
 Assessment trends graph
 '''
 
-from data_manager import get_user_records, get_user_int_records
 from io_helpers.console import Console
 
 OUTPUT_FILE = "graph.png"
@@ -19,15 +18,18 @@ CHARTS = [
 
 #Check if matplotlib can open a window (False when there is no display, e.g. headless Docker)
 def can_show_window():
-    import matplotlib.pyplot as plt    # NEW: lazy import
-    from matplotlib.backends import backend_registry, BackendFilter    # NEW: lazy import
+
+    # Lazy import of matplotlib; improves startup as only imported once graphs are needed
+    import matplotlib.pyplot as plt
+    from matplotlib.backends import backend_registry, BackendFilter
+
     interactive = backend_registry.list_builtin(BackendFilter.INTERACTIVE)
     return plt.get_backend().lower() in [b.lower() for b in interactive]
 
 
-# Takes the user id and records file directly
-def show_trends(uid, db, output_file=OUTPUT_FILE):
-    user_records = get_user_records(uid, db)
+# Show trends graph to user in new window & save to png
+def show_trends(data, uid, output_file=OUTPUT_FILE):
+    user_records = data.get_user_records(uid)
     if len(user_records) < 2:
         print("You do not have enough records to do this comparison\nYou need to have at least 2 survey attempts")
         Console.pause()
@@ -36,7 +38,7 @@ def show_trends(uid, db, output_file=OUTPUT_FILE):
     import matplotlib.pyplot as plt
 
     #As records are stored newest first; reverse so the graph runs oldest -> newest
-    required_data = get_user_int_records(user_records, uid)[::-1]
+    required_data = data.get_user_int_records(user_records, uid)[::-1]    # CHANGED: DataManager method
     x_axis = list(range(1, len(required_data) + 1))
 
     # initialising the graph

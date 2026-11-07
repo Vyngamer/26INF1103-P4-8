@@ -4,19 +4,15 @@ Functionality for user to view history
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from data_manager import get_user_records
 from io_helpers.console import Console
 
 
-DATE_FORMAT = "%d-%m-%Y"    # CHANGED: was AssessmentHistory.DATE_FORMAT
+DATE_FORMAT = "%d-%m-%Y"
 
-
-# CHANGED: AssessmentHistory class replaced by this function. Its records() method only called
-# data_manager.get_user_records(), so io_manager.py now calls that directly.
 #Return all of the user's records dated today (newest first)
-def todays_records(user_id, filename):
+def todays_records(data, user_id):
     today = datetime.now().strftime(DATE_FORMAT)
-    return [record for record in get_user_records(user_id, filename) if record["date"] == today]
+    return [record for record in data.get_user_records(user_id) if record.get_date() == today]
 
 
 # Abstract base class for a titled report printed to the console
@@ -44,12 +40,12 @@ class AssessmentDetailView(ReportView):
 
     def render_body(self):
         record = self.record
-        user_input = record["user_input"]
-        ai_output = record["ai_output"]
-        logic_output = record["logic_output"]
+        user_input = record.get_user_input()
+        ai_output = record.get_ai_output()
+        logic_output = record.get_logic_output()
 
-        print(f"Date      : {record['date']}")
-        print(f"Time      : {record['time']}")
+        print(f"Date      : {record.get_date()}")
+        print(f"Time      : {record.get_time()}")
 
         print("\n--- User Inputs ---")
         print(f"Sleep Duration       : {user_input['sleep_duration']} hours")
@@ -117,14 +113,14 @@ class AssessmentHistoryTable(ReportView):
 
         # Display each assessment
         for index, record in enumerate(self.records, start=1):
-            user_input = record["user_input"]
-            ai_output = record["ai_output"]
-            logic_output = record["logic_output"]
+            user_input = record.get_user_input()
+            ai_output = record.get_ai_output()
+            logic_output = record.get_logic_output()
 
             print(
                 f"{index:<5}"
-                f"{record['date']:<14}"
-                f"{record['time']:<11}"
+                f"{record.get_date():<14}"
+                f"{record.get_time():<11}"
                 f"{ai_output['mental_wellness_risk_score']:<13}"
                 f"{ai_output['burnout_risk_score']:<11}"
                 f"{logic_output['mental_wellness_risk_tier']:<12}"

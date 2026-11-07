@@ -6,34 +6,22 @@ from io_helpers.questionnaire import Questionnaire
 from io_helpers.prompts import ChoicePrompt, RangePrompt, YesNoPrompt
 from io_helpers.account_service import AccountService
 from io_helpers.history import todays_records, AssessmentHistoryTable, AssessmentDetailView
-from data_manager import get_user_records
+from data_manager import DataManager
 from io_helpers.trends import show_trends
 from io_helpers.console import Console
 from io_helpers.session import Session
-
-#I/O Files
-RECORDS = "records.json"
-
-
-# Note: print_error & print_notice have been removed from io_manager.
-# ai_manager.py, ai_manager_helper.py and ai_manager_refactor.py must change
-# from io_manager import print_error, print_notice
-# TO
-# from io_helpers.console import Console
-# and call Console.error(...) / Console.notice(...) instead.
-
 
 # Whole console application
 class IOManager:
     MENU_HEADING = "\n---------MENU---------"
     MENU_FOOTER = "----------------------\n"
 
-    def __init__(self, process_responses=None, db=RECORDS,
+    def __init__(self, process_responses=None, data=None,
                  title="STUDENT WELLBEING SUPPORT SYSTEM", accounts=None):
         self.title = title
-        self.db = db
+        self._data = data
         self.session = Session()
-        self.accounts = accounts or AccountService()    # one shared service for every account action
+        self._accounts = accounts
         self.process_responses = process_responses
 
         # Menu Lists
@@ -51,6 +39,21 @@ class IOManager:
             ("View Assessment Trends", self.trends),
             ("Logout", self.logout),
         ]
+
+    # Shared DataManager object. If none was passed in, one is created the first time it is needed
+    # not in __init__, because creating one connects to MongoDB Atlas
+    @property
+    def data(self):
+        if self._data is None:
+            self._data = DataManager()
+        return self._data
+
+    # Shared AccountService for every account action, using the same DataManager
+    @property
+    def accounts(self):
+        if self._accounts is None:
+            self._accounts = AccountService(self.data)
+        return self._accounts
 
     # Show a menu, then return the method for the chosen option
     # (None for an option with no method, e.g. "Back")
@@ -99,19 +102,17 @@ class IOManager:
 
     # Handles survey and assessment.
     # Collect the answers, then hand them to process_responses (if given) for further handling.
-    # CHANGED: responses is now a SurveyResponse object; use responses.to_dict() where a dict is needed
     def survey(self):
         responses = self.collect_responses(self.session.uid)
         if responses is not None and self.process_responses is not None:
             self.process_responses(self.session, responses)
 
     #Run the questionnaire. Returns the answers, or None if the user kept today's assessment
-    # CHANGED: the answers are a SurveyResponse object (see io_helpers/survey_response.py)
     def collect_responses(self, uid):
         #If the user already has an assessment today, ask before replacing it
-        todays = todays_records(uid, self.db)
+        todays = todays_records(self.data, uid)
         if todays:
-            print(f"\nYou have already completed an assessment today (at {todays[0]['time']}).")
+            print(f"\nYou have already completed an assessment today (at {todays[0].get_time()}).")
 
             # Prompt user to confirm if they want to replace today's assessment
             if not YesNoPrompt("Only one assessment per day is allowed. "
@@ -143,7 +144,7 @@ class IOManager:
 
     # Show assessment trends graph
     def trends(self):
-        show_trends(self.session.uid, self.db)
+        show_trends(self.data, self.session.uid)
 
     '''
     ASSESSMENT HISTORY
@@ -154,7 +155,7 @@ class IOManager:
         submenu = [("View Assessment Details", self.history_details), ("Back", None)]
         while True:
             #Show the table again after every action, so it is always up to date
-            records = get_user_records(self.session.uid, self.db)
+            records = self.data.get_user_records(self.session.uid)
             if not records:
                 print("\nNo assessment history found.")
                 return
@@ -166,7 +167,7 @@ class IOManager:
 
     # View one assessment from the history table in detail.
     def history_details(self):
-        records = get_user_records(self.session.uid, self.db)
+        records = self.data.get_user_records(self.session.uid)
         number = self.prompt_assessment_number(len(records))
         if number == 0:
             return
@@ -184,7 +185,13 @@ RUN I/O MANAGER DIRECTLY
 '''
 
 if __name__ == "__main__":
+    app = IOManager()
     try:
-        IOManager().run()
+        app.run()
     except (KeyboardInterrupt, EOFError):
         Console.termination_msg()
+    except (ConnectionError, ValueError) as error:
+        Console.error(f"Could not open the database: {error}")
+    finally:
+        if app._data is not None:    # Close MongoDB connection
+            app.data.close()
