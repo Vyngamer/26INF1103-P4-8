@@ -3,6 +3,7 @@ Survey Questions
 '''
 
 from io_helpers.prompts import RangePrompt, ChoicePrompt, TextPrompt
+from io_helpers.survey_response import SurveyResponse
 
 
 # Originally prompt_questionnaire()
@@ -41,17 +42,16 @@ class Questionnaire:
     def heading(key):
         return key.replace('_', ' ').title()
 
-    # Ask every question and return a dictionary of responses (None if cancelled)
-    # CHANGED: takes the user's id so callers no longer need to fill in a "user_id": None placeholder
+    # Ask every question and return the answers as a SurveyResponse (None if cancelled)
     def run(self, user_id=None):
         responses = {
             "user_id": user_id
         }
         try:
-            for i, (key, prompt) in enumerate(self.questions, start=1): 
+            for i, (key, prompt) in enumerate(self.questions, start=1):
                 print(f"\n{i}. {self.heading(key)}")
                 responses[key] = prompt.ask()
-            return responses
+            return SurveyResponse.from_dict(responses)    # Parses responses into SurveyResponse object
         except (KeyboardInterrupt, EOFError):
             print("\n\nSurvey cancelled.")
             return None

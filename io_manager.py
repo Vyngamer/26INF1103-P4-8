@@ -99,12 +99,14 @@ class IOManager:
 
     # Handles survey and assessment.
     # Collect the answers, then hand them to process_responses (if given) for further handling.
+    # CHANGED: responses is now a SurveyResponse object; use responses.to_dict() where a dict is needed
     def survey(self):
         responses = self.collect_responses(self.session.uid)
         if responses is not None and self.process_responses is not None:
             self.process_responses(self.session, responses)
 
     #Run the questionnaire. Returns the answers, or None if the user kept today's assessment
+    # CHANGED: the answers are a SurveyResponse object (see io_helpers/survey_response.py)
     def collect_responses(self, uid):
         #If the user already has an assessment today, ask before replacing it
         todays = todays_records(uid, self.db)
