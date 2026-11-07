@@ -1,7 +1,7 @@
 from UserRecord import UserRecord
 
 # Manages user records stored in MongoDB
-class UserDataManager:
+class UserManager:
 
     def __init__(self, storage):
         self.__storage = storage
