@@ -11,8 +11,9 @@ class Questionnaire:
     MOOD_OPTIONS = ("Motivated", "Calm", "Anxious", "Sad", "Exhausted")
     REFLECTION_LIMIT = 500      #Character limit for freeform reflection
 
-    def __init__(self, questions=None):
-        self.questions = list(questions) if questions is not None else self.default_questions()
+    # CHANGED: no questions parameter. SurveyResponse needs exactly these questions, so any other list crashed
+    def __init__(self):
+        self.questions = self.default_questions()
 
     # Builds a 1-10 scale prompt
     @staticmethod
@@ -43,7 +44,7 @@ class Questionnaire:
         return key.replace('_', ' ').title()
 
     # Ask every question and return the answers as a SurveyResponse (None if cancelled)
-    def run(self, user_id=None):
+    def run(self, user_id):    # CHANGED: user_id is required, so every SurveyResponse belongs to a user
         responses = {
             "user_id": user_id
         }
