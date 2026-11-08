@@ -159,6 +159,22 @@ def dashboard():
             latest_attempt = None
     return render_template('dashboard.html', username=username.get_username(), latest_attempt = latest_attempt)
 
+
+@app.route('/history')
+def history():
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        error = "You must be logged in to access the history page."
+        return render_template("login.html", error=error)
+    else:
+        # get current user past attempts from the database
+        data_manager = DataManager()
+        username = data_manager.get_user_by_id(current_user_id)
+        previous_attempts = data_manager.get_previous_attempts(current_user_id)
+        print(previous_attempts)
+    return render_template('history.html', username=username.get_username(), previous_attempts=previous_attempts)
+
+
 @app.route('/wellness-check')
 def wellness_check():
     return render_template('wellness-check.html')
