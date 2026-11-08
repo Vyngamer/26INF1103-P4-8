@@ -8,6 +8,7 @@
   {% include 'navbar.html' %}	
 
     <main class="main">
+      {% if latest_attempt %}
       <div class="page-head">
 	      <h1>Welcome back, <span data-first-name></span>{{ username }}</h1>
         <p>Your dashboard is ready. Review your last wellness check and start a new one whenever you,re ready.</p>
@@ -88,6 +89,9 @@
           </section>
         </div>
       </div>
+      {% else %}
+      <p>You have no previous attempts to display.</p>
+      {% endif %}
     </main>
   </div>
   <script src="js/app.js"></script>
