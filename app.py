@@ -1,11 +1,19 @@
-from flask import Flask, render_template, request, jsonify
+import re
+import os
+
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from dotenv import load_dotenv
 from markupsafe import escape
 from ai_manager import AIManager
+from data_manager import DataManager
+from io_helpers.hasher import PasswordHasher
+from io_helpers.validators import username_errors, password_errors
 
 ai_manager = AIManager()
 ai_manager.connect_client()
 
 app = Flask(__name__)
+
 
 previous_attempt = {
     "record_id": "3d26c70e-8056-4332-a5c1-6a303d7ac992",
@@ -52,9 +60,11 @@ user_details = {
     "username": "user3"
 }
 
+# route for index, this will be the default page when the app runs
 @app.route("/")
-def index():
-    return render_template('dashboard.html', user_details=user_details, previous_attempt=previous_attempt)
+def main():
+    return render_template("index.html")
+
 
 @app.route('/wellness-check')
 def wellness_check():
@@ -73,4 +83,3 @@ def get_AI_response(text):
 
     print(text)
     return ai_manager.prompt_bot(text)
-
