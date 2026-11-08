@@ -153,7 +153,9 @@ class AssessmentManager:
             if record.get_date() != today:
                 previous_attempts.append({
                     **record.get_user_input(),
-                    **record.get_ai_output()
+                    **record.get_ai_output(),
+                    "date": record.get_date(),
+                    "time": record.get_time()
                 })
 
         return previous_attempts
