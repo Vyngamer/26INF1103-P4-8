@@ -65,6 +65,52 @@ user_details = {
 def main():
     return render_template("index.html")
 
+# route for register
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        # get the form details
+        username = request.form.get("username")
+        password = request.form.get("password")
+        confirm_password = request.form.get("confirm")
+
+        # check if the passwords match
+        if password != confirm_password:
+            error = "Passwords do not match."
+            return render_template("register.html", error=error)
+
+        # check if the username and password meet the requirements
+        username_problems = username_errors(username)
+        password_problems = password_errors(password)
+        print(f"Username problems: {username_problems}, Password problems: {password_problems}")
+        if username_problems or password_problems:
+            error = " ".join(username_problems + password_problems)
+            return render_template("register.html", error=error)
+
+        # connect to the database
+        data_manager = DataManager()
+
+        # check if the username already exists
+        if data_manager.get_user_by_username(username) is not None:
+            error = "Username already exists. Please choose another."
+            return render_template("register.html", error=error)
+
+        # if the username is ok, store the user
+        password_hash = PasswordHasher().hash(password)
+        try:
+            user_id = data_manager.create_user(username, password_hash)
+            if user_id is None:
+                error = "Could not create your account. Please try again."
+                return render_template("register.html", error=error)
+        except (ConnectionError, ValueError) as e:
+            error = "Unable to connect to the database. Please try again later."
+            return render_template("register.html", error=error)
+
+        data_manager.close()
+        return redirect(url_for("login"))
+
+    return render_template("register.html")
+
 
 @app.route('/wellness-check')
 def wellness_check():
