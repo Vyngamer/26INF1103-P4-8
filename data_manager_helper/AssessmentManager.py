@@ -155,7 +155,8 @@ class AssessmentManager:
                     **record.get_user_input(),
                     **record.get_ai_output(),
                     "date": record.get_date(),
-                    "time": record.get_time()
+                    "time": record.get_time(),
+                    "record_id": record.get_record_id()
                 })
 
         return previous_attempts
