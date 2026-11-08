@@ -111,6 +111,39 @@ def register():
 
     return render_template("register.html")
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        # get the form details
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        # set a flag for login
+        can_login = True
+
+        # connect to the database
+        data_manager = DataManager()
+
+        # check if the username exists
+        user = data_manager.get_user_by_username(username)
+        if user is None:
+            can_login = False
+            error = "Invalid username or password."
+            return render_template("login.html", error=error)
+
+        # check if the password is correct
+        password_hash = user.get_password()
+        if not PasswordHasher().verify(password, password_hash):
+            can_login = False
+            error = "Invalid username or password."
+            return render_template("login.html", error=error)
+
+        if can_login:
+            session['user_id'] = user.get_user_id()
+            return redirect(url_for("dashboard"))
+    return render_template("login.html")
+
+
 
 @app.route('/wellness-check')
 def wellness_check():
