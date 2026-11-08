@@ -13,7 +13,7 @@ ai_manager = AIManager()
 ai_manager.connect_client()
 
 app = Flask(__name__)
-
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 previous_attempt = {
     "record_id": "3d26c70e-8056-4332-a5c1-6a303d7ac992",
