@@ -154,7 +154,6 @@ def dashboard():
         data_manager = DataManager()
         username = data_manager.get_user_by_id(current_user_id)
         latest_attempt = data_manager.get_latest_user_record(current_user_id)
-        print(latest_attempt.get_ai_output()["mental_wellness_risk_score"])
         # check if there are any previous attempts
         if not latest_attempt:
             latest_attempt = None
