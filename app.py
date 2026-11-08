@@ -143,7 +143,22 @@ def login():
             return redirect(url_for("dashboard"))
     return render_template("login.html")
 
-
+@app.route("/dashboard")
+def dashboard():
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        error = "You must be logged in to access the dashboard."
+        return render_template("login.html", error=error)
+    else:
+        # get current user past attempts from the database
+        data_manager = DataManager()
+        username = data_manager.get_user_by_id(current_user_id)
+        latest_attempt = data_manager.get_latest_user_record(current_user_id)
+        print(latest_attempt.get_ai_output()["mental_wellness_risk_score"])
+        # check if there are any previous attempts
+        if not latest_attempt:
+            latest_attempt = None
+    return render_template('dashboard.html', username=username.get_username(), latest_attempt = latest_attempt)
 
 @app.route('/wellness-check')
 def wellness_check():
