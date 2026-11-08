@@ -171,8 +171,33 @@ def history():
         data_manager = DataManager()
         username = data_manager.get_user_by_id(current_user_id)
         previous_attempts = data_manager.get_previous_attempts(current_user_id)
-        print(previous_attempts)
     return render_template('history.html', username=username.get_username(), previous_attempts=previous_attempts)
+
+
+@app.route('/result', methods=["GET", "POST"])
+def result():
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        error = "You must be logged in to access the results page."
+        return render_template("login.html", error=error)
+    else:
+        # get the id of the wanted attempt
+        current_record_id = request.args.get('attempt_id')
+        if current_record_id is None:
+            error = "No attempt ID provided."
+            return render_template("history.html", error=error)
+        else:
+            # get current user past attempts from the database
+            data_manager = DataManager()
+            user_previous_attempts = data_manager.get_user_records(current_user_id)
+            choosen_attempt = None
+            for previous_attempt in user_previous_attempts:
+                if previous_attempt.get_record_id() == current_record_id:
+                    choosen_attempt = previous_attempt
+                    break
+            if not choosen_attempt:
+                choosen_attempt = None
+        return render_template('results.html', choosen_attempt=choosen_attempt)
 
 
 @app.route('/wellness-check')
