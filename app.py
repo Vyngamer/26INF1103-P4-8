@@ -1,5 +1,7 @@
 import re
 import os
+import threading
+import sys
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from dotenv import load_dotenv
@@ -169,6 +171,11 @@ def progress():
 
 @app.route('/wellness-check')
 def wellness_check():
+    if len(conversation.logs()) == 0:
+        t = threading.Thread(target=get_AI_response, args=('Hello!',))
+        t.start()
+        conversation.set_bot_typing(True)
+
     return render_template('wellness-check.html', conversation=conversation)
 
 @app.route('/get', methods=['GET','POST'])
@@ -187,7 +194,9 @@ def wait_for_bot_response():
     return conversation.get_last_log()
      
 def get_AI_response(text):
+
     bot_response = ai_manager.prompt_bot(text)
+    print(bot_response, file=sys.stdout)
     conversation.add_message('ai', bot_response)
     conversation.set_bot_typing(False)
 
