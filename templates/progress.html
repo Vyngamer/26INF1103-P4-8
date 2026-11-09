@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}My progress — AI Counsellor{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/progress.css') }}">
+<style>
+  /* Custom modern enhancements for the progress page */
+  .metric-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .chip {
+    background-color: #f3f0f7;
+    border: 1px solid #e1dced;
+    color: #4a3290;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .chip:hover {
+    background-color: #e8e2f3;
+  }
+  .chip.active {
+    background-color: #4a3290;
+    color: #ffffff;
+    border-color: #4a3290;
+    box-shadow: 0 4px 12px rgba(74, 50, 144, 0.2);
+  }
+  .chart-card {
+    background: #ffffff;
+    border: 1px solid #eae6f2;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(74, 50, 144, 0.04);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="app">
+    {% include 'navbar.html' %}
+    <div class="main">
+        {% if history %}
+        <div class="page-head">
+            <h1>Progress viewer</h1>
+            <p>View one wellbeing metric at a time with clear filters and a single large line graph.</p>
+        </div>
+        <div class="metric-tabs" role="tablist" aria-label="Choose a metric">
+            <button type="button" class="chip active" role="tab" aria-selected="true">Mental Wellness Score</button>
+            <button type="button" class="chip" role="tab" aria-selected="false">Burnout Risk Score</button>
+            <button type="button" class="chip" role="tab" aria-selected="false">Social Activity Level</button>
+            <button type="button" class="chip" role="tab" aria-selected="false">Stress Level</button>
+            <button type="button" class="chip" role="tab" aria-selected="false">Focus Level</button>
+            <button type="button" class="chip" role="tab" aria-selected="false">Sleep Duration</button>
+        </div>
+        <section class="card chart-card">
+            <div class="chart-head" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+            <div>
+                <h2 class="card-title" id="dynamicChartTitle" style="margin: 0; font-size: 1.2rem; color: #2d1e5f; font-weight: 600;">Mental Wellness score Trend</h2>
+                <p class="card-sub" style="margin: 4px 0 0 0; color: #6b6382; font-size: 0.85rem;">A single large line graph for the selected metric, with clear axes.</p>
+            </div>
+            <p class="chart-hint" id="dynamicChartHint" style="margin: 0; color: #8c82a6; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">higher scores are better</p>
+            </div>
+
+            <div class="chart-frame">
+            <div style="border: 1px solid #e8e2f3; border-radius: 14px; background-color: #faf9fd; padding: 25px 20px 20px 10px; display: grid; grid-template-columns: 40px 1fr; gap: 10px; box-shadow: inset 0 2px 6px rgba(74, 50, 144, 0.02);">
+                
+                <div class="chart-y" id="chartYLabels" aria-hidden="true" style="display: flex; flex-direction: column; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: #786f94; padding-left: 8px;">
+                <span style="height: 0; display: flex; align-items: center;">100</span>
+                <span style="height: 0; display: flex; align-items: center;">75</span>
+                <span style="height: 0; display: flex; align-items: center;">50</span>
+                <span style="height: 0; display: flex; align-items: center;">25</span>
+                <span style="height: 0; display: flex; align-items: center;">0</span>
+                </div>
+                
+                <div class="chart-plot" role="img" aria-label="Dynamic metric trend graph" style="width: 100%;">
+                <svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true" style="width: 100%; height: auto; display: block; overflow: visible;">
+                    <g stroke="#eadef0" stroke-dasharray="4 4" vector-effect="non-scaling-stroke">
+                    <line x1="0" y1="0" x2="1000" y2="0" vector-effect="non-scaling-stroke"/>
+                    <line x1="0" y1="75" x2="1000" y2="75" vector-effect="non-scaling-stroke"/>
+                    <line x1="0" y1="150" x2="1000" y2="150" vector-effect="non-scaling-stroke"/>
+                    <line x1="0" y1="225" x2="1000" y2="225" vector-effect="non-scaling-stroke"/>
+                    <line x1="0" y1="300" x2="1000" y2="300" stroke-dasharray="none" vector-effect="non-scaling-stroke"/>
+                    </g>
+                    
+                    <defs>
+                    <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0" stop-color="#4a3290" stop-opacity="0.18"/>
+                        <stop offset="1" stop-color="#4a3290" stop-opacity="0.0"/>
+                    </linearGradient>
+                    </defs>
+                    
+                    <polygon id="chartPolygon" points="" fill="url(#chartFill)"/>
+                    <polyline id="chartPolyline" points="" fill="none" stroke="#4a3290" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                    <g id="chartDots"></g>
+                </svg>
+                </div>
+            </div>
+            
+            <div class="chart-x" aria-hidden="true" style="margin-top: 14px; margin-left: 58px; margin-right: 20px; font-size: 0.8rem; color: #6b6382;">
+                <div id="xAxisContainer" style="position: relative; width: 100%; height: 20px;"></div>
+            </div>
+            </div>
+        </section>
+        <script>
+            const all_data = {{ history|tojson }};
+            
+            const metrics = {
+                "Mental Wellness Score": { data: [], max: 100 },
+                "Burnout Risk Score": { data: [], max: 100 },
+                "Social Activity Level": { data: [], max: 10 },
+                "Stress Level": { data: [], max: 10 },
+                "Focus Level": { data: [], max: 10 },
+                "Sleep Duration": { data: [], max: 24 }
+            };
+
+            const rawDates = [];
+            const formattedDates = [];
+
+            all_data.forEach(attempt => {
+                metrics["Mental Wellness Score"].data.push(attempt.mental_wellness_risk_score);
+                metrics["Burnout Risk Score"].data.push(attempt.burnout_risk_score);
+                metrics["Social Activity Level"].data.push(attempt.social_activity_level);
+                metrics["Stress Level"].data.push(attempt.stress_level);
+                metrics["Focus Level"].data.push(attempt.focus_level);
+                metrics["Sleep Duration"].data.push(attempt.sleep_duration);
+                
+                rawDates.push(attempt.date);
+                formattedDates.push(formatDate(attempt.date));
+            });
+
+            function formatDate(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return dateStr;
+                
+                const day = parseInt(parts[0], 10);
+                const monthNum = parseInt(parts[1], 10) - 1;
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                return `${day} ${months[monthNum] || ""}`;
+            }
+
+            // Render X-Axis Dates Dynamically
+            const xAxisContainer = document.getElementById('xAxisContainer');
+            if (xAxisContainer && formattedDates.length > 0) {
+                formattedDates.forEach((dateText, i) => {
+                    const numPoints = formattedDates.length;
+                    const pct = numPoints > 1 ? i * (100 / (numPoints - 1)) : 50;
+                    const isLast = (i === numPoints - 1);
+
+                    const span = document.createElement('span');
+                    span.textContent = dateText;
+                    span.style.position = 'absolute';
+                    span.style.left = `${pct}%`;
+                    span.style.transform = 'translateX(-50%)';
+                    span.style.textAlign = 'center';
+                    span.style.whiteSpace = 'nowrap';
+                    if (isLast) {
+                        span.style.fontWeight = '700';
+                        span.style.color = '#2d1e5f';
+                    }
+                    xAxisContainer.appendChild(span);
+                });
+            }
+
+            const polygon = document.getElementById('chartPolygon');
+            const polyline = document.getElementById('chartPolyline');
+            const dotsContainer = document.getElementById('chartDots');
+            const yLabelsContainer = document.getElementById('chartYLabels');
+            const chartTitle = document.getElementById('dynamicChartTitle');
+            const chartHint = document.getElementById('dynamicChartHint');
+
+            function drawGraph(metricName) {
+                const metric = metrics[metricName];
+                const data = metric.data;
+                const maxVal = metric.max;
+                const numPoints = data.length;
+
+                if (chartTitle) chartTitle.textContent = metricName + " Trend";
+                if (chartHint) {
+                    if (metricName === "Mental Wellness Score" || metricName === "Burnout Risk Score" || metricName === "Stress Level") {
+                        chartHint.textContent = "lower scores reflect better wellbeing";
+                    } else {
+                        chartHint.textContent = "higher scores are better";
+                    }
+                }
+                
+                if (yLabelsContainer) {
+                    const spans = yLabelsContainer.querySelectorAll('span');
+                    if (spans.length === 5) {
+                        spans[0].textContent = maxVal;
+                        spans[1].textContent = Math.round(maxVal * 0.75);
+                        spans[2].textContent = Math.round(maxVal * 0.5);
+                        spans[3].textContent = Math.round(maxVal * 0.25);
+                        spans[4].textContent = 0;
+                    }
+                }
+
+                let polylinePoints = [];
+                let polygonPoints = ["0,300"];
+                dotsContainer.innerHTML = '';
+
+                data.forEach((value, i) => {
+                    const x = numPoints > 1 ? i * (1000 / (numPoints - 1)) : 500;
+                    const y = 300 - ((value / maxVal) * 300);
+                    
+                    const pointStr = `${x},${y}`;
+                    polylinePoints.push(pointStr);
+                    polygonPoints.push(pointStr);
+
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute("cx", x);
+                    circle.setAttribute("cy", y);
+                    circle.setAttribute("r", "5.5");
+                    circle.setAttribute("fill", "#faf9fd");
+                    circle.setAttribute("stroke", "#4a3290");
+                    circle.setAttribute("stroke-width", "3.5"); 
+                    circle.setAttribute("vector-effect", "non-scaling-stroke");
+                    circle.style.cursor = "pointer";
+
+                    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                    title.textContent = `${formattedDates[i]}: ${value} / ${maxVal}`;
+                    circle.appendChild(title);
+
+                    dotsContainer.appendChild(circle);
+                });
+
+                polygonPoints.push("1000,300");
+                
+                polyline.setAttribute("points", polylinePoints.join(" "));
+                polygon.setAttribute("points", polygonPoints.join(" "));
+            }
+
+            const chips = document.querySelectorAll('.chip');
+            chips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    chips.forEach(c => {
+                        c.classList.remove('active');
+                        c.setAttribute('aria-selected', 'false');
+                    });
+                    this.classList.add('active');
+                    this.setAttribute('aria-selected', 'true');
+                    drawGraph(this.textContent.trim());
+                });
+            });
+
+            if (all_data.length > 0) {
+                drawGraph("Mental Wellness Score");
+            }
+        </script>
+        {% else %}
+            <p>No progress data available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
