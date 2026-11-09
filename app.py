@@ -102,7 +102,7 @@ def dashboard():
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the dashboard."
-        return render_template("login.html", error=error)
+        return redirect(url_for('login'))
     else:
         # get current user past attempts from the database
         username = data_manager.get_user_by_id(current_user_id)
@@ -117,7 +117,7 @@ def history():
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the history page."
-        return render_template("login.html", error=error)
+        return redirect(url_for('login'))
     else:
         # get current user past attempts from the database
         username = data_manager.get_user_by_id(current_user_id)
@@ -130,7 +130,7 @@ def result():
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the results page."
-        return render_template("login.html", error=error)
+        return redirect(url_for('login'))
     else:
         # get the id of the wanted attempt
         current_record_id = request.args.get('attempt_id')
@@ -154,7 +154,7 @@ def progress():
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the progress page."
-        return render_template("login.html", error=error)
+        return redirect(url_for('login'))
     else:
         # get the wanted data from the users previous attempts
         all_records = data_manager.load_records()
