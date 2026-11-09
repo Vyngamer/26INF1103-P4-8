@@ -14,6 +14,7 @@ import sys
 
 ai_manager = AIManager()
 ai_manager.connect_client()
+data_manager = DataManager()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
@@ -48,9 +49,6 @@ def register():
             error = " ".join(username_problems + password_problems)
             return render_template("register.html", error=error)
 
-        # connect to the database
-        data_manager = DataManager()
-
         # check if the username already exists
         if data_manager.get_user_by_username(username) is not None:
             error = "Username already exists. Please choose another."
@@ -82,9 +80,6 @@ def login():
         # set a flag for login
         can_login = True
 
-        # connect to the database
-        data_manager = DataManager()
-
         # check if the username exists
         user = data_manager.get_user_by_username(username)
         if user is None:
@@ -112,7 +107,6 @@ def dashboard():
         return render_template("login.html", error=error)
     else:
         # get current user past attempts from the database
-        data_manager = DataManager()
         username = data_manager.get_user_by_id(current_user_id)
         latest_attempt = data_manager.get_latest_user_record(current_user_id)
         # check if there are any previous attempts
@@ -129,7 +123,6 @@ def history():
         return render_template("login.html", error=error)
     else:
         # get current user past attempts from the database
-        data_manager = DataManager()
         username = data_manager.get_user_by_id(current_user_id)
         previous_attempts = data_manager.get_previous_attempts(current_user_id)
     return render_template('history.html', username=username.get_username(), previous_attempts=previous_attempts)
@@ -149,7 +142,6 @@ def result():
             return render_template("history.html", error=error)
         else:
             # get current user past attempts from the database
-            data_manager = DataManager()
             user_previous_attempts = data_manager.get_user_records(current_user_id)
             choosen_attempt = None
             for previous_attempt in user_previous_attempts:
