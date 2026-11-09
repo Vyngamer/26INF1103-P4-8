@@ -160,3 +160,21 @@ class AssessmentManager:
                 })
 
         return previous_attempts
+
+    def delete_user_records(self, user_id):
+        deleted_count = self.__storage.delete_many(
+            {"user_input.user_id": user_id}
+        )
+
+        if deleted_count is None:
+            return False
+
+        remaining_records = []
+
+        for record in self.__records:
+            record_user_id = record.get_user_input().get("user_id")
+
+            if record_user_id != user_id:
+                remaining_records.append(record)
+
+        self.__records = remaining_records
