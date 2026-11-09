@@ -1,6 +1,6 @@
 from pydantic import ValidationError
-from ai_manager_helper.data_classes import SurveyEntitySchema
-from ai_manager_helper.api_client_classes import AICounsellor
+from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
+from ai_manager_helper.api_client_classes.ai_counsellor import AICounsellor
 import json
 
 class AIManager:

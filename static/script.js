@@ -1,0 +1,7 @@
+
+
+function sendToChatbot(userText) {
+	$.ajax({
+
+	})
+}
