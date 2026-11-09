@@ -216,15 +216,30 @@ if __name__ == "__main__":
             )
 
         # 13. Delete test user
-        # Uncomment when you are ready to delete the test user.
+        print("\n========== DELETE USER ==========")
 
-        # print("\n========== DELETE USER ==========")
-        # delete_success = data_manager.delete_user(user_id)
-        #
-        # if delete_success:
-        #     print("Test user deleted successfully!")
-        # else:
-        #     print("Failed to delete test user.")
+        delete_success = data_manager.delete_user(user_id)
+
+        if delete_success:
+            print("Test user deleted successfully!")
+        else:
+            print("Failed to delete test user.")
+
+        # Verify user deletion
+        deleted_user = data_manager.get_user_by_id(user_id)
+
+        if deleted_user is None:
+            print("PASS: User has been deleted.")
+        else:
+            print("FAIL: User still exists.")
+
+        # Verify assessment records deletion
+        remaining_records = data_manager.get_user_records(user_id)
+
+        if len(remaining_records) == 0:
+            print("PASS: All user's assessment records have been deleted.")
+        else:
+            print("FAIL: Assessment records still exist.")
 
     finally:
         # Close MongoDB connection
