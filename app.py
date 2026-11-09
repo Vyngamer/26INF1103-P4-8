@@ -8,6 +8,9 @@ from ai_manager import AIManager
 from data_manager import DataManager
 from io_helpers.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors
+from ai_manager_helper.data_classes.conversation import Conversation
+import threading
+import sys
 
 ai_manager = AIManager()
 ai_manager.connect_client()
@@ -59,6 +62,8 @@ user_details = {
     "user_id": "69182f01-0c95-496e-8c90-34c5cbd3bcb2",
     "username": "user3"
 }
+
+conversation = Conversation()
 
 # route for index, this will be the default page when the app runs
 @app.route("/")
@@ -202,18 +207,27 @@ def result():
 
 @app.route('/wellness-check')
 def wellness_check():
-    return render_template('wellness-check.html')
+    return render_template('wellness-check.html', conversation=conversation)
 
 @app.route('/get', methods=['GET','POST'])
 def chat():
     user_message = request.form["msg"]
+    conversation.add_message('user', user_message)
+    conversation.set_bot_typing(True)
 
     return get_AI_response(user_message)
 
+@app.route('/get-bot-response', methods=['GET'])
+def wait_for_bot_response():
+    while conversation.is_bot_typing():
+        continue
 
+    return conversation.get_last_log()
+     
 def get_AI_response(text):
+    bot_response = ai_manager.prompt_bot(text)
+    conversation.add_message('ai', bot_response)
+    conversation.set_bot_typing(False)
 
-    # clean text here
+    return bot_response
 
-    print(text)
-    return ai_manager.prompt_bot(text)
