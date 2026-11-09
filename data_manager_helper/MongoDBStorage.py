@@ -104,3 +104,17 @@ class MongoDBStorage(StorageInterface):
         except PyMongoError as error:
             print(f"Error replacing today's record: {error}")
             return False
+
+    def delete_many(self, query):
+
+        try:
+            if not isinstance(query, dict):
+                return None
+
+            result = self.__collection.delete_many(query)
+
+            return result.deleted_count
+
+        except PyMongoError as error:
+            print(f"Error deleting documents: {error}")
+            return None
