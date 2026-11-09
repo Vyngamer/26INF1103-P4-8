@@ -49,7 +49,7 @@
 			$('#chatForm').on('submit', function() {
 					var rawText = $('#chatInput').val();
 					var userHtml = '<div class="msg user"><div class="avatar">YT</div><div class="bubble">' + rawText + '</div></div>';
-					var botTypingHtml = '<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div'
+					var botTypingHtml = '<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div>'
 
 					$('#chatLog').append(userHtml);
 					$('#chatLog').append(botTypingHtml);
