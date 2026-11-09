@@ -1,53 +1,79 @@
+
 {% extends "base.html" %}
 
 {% block title %}AI Counsellor — Always here, always listening{% endblock %}
-{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">{% endblock %}
 
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
 {% block content %}
-  <main>
+<main>
     {% include 'guest_navbar.html' %}
+    <!-- Hero Section -->
     <section class="hero">
-      <div class="inner">
-        <div class="hero-copy">
-          <h1 class="display">Always here,<br>always listening</h1>
-          <p class="lead">Experience understanding and empathy like never before. Talk to our AI Counsellor, we learn and support you through every journey. You're never alone.</p>
-          <a href="" class="btn btn-vibrant">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5z"/></svg>
-            Talk to AI Counsellor
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
-          </a>
+        <div class="inner">
+            <div class="hero-copy">
+                <h1 class="display">Always here,<br>always listening</h1>
+                <p class="lead">
+                    Experience understanding and empathy like never before.
+                    Talk to our AI Counsellor, we learn and support you through
+                    every journey. You're never alone.
+                </p>
+            </div>
+            <div class="hero-art">
+                <img
+                    src="{{ url_for('static', filename='assets/robot.png') }}"
+                    alt="A friendly AI Counsellor assistant"
+                    width="675"
+                    height="608"
+                >
+            </div>
         </div>
-        <div class="hero-art">
-          <img src="{{ url_for('static', filename='assets/robot.png') }}" alt="A friendly purple robot with headphones holding a tablet that says Let's talk, with a speech bubble: You're not alone. I'm here to listen." width="675" height="608">
-        </div>
-      </div>
     </section>
 
+    <!-- What We Offer Section -->
     <section class="offer">
-      <div class="inner">
-        <h2 class="section-title">What We Offer</h2>
-        <div class="offer-grid">
-          <article class="offer-card">
-            <div class="icon-bubble"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.7 4.5c2.1 0 3.6 1.1 5.3 3 1.7-1.9 3.2-3 5.3-3 3.7 0 5.8 3.8 4.3 7.2C19.5 16.4 12 21 12 21z"/></svg></div>
-            <h3>Empathetic Conversations</h3>
-            <p>Speak freely and openly. We provide a warm, understanding presence whenever you need to share your feelings</p>
-          </article>
-          <article class="offer-card">
-            <div class="icon-bubble"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 10.4 3.2 3.2-1.4 1.4-3.8-3.8V6h2v6.4z"/></svg></div>
-            <h3>Round the clock Availability</h3>
-            <p>Day or night, rain or shine, we are here to listen, comfort and guide you. Ensuring that support is always within reach.</p>
-          </article>
-          <article class="offer-card">
-            <div class="icon-bubble"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7H4z"/></svg></div>
-            <h3>Personalized Insights</h3>
-            <p>Receive guidance tailored to your emotional landscape, helping you gain clarity, resilience and self-understanding</p>
-          </article>
+        <div class="offer-inner">
+            <h2 class="section-title">What We Offer</h2>
+            <div class="offer-grid">
+                <!-- Empathetic Conversations -->
+                <article class="offer-card">
+                    <div class="icon-bubble">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.7 4.5c2.1 0 3.6 1.1 5.3 3 1.7-1.9 3.2-3 5.3-3 3.7 0 5.8 3.8 4.3 7.2C19.5 16.4 12 21 12 21z"/>
+                        </svg>
+                    </div>
+                    <h3>Empathetic Conversations</h3>
+                    <p>
+                        Speak freely and openly. We provide a warm,
+                        understanding presence whenever you need to
+                        share your feelings.
+                    </p>
+                </article>
+                <!-- Personalized Insights -->
+                <article class="offer-card">
+                    <div class="icon-bubble">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7H4z"/>
+                        </svg>
+                    </div>
+                    <h3>Personalized Insights</h3>
+                    <p>
+                        Receive guidance tailored to your emotional
+                        landscape, helping you gain clarity, resilience
+                        and self-understanding.
+                    </p>
+                </article>
+            </div>
         </div>
-      </div>
     </section>
-  </main>
-
-  <footer class="site-footer">
-    <p>© 2026 AI Counsellor · Not a substitute for professional care. <a href="">Log in</a></p>
-  </footer>
+</main>
+<!-- Footer -->
+<footer class="site-footer">
+    <p>
+        © 2026 AI Counsellor · Not a substitute for professional care.
+        <a href="{{ url_for('login') }}">Log in</a>
+    </p>
+</footer>
 {% endblock %}
