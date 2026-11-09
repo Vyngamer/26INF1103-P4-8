@@ -90,12 +90,31 @@
 				type: 'POST',
 				url: '/get'
 			}).done(function(data) {
-				botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data + '</div></div>';
-				$('#botTyping').remove();
+				botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data.text + '</div></div>';
 				$('#chatLog').append($.parseHTML(botHtml));
-				$('#sendBtn').prop('disabled', false);
 				$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+				$('#botTyping').remove();
+				$('#sendBtn').prop('disabled', false);
 				event.preventDefault();
+
+				if (data.survey_done == true) {
+					$('#sendBtn').prop('disabled', true);
+					// var botTypingHtml = '<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div>'
+					$('#chatLog').append(botTypingHtml);
+					$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+					event.preventDefault();
+					$.ajax({
+							type: 'GET',
+							url: '/confirm-survey'
+					}).done(function(data) {
+						botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data + '</div></div>';
+						$('#chatLog').append($.parseHTML(botHtml));
+						$('#botTyping').remove();
+						$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+						$('#sendBtn').prop('disabled', false);
+						event.preventDefault();
+					})
+				}
 			})
 		})
 	});
