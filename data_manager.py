@@ -59,7 +59,22 @@ class DataManager:
         )
 
     def delete_user(self, user_id):
-          return self.__user_manager.delete_user(user_id)
+        user = self.__user_manager.get_user_by_id(user_id)
+
+        if not user:
+            return False
+
+        # Delete all assessment records belonging to user
+        assessment_deleted = self.__assessment_manager.delete_user_records(
+            user_id
+        )
+
+        if not assessment_deleted:
+            return False
+
+        # Delete the user
+        return self.__user_manager.delete_user(user_id)
+
 
     # ==========================================
     # ASSESSMENT MANAGEMENT

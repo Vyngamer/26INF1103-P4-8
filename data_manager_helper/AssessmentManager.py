@@ -178,3 +178,4 @@ class AssessmentManager:
                 remaining_records.append(record)
 
         self.__records = remaining_records
+        return True
