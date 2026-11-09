@@ -23,6 +23,12 @@
         </div>
 
         <div class="chat-log" id="chatLog" aria-live="polite">
+		{% for log in conversation.logs() %}
+			<div class="msg {{  log.sender }}"><div class="avatar">YT</div><div class="bubble">{{ log.message }}</div></div>
+		{% endfor %}
+		{% if conversation.is_bot_typing() %}
+			<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div>
+		{% endif %}
 	</div>
 	
         <div class="quick-replies" id="quickReplies"></div>
@@ -45,35 +51,53 @@
   </div>
 
 <script>
+	{% if conversation.is_bot_typing() %}
 	$(document).ready(function() {
-			$('#chatForm').on('submit', function() {
-					var rawText = $('#chatInput').val();
-					var userHtml = '<div class="msg user"><div class="avatar">YT</div><div class="bubble">' + rawText + '</div></div>';
-					var botTypingHtml = '<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div>'
+		$('#sendBtn').prop('disabled', true);
+		$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+		$.ajax({
+			type: 'GET',
+			url: '/get-bot-response'
+		}).done(function(data) {
+			botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data.message + '</div></div>';
+			$('#botTyping').remove();
+			$('#chatLog').append($.parseHTML(botHtml));
+			$('#sendBtn').prop('disabled', false);
+			$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+			event.preventDefault();
+		})
+	})
+	{% endif %}
 
-					$('#chatLog').append(userHtml);
-					$('#chatLog').append(botTypingHtml);
+	$(document).ready(function() {
+		$('#chatForm').on('submit', function() {
+			var rawText = $('#chatInput').val();
+			var userHtml = '<div class="msg user"><div class="avatar">YT</div><div class="bubble">' + rawText + '</div></div>';
+			var botTypingHtml = '<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div>'
 
-					$('#chatInput').val('');
-					$('#sendBtn').prop('disabled', true);
-					$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
-					event.preventDefault();
+			$('#chatLog').append(userHtml);
+			$('#chatLog').append(botTypingHtml);
 
-					$.ajax({
-						data: {
-								msg: rawText,
-						},
-						type: 'POST',
-						url: '/get'
-						}).done(function(data) {
-								botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data + '</div></div>';
-								$('#botTyping').remove();
-								$('#chatLog').append($.parseHTML(botHtml));
-								$('#sendBtn').prop('disabled', false);
-								$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
-								event.preventDefault();
-							})
+			$('#chatInput').val('');
+			$('#sendBtn').prop('disabled', true);
+			$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+			event.preventDefault();
+
+			$.ajax({
+				data: {
+					msg: rawText,
+				},
+				type: 'POST',
+				url: '/get'
+			}).done(function(data) {
+				botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data + '</div></div>';
+				$('#botTyping').remove();
+				$('#chatLog').append($.parseHTML(botHtml));
+				$('#sendBtn').prop('disabled', false);
+				$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+				event.preventDefault();
 			})
+		})
 	});
 </script>
 

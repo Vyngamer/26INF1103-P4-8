@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 from markupsafe import escape
 from ai_manager import AIManager
+from ai_manager_helper.data_classes.conversation import Conversation
+import threading
+import sys
 
 ai_manager = AIManager()
 ai_manager.connect_client()
@@ -52,25 +55,36 @@ user_details = {
     "username": "user3"
 }
 
+conversation = Conversation()
+
 @app.route("/")
 def index():
     return render_template('dashboard.html', user_details=user_details, previous_attempt=previous_attempt)
 
 @app.route('/wellness-check')
 def wellness_check():
-    return render_template('wellness-check.html')
+    return render_template('wellness-check.html', conversation=conversation)
 
 @app.route('/get', methods=['GET','POST'])
 def chat():
     user_message = request.form["msg"]
+    conversation.add_message('user', user_message)
+    conversation.set_bot_typing(True)
 
     return get_AI_response(user_message)
 
+@app.route('/get-bot-response', methods=['GET'])
+def wait_for_bot_response():
+    while conversation.is_bot_typing():
+        continue
 
+    return conversation.get_last_log()
+     
 def get_AI_response(text):
+    bot_response = ai_manager.prompt_bot(text)
+    conversation.add_message('ai', bot_response)
+    conversation.set_bot_typing(False)
+    print(';ALSKDJFA;LKSDKFJA;LSKDFJ', file=sys.stdout)
 
-    # clean text here
-
-    print(text)
-    return ai_manager.prompt_bot(text)
+    return bot_response
 
