@@ -110,7 +110,7 @@ def dashboard():
         # check if there are any previous attempts
         if not latest_attempt:
             latest_attempt = None
-    return render_template('dashboard.html', username=username.get_username(), latest_attempt = latest_attempt)
+        return render_template('dashboard.html', username=username.get_username(), latest_attempt = latest_attempt)
 
 @app.route('/history')
 def history():
@@ -193,3 +193,8 @@ def get_AI_response(text):
 
     return bot_response
 
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('main'))
