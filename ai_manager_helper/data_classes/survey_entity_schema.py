@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, ConfigDict, ValidationError, field_valida
 class SurveyEntitySchema(BaseModel):
     sleep_duration: int = Field(gte=-1, lte=24, description="Average daily sleep hours over past week (0-24), The user had {sleep} hours of sleep")
     stress_level: int = Field(gte=-1, lte=10, description="Current stress (1 = Very Low, 10 = Very High), the user's stress level is {stress} out of 10")
-    focus_level: int = Field(gte=-1, lte=5, description="Ability to concentrate (1 = Very Poor, 5 = Excellent), the user's focus level is {focus} out of 10")
+    focus_level: int = Field(gte=-1, lte=10, description="Ability to concentrate (1 = Very Poor, 10 = Excellent), the user's focus level is {focus} out of 10")
     academic_workload: int = Field(gte=-1, lte=10, description="Coursework load (1 = Light, 10 = Very Heavy), the user's academic workload is {workload} out of 10")
     mood: Literal['Motivated', 'Calm', 'Anxious', 'Sad', 'Exhausted', 'Undefined'] = \
             Field(description="Emotional state, the user's mood is {mood}")
