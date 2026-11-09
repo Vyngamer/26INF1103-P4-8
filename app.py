@@ -9,8 +9,6 @@ from data_manager import DataManager
 from io_helpers.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors
 from ai_manager_helper.data_classes.conversation import Conversation
-import threading
-import sys
 
 ai_manager = AIManager()
 ai_manager.connect_client()
