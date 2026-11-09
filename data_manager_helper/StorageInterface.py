@@ -26,3 +26,7 @@ class StorageInterface(ABC):
     @abstractmethod
     def replace_today(self, user_id, today, new_record):
         pass
+
+    @abstractmethod
+    def delete_many(self, query):
+        pass
