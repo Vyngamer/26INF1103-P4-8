@@ -112,7 +112,6 @@ def dashboard():
             latest_attempt = None
     return render_template('dashboard.html', username=username.get_username(), latest_attempt = latest_attempt)
 
-
 @app.route('/history')
 def history():
     current_user_id = session.get('user_id')
@@ -149,6 +148,23 @@ def result():
             if not choosen_attempt:
                 choosen_attempt = None
         return render_template('results.html', choosen_attempt=choosen_attempt)
+
+@app.route('/progress', methods=["GET", "POST"])
+def progress():
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        error = "You must be logged in to access the progress page."
+        return render_template("login.html", error=error)
+    else:
+        # get the wanted data from the users previous attempts
+        all_records = data_manager.load_records()
+        wanted_data = data_manager.get_user_int_records(all_records, current_user_id)
+        print(len(wanted_data))
+        if wanted_data is None:
+            wanted_data = None
+        if len(wanted_data) < 2:
+            wanted_data = None
+        return render_template('progress.html', history=wanted_data, )
 
 
 @app.route('/wellness-check')
