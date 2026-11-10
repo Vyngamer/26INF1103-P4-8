@@ -1,0 +1,32 @@
+{% extends "guest_navbar.html" %}
+
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='error.css') }}">{% endblock %}
+
+{% block content %}
+  <main class="error">
+    <div class="inner">
+      <div class="error-copy">
+        <!-- The big code. Each page fills in its digits; the 0 is drawn as a sad face. -->
+        <p class="error-code" aria-label="Error {% block code %}{% endblock %}">
+          {% block digits %}{% endblock %}
+          <svg class="error-sparks" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 4v14M30 10l-10 14" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg>
+        </p>
+        <h1>{% block heading %}{% endblock %}</h1>
+        <p class="error-message">{% block message %}{% endblock %}</p>
+        <div class="error-actions">
+          {% block actions %}{% endblock %}
+        </div>
+        <!-- A wellbeing app shouldn't leave a student with nowhere to go -->
+        <p class="error-help">Need to talk to someone now? Contact [your school's counselling service] or call [local helpline number].</p>
+      </div>
+
+      <div class="error-art">
+        <img src="{{ url_for('static', filename='assets/robot.png') }}" alt="A sad purple robot with headphones, hugging its knees" width="667" height="677">
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 AI Counsellor · Not a substitute for professional care. <a href="{{ url_for('login') }}">Log in</a></p>
+  </footer>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}Page not found — AI Counsellor{% endblock %}
+{% block code %}404{% endblock %}
+{% block digits %}<span>4</span>{% include "errors/_face_zero.html" %}<span>4</span>{% endblock %}
+
+{% block heading %}Oops! Page not found.{% endblock %}
+{% block message %}The page you're looking for might have been moved, deleted, or never existed.{% endblock %}
+
+{% block actions %}
+<a href="{{ url_for('main') }}" class="btn btn-primary">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 11.5h3V21h5.5v-5.5h3V21H19v-9.5h3L12 3z"/></svg>
+  Go back home
+</a>
+{% endblock %}
