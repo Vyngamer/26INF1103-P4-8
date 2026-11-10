@@ -292,3 +292,9 @@ def get_AI_response(text):
 def logout():
     session.clear()
     return redirect(url_for('main'))
+
+
+# add 404 page so that there is some error handling
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("errors/error_404.html")
