@@ -207,6 +207,59 @@ def update_username():
             return render_template("settings.html", error = error, username = current_username)
 
 
+# route for password
+@app.route('/update_password', methods=["GET", "POST"])
+def update_password():
+    # get current user id
+    current_user_id = session.get('user_id')
+    current_username = data_manager.get_user_by_id(current_user_id).get_username()
+    # get the current password, new password and confirm new password that the user entered
+    entered_current_password = request.form.get("current")
+    entered_new_password = request.form.get("newpw")
+    entered_confirm_new_password = request.form.get("confirm")
+    # check if each is empty
+    error = []
+    if not entered_current_password:
+        error.append("Please enter your old password")
+    if not entered_new_password:
+        error.append("Please enter your new password")
+    if not entered_confirm_new_password:
+        error.append("Please enter your confirm new password")
+    if len(error) > 0:
+        return render_template('settings.html', username=current_username, error2 = error)
+    
+    # get the current password
+    current_password = data_manager.get_user_by_id(current_user_id).get_password()
+    password_check = PasswordHasher().verify(entered_current_password, current_password)
+    if not password_check:
+        error.append("The current password you entered does not match your current password, Please try again")
+        if len(error)>0:
+            return render_template('settings.html', username=current_username, error2 = error)
+
+    # check if new pass and confirm new pass is same
+    match = True
+    if entered_new_password != entered_confirm_new_password:
+        match = False
+        error.append("Your new password and confirm new password does not match")
+        if len(error)>0:
+            return render_template('settings.html', username=current_username, error2 = error)
+
+    # do the proper changing of password
+    if password_check and match:
+        updates = {"password": PasswordHasher().hash(entered_new_password)}
+        success = data_manager.update_user(current_user_id, updates)
+        if success:
+            success_message = "Your Password has been successfully updated!"
+            return render_template('settings.html', username=current_username, success2=success_message)
+        else:
+            error.append("There has been an issue with updating your password, try again later")
+            if len(error)>0:
+                return render_template('settings.html', username=current_username, error2 = error)
+        # updates = {"username" : new_username}
+        # success = data_manager.update_user(current_user_id, updates)
+    return render_template('settings.html', username = current_username)
+
+
 
 @app.route('/wellness-check')
 def wellness_check():
