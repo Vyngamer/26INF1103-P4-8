@@ -77,7 +77,15 @@
           <section class="card settings-card">
             <h2 class="card-title">Change password</h2>
             <p class="card-sub">Update your password securely and review the guidance below before saving.</p>
-            <form>
+            <form method="POST" action="{{ url_for('update_password') }}">
+              {% if error2 %}
+                {% for error in error2 %}
+                  <p class="form-error" role="alert" style="color: crimson; font-size: 20px;">*{{ error }}</p>
+                {% endfor %}
+              {% endif %}
+              {% if success2 %}
+                <p class="form-error" role="alert" style="color: green; font-size: 20px;">{{ success2 }}</p>
+              {% endif %}
               <div class="form-field">
                 <label for="current">Current password</label>
                 <div class="pw-wrap"><input class="input" type="password" id="current" name="current" placeholder="••••••••••••"><button type="button" class="pw-toggle" aria-label="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
