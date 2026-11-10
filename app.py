@@ -167,6 +167,47 @@ def progress():
         return render_template('progress.html', history=wanted_data, )
 
 
+# route for settings
+@app.route('/settings')
+def settings():
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        error = "You must be logged in to access the settings page"
+        return redirect(url_for('login'))
+    else:
+        current_username = data_manager.get_user_by_id(current_user_id).get_username()
+        if current_username is None:
+            current_username = None
+        return render_template('settings.html', username = current_username)
+
+#route for updating username
+@app.route('/update_username',  methods=["GET", "POST"])
+def update_username():
+    # get current user id
+    current_user_id = session.get('user_id')
+    # get current username
+    current_username = data_manager.get_user_by_id(current_user_id).get_username()
+    # get the thing that the user enters
+    new_username = request.form.get("username").strip()
+    if not new_username:
+        error = "Please Enter a username"
+        return render_template("settings.html", error1=error, username = current_username)
+    if data_manager.get_user_by_username(new_username) is not None:
+        error = "Username already exists. Please choose another."
+        return render_template("settings.html", error1=error, username = current_username)
+    else:
+        updates = {"username" : new_username}
+        success = data_manager.update_user(current_user_id, updates)
+        if success:
+            success_message = "Your Usesrname has been successfully updated"
+            updated_username = data_manager.get_user_by_id(current_user_id).get_username()
+            return render_template("settings.html", success=success_message, username = updated_username)
+        else:
+            error = "There was an error with updating your username"
+            return render_template("settings.html", error = error, username = current_username)
+
+
+
 @app.route('/wellness-check')
 def wellness_check():
     return render_template('wellness-check.html', conversation=conversation)
