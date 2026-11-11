@@ -548,3 +548,73 @@ td.action { text-align: right; }
         grid-template-columns: 1fr;
     }
 }
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 48px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    color: #777;
+}
+
+.toggle-password svg {
+    width: 20px;
+    height: 20px;
+}
+
+.toggle-password:hover {
+    color: #7952c7;
+}
+  .pw-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.pw-wrap input {
+    width: 100%;
+    padding-right: 45px;
+}
+
+.pw-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    color: #777;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pw-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.pw-toggle:hover {
+    color: #7952c7;
+}
