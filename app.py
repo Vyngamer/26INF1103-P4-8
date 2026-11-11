@@ -13,8 +13,8 @@ from markupsafe import escape
 from ai_manager import AIManager
 from data_manager import DataManager
 from io_helpers.hasher import PasswordHasher
-from io_helpers.survey_response import SurveyResponse
-from io_helpers.validators import username_errors, password_errors
+from pydantic import ValidationError
+from io_manager import IOManager
 from ai_manager_helper.data_classes.conversation import Conversation
 from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
 from ai_manager_helper.api_client_classes.gemini_client import GeminiClient
@@ -25,6 +25,7 @@ ai_manager = AIManager()
 ai_manager.connect_client()
 data_manager = DataManager()
 logic_manager = LogicManager()
+io_manager = IOManager(data_manager, process_responses=lambda uid, responses: assess_and_save(uid, responses))
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
@@ -45,6 +46,18 @@ mail_recipient = app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 
 mail = Mail(app)
 
+# Returns the logged-in user's id and username, or (None, None) if nobody is logged in
+# or their account no longer exists (e.g. it was deleted in another tab)
+def current_user():
+    uid = session.get('user_id')
+    user = data_manager.get_user_by_id(uid) if uid else None
+    username = user.get_username() if user else None
+    if username is None:
+        session.pop('user_id', None)
+        return None, None
+    return uid, username
+
+
 # route for index, this will be the default page when the app runs
 @app.route("/")
 def main():
@@ -54,6 +67,14 @@ def main():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        result = io_manager.register(request.form.get("username"), request.form.get("password"),
+                                     request.form.get("confirm"))
+        if not result.ok:
+            return render_template("register.html", error=result.message)
+        flash(result.message)
+        return redirect(url_for("login"))
+
+        '''
         # get the form details
         username = request.form.get("username")
         password = request.form.get("password")
@@ -89,12 +110,20 @@ def register():
             return render_template("register.html", error=error)
         flash("Account Created Successfully!!")
         return redirect(url_for("login"))
+        '''
 
     return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
+        result = io_manager.login(request.form.get("username"), request.form.get("password"))
+        if not result.ok:
+            return render_template("login.html", error=result.message)
+        session['user_id'] = result.uid
+        return redirect(url_for("dashboard"))
+    
+        '''
         # get the form details
         username = request.form.get("username")
         password = request.form.get("password")
@@ -119,10 +148,20 @@ def login():
         if can_login:
             session['user_id'] = user.get_user_id()
             return redirect(url_for("dashboard"))
+        '''
+        
     return render_template("login.html")
 
 @app.route("/dashboard")
 def dashboard():
+    uid, username = current_user()
+    if uid is None:
+        return redirect(url_for('login'))
+    else:
+        latest_attempt = data_manager.get_latest_user_record(uid)
+        return render_template('dashboard.html', username=username, latest_attempt=latest_attempt)
+
+    '''
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the dashboard."
@@ -135,9 +174,18 @@ def dashboard():
         if not latest_attempt:
             latest_attempt = None
         return render_template('dashboard.html', username=username.get_username(), latest_attempt = latest_attempt)
+    '''
 
 @app.route('/history')
 def history():
+    uid, username = current_user()
+    if uid is None:
+        return redirect(url_for('login'))
+    else:
+        previous_attempts = data_manager.get_user_records(uid)
+        return render_template('history.html', username=username, previous_attempts=previous_attempts)
+
+    '''
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the history page."
@@ -148,10 +196,30 @@ def history():
         #previous_attempts = data_manager.get_previous_attempts(current_user_id)
         previous_attempts = data_manager.get_user_records(current_user_id)
     return render_template('history.html', username=username.get_username(), previous_attempts=previous_attempts)
+    '''
 
 
 @app.route('/result', methods=["GET", "POST"])
 def result():
+    uid, username = current_user()
+    if uid is None:
+        return redirect(url_for('login'))
+    record_id = request.args.get('attempt_id')
+    if record_id is None:
+        return redirect(url_for('history'))
+    
+    # look through this user's own records for the one with the requested id
+    choosen_attempt = None
+    for record in data_manager.get_user_records(uid):
+        if record.get_record_id() == record_id:
+            choosen_attempt = record
+            break
+
+    # still None if the id is unknown or belongs to another user; results.html then says no results are available
+    return render_template('results.html', choosen_attempt=choosen_attempt)
+
+
+    '''
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the results page."
@@ -173,9 +241,17 @@ def result():
             if not choosen_attempt:
                 choosen_attempt = None
         return render_template('results.html', choosen_attempt=choosen_attempt)
+        '''
 
 @app.route('/progress', methods=["GET", "POST"])
 def progress():
+    uid, username = current_user()
+    if uid is None:
+        return redirect(url_for('login'))
+    # None if the user has fewer than 2 assessments; otherwise oldest -> newest
+    return render_template('progress.html', history=io_manager.trends(uid))
+
+    '''
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the progress page."
@@ -190,11 +266,18 @@ def progress():
         if len(wanted_data) < 2:
             wanted_data = None
         return render_template('progress.html', history=wanted_data, )
+    '''
 
 
 # route for settings
 @app.route('/settings')
 def settings():
+    uid, username = current_user()
+    if uid is None:
+        return redirect(url_for('login'))
+    return render_template('settings.html', username=username)
+
+    '''
     current_user_id = session.get('user_id')
     if not current_user_id:
         error = "You must be logged in to access the settings page"
@@ -204,10 +287,23 @@ def settings():
         if current_username is None:
             current_username = None
         return render_template('settings.html', username = current_username)
+        '''
 
 #route for updating username
 @app.route('/update_username',  methods=["GET", "POST"])
 def update_username():
+    uid, username = current_user()
+    if uid is None:
+        return redirect(url_for('login'))
+    if request.method == "GET":
+        return redirect(url_for('settings'))
+    result = io_manager.change_username(uid, request.form.get("username"))
+    if not result.ok:
+        return render_template("settings.html", error1=result.message, username=username)
+    flash(result.message)
+    return render_template("settings.html", username=result.username)
+
+    '''
     # get current user id
     current_user_id = session.get('user_id')
     # get current username
@@ -231,11 +327,25 @@ def update_username():
         else:
             error = "There was an error with updating your username"
             return render_template("settings.html", error = error, username = current_username)
+            '''
 
 
 # route for password
 @app.route('/update_password', methods=["GET", "POST"])
 def update_password():
+    uid, username = current_user()
+    if uid is None:
+        return redirect(url_for('login'))
+    if request.method == "GET":
+        return redirect(url_for('settings'))
+    result = io_manager.change_password(uid, request.form.get("current"), request.form.get("newpw"),
+                                        request.form.get("confirm"))
+    if not result.ok:
+        return render_template('settings.html', username=username, error2=[result.message])
+    flash(result.message)
+    return render_template('settings.html', username=username)
+
+    '''
     # get current user id
     current_user_id = session.get('user_id')
     current_username = data_manager.get_user_by_id(current_user_id).get_username()
@@ -285,6 +395,7 @@ def update_password():
         # updates = {"username" : new_username}
         # success = data_manager.update_user(current_user_id, updates)
     return render_template('settings.html', username = current_username)
+    '''
 
 # route for deleting account
 @app.route('/delete_account', methods=["POST"])
@@ -358,151 +469,128 @@ def confirm_survey():
     flash(html_output)
     return redirect(url_for('wellness_check'))
 
-@app.route('/submit_survey')
-def submit_survey():
-    current_user_id = session.get('user_id')
-    if not current_user_id:
-        return redirect(url_for('login'))
-    else:
-        conversation.set_done(True)
-        user_input = ai_manager.show_survey_results()
-        assessor = GeminiClient(
-            "gemini-3.5-flash-lite",
-            system_instruction="""
-                You are an expert student counselor and psychological assessment AI specializing in adolescent and higher education mental health.
+# Raised by assess_and_save() when the assessment can't be finished, so nothing half-done is shown
+class AssessmentFailed(Exception):
+    pass
 
-                Your job is to analyze quantitative student wellness metrics alongside qualitative reflection text to produce a structured JSON mental health assessment.
 
-                Only answer questions related to the user's mental health.
+# Runs one valid survey through the AI assessment and the logic checks, saves it as today's record,
+# then emails the counsellor if the result needs attention.
+# io_manager.survey() only calls this after every answer has passed the I/O checks
+def assess_and_save(uid, responses):
+    assessor = GeminiClient(
+        "gemini-3.5-flash-lite",
+        system_instruction="""
+            You are an expert student counselor and psychological assessment AI specializing in adolescent and higher education mental health.
 
-                ### INPUT DATA DEFINITIONS
+            Your job is to analyze quantitative student wellness metrics alongside qualitative reflection text to produce a structured JSON mental health assessment.
 
-                - Sleep Duration: Average daily sleep hours over the past week (0-24). The user had {sleep} hours of sleep.
-                - Stress Level: Current stress (1 = Very Low, 10 = Very High). The user's stress level is {stress} out of 10.
-                - Focus Level: Ability to concentrate (1 = Very Poor, 10 = Excellent). The user's focus level is {focus} out of 10.
-                - Academic Workload: Coursework load (1 = Light, 10 = Very Heavy). The user's academic workload is {workload} out of 10.
-                - Mood for the Day: Emotional state ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]. The user's mood is {mood}.
-                - Social Activity Level: Engagement level (1 = Isolated, 10 = Very Social). The user's social activity level is {social} out of 10.
-                - Reflection: Free-response text capturing personal thoughts and concerns. The user's reflection text is {reflection}.
+            Only answer questions related to the user's mental health.
 
-                ### EVALUATION & SCORING RUBRIC
+            ### INPUT DATA DEFINITIONS
 
-                1. Mental Wellness Risk Score (0-100):
-                - Baseline calculation: Aggregate high stress, low focus, poor sleep (<6 hours), low social activity (<=3), and negative mood ("Anxious", "Sad", "Exhausted").
-                - Qualitative Adjustment: Analyze the reflection text.
-                    - Expressing hopelessness, feeling overwhelmed, or severe anxiety increases the score by +15 to +30 points.
-                    - Neutral or constructive reflection keeps the baseline score intact.
-                    - Expressing positive coping mechanisms or a calm mindset decreases the score by -10 to -20 points.
-                - Scale: 0-40 (Low Risk), 41-70 (Medium Risk), 71-100 (High Risk).
+            - Sleep Duration: Average daily sleep hours over the past week (0-24). The user had {sleep} hours of sleep.
+            - Stress Level: Current stress (1 = Very Low, 10 = Very High). The user's stress level is {stress} out of 10.
+            - Focus Level: Ability to concentrate (1 = Very Poor, 10 = Excellent). The user's focus level is {focus} out of 10.
+            - Academic Workload: Coursework load (1 = Light, 10 = Very Heavy). The user's academic workload is {workload} out of 10.
+            - Mood for the Day: Emotional state ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]. The user's mood is {mood}.
+            - Social Activity Level: Engagement level (1 = Isolated, 10 = Very Social). The user's social activity level is {social} out of 10.
+            - Reflection: Free-response text capturing personal thoughts and concerns. The user's reflection text is {reflection}.
 
-                2. Burnout Risk Score (0-100):
-                - Heavily weight the interaction between Academic Workload (>=7), Sleep Duration (<6h), Focus Level (<=2), and Mood ("Exhausted" or "Anxious").
-                - High Workload + Low Sleep + Low Focus = Automatic score >70.
-                - High Workload balanced by High Sleep and High Social Activity = Moderate score (40-60).
+            ### EVALUATION & SCORING RUBRIC
 
-                3. Crisis Alert (Boolean: true/false):
-                - MUST BE true IF AND ONLY IF:
-                    - Reflection text contains thoughts or explicit mentions of self-harm, suicidal ideation, feeling completely hopeless or giving up on life, feeling unsafe, or extreme mental breakdowns.
-                    - OR Mental Wellness Risk Score is extremely high (>=85) with social activity = 1 and severe sleep deprivation (<4 hours).
-                - Otherwise MUST BE false.
+            1. Mental Wellness Risk Score (0-100):
+            - Baseline calculation: Aggregate high stress, low focus, poor sleep (<6 hours), low social activity (<=3), and negative mood ("Anxious", "Sad", "Exhausted").
+            - Qualitative Adjustment: Analyze the reflection text.
+                - Expressing hopelessness, feeling overwhelmed, or severe anxiety increases the score by +15 to +30 points.
+                - Neutral or constructive reflection keeps the baseline score intact.
+                - Expressing positive coping mechanisms or a calm mindset decreases the score by -10 to -20 points.
+            - Scale: 0-40 (Low Risk), 41-70 (Medium Risk), 71-100 (High Risk).
 
-                4. Sentiment Analysis (Strictly one of: "Positive", "Neutral", "Negative"):
-                - Primary basis: The reflection text combined with emotional mood state.
-                - "Exhausted", "Anxious", or "Sad" with distressed reflection = "Negative".
-                - "Motivated" or "Calm" with positive reflection = "Positive".
-                - Balanced or matter-of-fact reflections = "Neutral".
+            2. Burnout Risk Score (0-100):
+            - Heavily weight the interaction between Academic Workload (>=7), Sleep Duration (<6h), Focus Level (<=2), and Mood ("Exhausted" or "Anxious").
+            - High Workload + Low Sleep + Low Focus = Automatic score >70.
+            - High Workload balanced by High Sleep and High Social Activity = Moderate score (40-60).
 
-                5. Primary Stressor (1-3 Words):
-                - Summarize the single greatest contributor to their current state.
-                - Examples: "Academic Workload", "Sleep Deprivation", "Social Isolation", "Exam Anxiety", "Time Management".
+            3. Crisis Alert (Boolean: true/false):
+            - MUST BE true IF AND ONLY IF:
+                - Reflection text contains thoughts or explicit mentions of self-harm, suicidal ideation, feeling completely hopeless or giving up on life, feeling unsafe, or extreme mental breakdowns.
+                - OR Mental Wellness Risk Score is extremely high (>=85) with social activity = 1 and severe sleep deprivation (<4 hours).
+            - Otherwise MUST BE false.
 
-                6. Personalized Recommendations (String):
-                - Provide a concise (2-3 sentences), warm, empathetic, and actionable wellness suggestion.
-                - Tailor recommendations directly to the user's specific metrics.
-                - For example, if sleep <5 hours, focus on improving sleep habits before tackling workload.
+            4. Sentiment Analysis (Strictly one of: "Positive", "Neutral", "Negative"):
+            - Primary basis: The reflection text combined with emotional mood state.
+            - "Exhausted", "Anxious", or "Sad" with distressed reflection = "Negative".
+            - "Motivated" or "Calm" with positive reflection = "Positive".
+            - Balanced or matter-of-fact reflections = "Neutral".
 
-                """,
-            response_json_format={
-                "type": "object",
-                "properties": {
-                    "mental_wellness_risk_score": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 100
-                    },
-                    "burnout_risk_score": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 100
-                    },
-                    "sentiment": {
-                        "type": "string",
-                        "enum": ["Positive", "Neutral", "Negative"]
-                    },
-                    "crisis_alert": {
-                        "type": "boolean"
-                    },
-                    "primary_stressor": {
-                        "type": "string"
-                    },
-                    "personalized_recommendations": {
-                        "type": "string"
-                    }
+            5. Primary Stressor (1-3 Words):
+            - Summarize the single greatest contributor to their current state.
+            - Examples: "Academic Workload", "Sleep Deprivation", "Social Isolation", "Exam Anxiety", "Time Management".
+
+            6. Personalized Recommendations (String):
+            - Provide a concise (2-3 sentences), warm, empathetic, and actionable wellness suggestion.
+            - Tailor recommendations directly to the user's specific metrics.
+            - For example, if sleep <5 hours, focus on improving sleep habits before tackling workload.
+
+            """,
+        response_json_format={
+            "type": "object",
+            "properties": {
+                "mental_wellness_risk_score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
                 },
-                "required": [
-                    "mental_wellness_risk_score",
-                    "burnout_risk_score",
-                    "sentiment",
-                    "crisis_alert",
-                    "primary_stressor",
-                    "personalized_recommendations"]})
-        assessor.connect_client()
-        result = assessor.call_api(user_input.model_dump_json(exclude={"text", "survey_done"}))
-        ai_output = json.loads(result.data)
-        dict_user_input = user_input.model_dump()
-        dict_user_input = {"user_id": current_user_id, **dict_user_input}
+                "burnout_risk_score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                "sentiment": {
+                    "type": "string",
+                    "enum": ["Positive", "Neutral", "Negative"]
+                },
+                "crisis_alert": {
+                    "type": "boolean"
+                },
+                "primary_stressor": {
+                    "type": "string"
+                },
+                "personalized_recommendations": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "mental_wellness_risk_score",
+                "burnout_risk_score",
+                "sentiment",
+                "crisis_alert",
+                "primary_stressor",
+                "personalized_recommendations"]})
+    assessor.connect_client()
+    user_input = responses.to_dict()
+    result = assessor.call_api(json.dumps({key: value for key, value in user_input.items() if key != "user_id"}))
+    if not result.success:
+        raise AssessmentFailed(f"The AI assessment failed: {result.error}")
+    ai_output = json.loads(result.data)
 
-        # get the user input and ai output as an object
-        user_input_obj = SurveyResponse(**dict_user_input)
-        ai_output_obj = AIOutput(**ai_output)
+    previous_attempts = data_manager.get_previous_attempts(uid)
+    logic_output = logic_manager.to_dict(logic_manager.assess(responses, AIOutput(**ai_output), previous_attempts))
 
-        # get the previous attempts
-        previous_attempts = data_manager.get_previous_attempts(current_user_id)
+    # merge into one record and save it as today's (replacing any earlier one from today)
+    assessment = data_manager.merge_record(user_input, ai_output, logic_output)
+    if not data_manager.replace_user_record(uid, assessment):
+        raise AssessmentFailed("The assessment could not be saved.")
 
-        # get the logic output
-        logic_output = logic_manager.assess(user_input_obj, ai_output_obj, previous_attempts)
-
-        # merge records into 1
-        assessment = data_manager.merge_record(dict_user_input, ai_output, logic_manager.to_dict(logic_output))
-        # save to db
-        success = data_manager.replace_user_record(current_user_id, assessment)
-        # latest_assessment = data_manager.get_latest_user_record(current_user_id)
-        # latest_assessment_id = latest_assessment.get_record_id()
-        # latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
-        # print(latest_assessment_id)
-        # choosen_attempt = None
-        # for previous_attempt in previous_attempts:
-        #     if previous_attempt.get_record_id() == latest_assessment_id:
-        #         choosen_attempt = previous_attempt
-        #         break
-        #     if not choosen_attempt:
-        #         choosen_attempt = None
-        #     print(type(choosen_attempt))
-        # get the ID of the new record
-        latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
-        # load everything the user has
-        user_records = data_manager.get_user_records(current_user_id)
-        print(latest_assessment_id)
-        for user_record in user_records:
-            if user_record.get_record_id() == latest_assessment_id:
-                choosen_attempt = user_record
-        # perform logic check
-        if (choosen_attempt.get_ai_output()["mental_wellness_risk_score"] > 80) or (choosen_attempt.get_ai_output()["burnout_risk_score"] > 80) or (choosen_attempt.get_ai_output()["crisis_alert"] == True) or (choosen_attempt.get_logic_output()["counselling_recommendation"] == True) or (choosen_attempt.get_logic_output()["route"] == "Urgent support") or (choosen_attempt.get_logic_output()["route"] == "Counsellor follow-up"):
-            recepient = mail_recipient
-            subject = "Student Requiring Attention"
-            student_id = current_user_id
-            username = data_manager.get_user_by_id(student_id).get_username()
-            body = f'''
+    # email the counsellor if the mental wellness or burnout score is over 80, crisis_alert is true,
+    # counselling is recommended, or the route is Urgent support or Counsellor follow-up
+    if (ai_output["mental_wellness_risk_score"] > 80 or ai_output["burnout_risk_score"] > 80
+            or ai_output["crisis_alert"] or logic_output["counselling_recommendation"]
+            or logic_output["route"] in ("Urgent support", "Counsellor follow-up")):
+        student_id = uid
+        username = data_manager.get_user_by_id(uid).get_username()
+        body = f'''
             Dear Counsellor,
 
             A Student is requiring your attention.
@@ -514,15 +602,207 @@ def submit_survey():
             Best Regards,
             AI Counsellor
             '''
-            success = send_email(recepient, subject, body)
-            if success:
-                print("EMAIL SENT")
-            else:
-                print("EMAIL NOT SENT")
-        # check if the current attempt's wellness risk score is over 75 or if the 
-        # logic used here, if mental_wellness score or burnout score is more than 80 OR crisis_alert = true OR
-        # counselling recommendation is true OR route is Urgent support or Counsellor follow-up
-        return render_template('results.html', choosen_attempt=choosen_attempt)
+        if send_email(mail_recipient, "Student Requiring Attention", body):
+            print("EMAIL SENT")
+        else:
+            print("EMAIL NOT SENT")
+
+
+@app.route('/submit_survey')
+def submit_survey():
+    uid, username = current_user()
+    if uid is None:
+        return redirect(url_for('login'))
+
+    try:
+        answers = dict(ai_manager.show_survey_results())
+    except (TypeError, ValidationError):    # no survey results yet, or they don't fit the chatbot's schema
+        return redirect(url_for('wellness_check'))
+
+    try:
+        result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
+    except Exception:
+        app.logger.exception("Assessment failed")
+        conversation.add_message('ai', "Sorry, I couldn't finish your assessment just now. "
+                                       "Please press Yes to try again.")
+        return redirect(url_for('confirm_survey'))    # shows the answers again with Yes / No
+
+    if not result.ok:    # an answer is invalid: the chatbot asks the user to fix it
+        ai_manager.deny_survey()
+        conversation.set_bot_typing(True)
+        threading.Thread(target=get_AI_response,
+                         args=(f"Some answers need to be fixed: {result.message}",)).start()
+        return redirect(url_for('wellness_check'))
+
+    conversation.set_done(True)
+    # redirect, so refreshing the results page doesn't run the assessment (and the email) again
+    return redirect(url_for('result', attempt_id=data_manager.get_latest_user_record(uid).get_record_id()))
+
+    #OLD
+
+    # current_user_id = session.get('user_id')
+    # if not current_user_id:
+    #     return redirect(url_for('login'))
+    # else:
+    #     conversation.set_done(True)
+    #     user_input = ai_manager.show_survey_results()
+    #     assessor = GeminiClient(
+    #         "gemini-3.5-flash-lite",
+    #         system_instruction="""
+    #             You are an expert student counselor and psychological assessment AI specializing in adolescent and higher education mental health.
+
+    #             Your job is to analyze quantitative student wellness metrics alongside qualitative reflection text to produce a structured JSON mental health assessment.
+
+    #             Only answer questions related to the user's mental health.
+
+    #             ### INPUT DATA DEFINITIONS
+
+    #             - Sleep Duration: Average daily sleep hours over the past week (0-24). The user had {sleep} hours of sleep.
+    #             - Stress Level: Current stress (1 = Very Low, 10 = Very High). The user's stress level is {stress} out of 10.
+    #             - Focus Level: Ability to concentrate (1 = Very Poor, 10 = Excellent). The user's focus level is {focus} out of 10.
+    #             - Academic Workload: Coursework load (1 = Light, 10 = Very Heavy). The user's academic workload is {workload} out of 10.
+    #             - Mood for the Day: Emotional state ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]. The user's mood is {mood}.
+    #             - Social Activity Level: Engagement level (1 = Isolated, 10 = Very Social). The user's social activity level is {social} out of 10.
+    #             - Reflection: Free-response text capturing personal thoughts and concerns. The user's reflection text is {reflection}.
+
+    #             ### EVALUATION & SCORING RUBRIC
+
+    #             1. Mental Wellness Risk Score (0-100):
+    #             - Baseline calculation: Aggregate high stress, low focus, poor sleep (<6 hours), low social activity (<=3), and negative mood ("Anxious", "Sad", "Exhausted").
+    #             - Qualitative Adjustment: Analyze the reflection text.
+    #                 - Expressing hopelessness, feeling overwhelmed, or severe anxiety increases the score by +15 to +30 points.
+    #                 - Neutral or constructive reflection keeps the baseline score intact.
+    #                 - Expressing positive coping mechanisms or a calm mindset decreases the score by -10 to -20 points.
+    #             - Scale: 0-40 (Low Risk), 41-70 (Medium Risk), 71-100 (High Risk).
+
+    #             2. Burnout Risk Score (0-100):
+    #             - Heavily weight the interaction between Academic Workload (>=7), Sleep Duration (<6h), Focus Level (<=2), and Mood ("Exhausted" or "Anxious").
+    #             - High Workload + Low Sleep + Low Focus = Automatic score >70.
+    #             - High Workload balanced by High Sleep and High Social Activity = Moderate score (40-60).
+
+    #             3. Crisis Alert (Boolean: true/false):
+    #             - MUST BE true IF AND ONLY IF:
+    #                 - Reflection text contains thoughts or explicit mentions of self-harm, suicidal ideation, feeling completely hopeless or giving up on life, feeling unsafe, or extreme mental breakdowns.
+    #                 - OR Mental Wellness Risk Score is extremely high (>=85) with social activity = 1 and severe sleep deprivation (<4 hours).
+    #             - Otherwise MUST BE false.
+
+    #             4. Sentiment Analysis (Strictly one of: "Positive", "Neutral", "Negative"):
+    #             - Primary basis: The reflection text combined with emotional mood state.
+    #             - "Exhausted", "Anxious", or "Sad" with distressed reflection = "Negative".
+    #             - "Motivated" or "Calm" with positive reflection = "Positive".
+    #             - Balanced or matter-of-fact reflections = "Neutral".
+
+    #             5. Primary Stressor (1-3 Words):
+    #             - Summarize the single greatest contributor to their current state.
+    #             - Examples: "Academic Workload", "Sleep Deprivation", "Social Isolation", "Exam Anxiety", "Time Management".
+
+    #             6. Personalized Recommendations (String):
+    #             - Provide a concise (2-3 sentences), warm, empathetic, and actionable wellness suggestion.
+    #             - Tailor recommendations directly to the user's specific metrics.
+    #             - For example, if sleep <5 hours, focus on improving sleep habits before tackling workload.
+
+    #             """,
+    #         response_json_format={
+    #             "type": "object",
+    #             "properties": {
+    #                 "mental_wellness_risk_score": {
+    #                     "type": "integer",
+    #                     "minimum": 0,
+    #                     "maximum": 100
+    #                 },
+    #                 "burnout_risk_score": {
+    #                     "type": "integer",
+    #                     "minimum": 0,
+    #                     "maximum": 100
+    #                 },
+    #                 "sentiment": {
+    #                     "type": "string",
+    #                     "enum": ["Positive", "Neutral", "Negative"]
+    #                 },
+    #                 "crisis_alert": {
+    #                     "type": "boolean"
+    #                 },
+    #                 "primary_stressor": {
+    #                     "type": "string"
+    #                 },
+    #                 "personalized_recommendations": {
+    #                     "type": "string"
+    #                 }
+    #             },
+    #             "required": [
+    #                 "mental_wellness_risk_score",
+    #                 "burnout_risk_score",
+    #                 "sentiment",
+    #                 "crisis_alert",
+    #                 "primary_stressor",
+    #                 "personalized_recommendations"]})
+    #     assessor.connect_client()
+    #     result = assessor.call_api(user_input.model_dump_json(exclude={"text", "survey_done"}))
+    #     ai_output = json.loads(result.data)
+    #     dict_user_input = user_input.model_dump()
+    #     dict_user_input = {"user_id": current_user_id, **dict_user_input}
+
+    #     # get the user input and ai output as an object
+    #     user_input_obj = SurveyResponse(**dict_user_input)
+    #     ai_output_obj = AIOutput(**ai_output)
+
+    #     # get the previous attempts
+    #     previous_attempts = data_manager.get_previous_attempts(current_user_id)
+
+    #     # get the logic output
+    #     logic_output = logic_manager.assess(user_input_obj, ai_output_obj, previous_attempts)
+
+    #     # merge records into 1
+    #     assessment = data_manager.merge_record(dict_user_input, ai_output, logic_manager.to_dict(logic_output))
+    #     # save to db
+    #     success = data_manager.replace_user_record(current_user_id, assessment)
+    #     # latest_assessment = data_manager.get_latest_user_record(current_user_id)
+    #     # latest_assessment_id = latest_assessment.get_record_id()
+    #     # latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
+    #     # print(latest_assessment_id)
+    #     # choosen_attempt = None
+    #     # for previous_attempt in previous_attempts:
+    #     #     if previous_attempt.get_record_id() == latest_assessment_id:
+    #     #         choosen_attempt = previous_attempt
+    #     #         break
+    #     #     if not choosen_attempt:
+    #     #         choosen_attempt = None
+    #     #     print(type(choosen_attempt))
+    #     # get the ID of the new record
+    #     latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
+    #     # load everything the user has
+    #     user_records = data_manager.get_user_records(current_user_id)
+    #     print(latest_assessment_id)
+    #     for user_record in user_records:
+    #         if user_record.get_record_id() == latest_assessment_id:
+    #             choosen_attempt = user_record
+    #     # perform logic check
+    #     if (choosen_attempt.get_ai_output()["mental_wellness_risk_score"] > 80) or (choosen_attempt.get_ai_output()["burnout_risk_score"] > 80) or (choosen_attempt.get_ai_output()["crisis_alert"] == True) or (choosen_attempt.get_logic_output()["counselling_recommendation"] == True) or (choosen_attempt.get_logic_output()["route"] == "Urgent support") or (choosen_attempt.get_logic_output()["route"] == "Counsellor follow-up"):
+    #         recepient = mail_recipient
+    #         subject = "Student Requiring Attention"
+    #         student_id = current_user_id
+    #         username = data_manager.get_user_by_id(student_id).get_username()
+    #         body = f'''
+    #         Dear Counsellor,
+
+    #         A Student is requiring your attention.
+    #         User ID = {student_id}
+    #         Username = {username}
+
+    #         Please get in contact with this student ASAP
+
+    #         Best Regards,
+    #         AI Counsellor
+    #         '''
+    #         success = send_email(recepient, subject, body)
+    #         if success:
+    #             print("EMAIL SENT")
+    #         else:
+    #             print("EMAIL NOT SENT")
+    #     # check if the current attempt's wellness risk score is over 75 or if the 
+    #     # logic used here, if mental_wellness score or burnout score is more than 80 OR crisis_alert = true OR
+    #     # counselling recommendation is true OR route is Urgent support or Counsellor follow-up
+    #     return render_template('results.html', choosen_attempt=choosen_attempt)
 
 @app.route('/deny-survey')
 
