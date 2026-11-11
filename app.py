@@ -475,7 +475,20 @@ def submit_survey():
         # merge records into 1
         assessment = data_manager.merge_record(dict_user_input, ai_output, logic_manager.to_dict(logic_output))
         # save to db
-        success = data_manager.save(assessment)
+        success = data_manager.replace_user_record(current_user_id, assessment)
+        # latest_assessment = data_manager.get_latest_user_record(current_user_id)
+        # latest_assessment_id = latest_assessment.get_record_id()
+        # latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
+        # print(latest_assessment_id)
+        # choosen_attempt = None
+        # for previous_attempt in previous_attempts:
+        #     if previous_attempt.get_record_id() == latest_assessment_id:
+        #         choosen_attempt = previous_attempt
+        #         break
+        #     if not choosen_attempt:
+        #         choosen_attempt = None
+        #     print(type(choosen_attempt))
+        # get the ID of the new record
         latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
         # load everything the user has
         user_records = data_manager.get_user_records(current_user_id)
