@@ -209,7 +209,7 @@ def update_username():
         updates = {"username" : new_username}
         success = data_manager.update_user(current_user_id, updates)
         if success:
-            success_message = "Your Usesrname has been successfully updated"
+            success_message = "Your Username has been successfully updated"
             updated_username = data_manager.get_user_by_id(current_user_id).get_username()
             flash(success_message)
             return render_template("settings.html", username = updated_username)
