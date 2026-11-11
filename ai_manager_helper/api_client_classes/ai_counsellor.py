@@ -1,8 +1,8 @@
 from ai_manager_helper.ai_error_handler import APIErrorHandler
 from ai_manager_helper.data_classes.api_result import APIResult
 from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
-
 from ai_manager_helper.api_client_classes.gemini_client import GeminiClient
+import json
 
 
 class AICounsellor(GeminiClient):
@@ -14,7 +14,7 @@ class AICounsellor(GeminiClient):
                 for undefined
                 - Stress Level: Current stress (1 = Very Low, 10 = Very High), the user's stress level is {stress} out of 10.
                 -1 for undefined 
-                - Focus Level: Ability to concentrate (1 = Very Poor, 5 = Excellent), the user's focus level is {focus} out 
+                - Focus Level: Ability to concentrate (1 = Very Poor, 10 = Excellent), the user's focus level is {focus} out 
                 of 10. -1 for undefined
                 - Academic Workload: Coursework load (1 = Light, 10 = Very Heavy), the user's academic workload is {workload}
                 out of 10. -1 for undefined
@@ -43,4 +43,9 @@ class AICounsellor(GeminiClient):
 
         super().__init__(model, system_instruction, response_json_format=response_json_format)
 
+    def deny_survey(self, survey_results):
+        self._system_instruction = "The user is unsatisfied with the survey results: "
+        self._system_instruction += json.dumps(survey_results)
+        self._system_instruction += "Ask the user what field of the survey is incorrect and amend it until the user is satisfied."
 
+        

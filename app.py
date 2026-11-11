@@ -1,7 +1,10 @@
 import re
 import os
+import threading
+import sys
+import markdown
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from dotenv import load_dotenv
 from markupsafe import escape
 from ai_manager import AIManager
@@ -9,6 +12,7 @@ from data_manager import DataManager
 from io_helpers.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors
 from ai_manager_helper.data_classes.conversation import Conversation
+from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
 
 ai_manager = AIManager()
 ai_manager.connect_client()
@@ -16,7 +20,6 @@ data_manager = DataManager()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-
 
 conversation = Conversation()
 
@@ -263,6 +266,11 @@ def update_password():
 
 @app.route('/wellness-check')
 def wellness_check():
+    if len(conversation.logs()) == 0 and not conversation.is_bot_typing():
+        t = threading.Thread(target=get_AI_response, args=('Hello!',))
+        t.start()
+        conversation.set_bot_typing(True)
+
     return render_template('wellness-check.html', conversation=conversation)
 
 @app.route('/get', methods=['GET','POST'])
@@ -280,9 +288,35 @@ def wait_for_bot_response():
 
     return conversation.get_last_log()
      
+@app.route('/confirm-survey', methods=['GET'])
+def confirm_survey():
+    survey_results = ai_manager.show_survey_results()
+    html_output = '<p>Are all of these fields correct?</p>'
+
+    for key, value in survey_results:
+        html_output += '<p>' + key + ': ' + str(value) + '</p>'
+
+    flash(html_output)
+    return redirect(url_for('wellness_check'))
+
+@app.route('/submit_survey')
+def submit_survey():
+    conversation.set_done(True)
+    survey_results = ai_manager.show_survey_results()
+
+    return redirect(url_for('progress'))
+
+@app.route('/deny-survey')
+def deny_survey():
+    ai_manager.deny_survey()
+    threading.Thread(target=get_AI_response, args=('The survey results are not accurate.',)).start()
+    conversation.set_bot_typing(True)
+
+    return redirect(url_for('wellness_check'))
+
 def get_AI_response(text):
     bot_response = ai_manager.prompt_bot(text)
-    conversation.add_message('ai', bot_response)
+    conversation.add_message('ai', bot_response['text'])
     conversation.set_bot_typing(False)
 
     return bot_response
