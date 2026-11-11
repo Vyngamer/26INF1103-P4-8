@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 import pytest
 from datetime import datetime
 from io_manager import IOManager
-from io_helpers.history import todays_records, history_rows, latest_record, find_record
+from io_helpers.history import todays_records, history_records, latest_record, find_record
 from io_helpers.account_models import AccountResult
 from io_helpers.account_service import AccountService
 from data_manager_helper.UserRecord import UserRecord
@@ -120,21 +120,21 @@ def test_todays_records():
     assert todays_records(data, "123") == [records[0], records[2]]
     data.get_user_records.assert_called_once_with("123")
 
-# One row per record, in the stored (newest first) order, with the keys history.html reads
-def test_history_rows():
+# The user's own records, in the stored (newest first) order
+def test_history_records():
     records = [fake_record("02-01-2026", "09:30:00", "b"), fake_record("01-01-2026", "10:00:00", "a")]
     data = fake_data(records)
-    rows = IOManager(data=data).history("123")
+    history = IOManager(data=data).history("123")
 
     data.get_user_records.assert_called_once_with("123")
-    assert [row["record_id"] for row in rows] == ["b", "a"]
-    assert rows[0] == {**SAMPLE_RESPONSE.to_dict(), **records[0].get_ai_output(),
-                       "date": "02-01-2026", "time": "09:30:00", "record_id": "b"}
+    assert history == records
+    assert all(shown is record for shown, record in zip(history, records))
 
 # Today's assessment is in the history
 def test_history_includes_today():
     today = datetime.now().strftime("%d-%m-%Y")
-    assert [row["record_id"] for row in history_rows(fake_data([fake_record(today, record_id="t")]), "123")] == ["t"]
+    records = history_records(fake_data([fake_record(today, record_id="t")]), "123")
+    assert [record.get_record_id() for record in records] == ["t"]
 
 # latest_record() is the newest record, or None when there are none
 def test_latest_record():
@@ -166,7 +166,7 @@ def test_history_and_trends_with_real_assessment_manager():
         assessment_document("x", "11-10-2026", user_id="other"), assessment_document("c", "17-10-2026")]))
     app = IOManager(data)
 
-    assert [row["record_id"] for row in app.history("123")] == ["c", "b", "a"]
+    assert [record.get_record_id() for record in app.history("123")] == ["c", "b", "a"]
     assert [point["date"] for point in app.trends("123")] == ["10-10-2026", "13-10-2026", "17-10-2026"]
     assert app.latest_record("123").get_record_id() == "c"
     assert find_record(data, "123", "x") is None
@@ -321,6 +321,22 @@ def test_survey_response_from_dict():
     with pytest.raises(TypeError):
         SurveyResponse.from_dict(incomplete)
 
+# /submit_survey builds a SurveyResponse from the user id plus the chatbot's answers, then hands it to
+# LogicManager.assess(), which reads its attributes. Fails if the chatbot's field names stop matching SurveyResponse's
+def test_survey_response_from_chatbot_answers():
+    from types import SimpleNamespace
+    from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
+    from logic_manager_helper.LogicManager import LogicManager
+    answers = SurveyEntitySchema(**{"Sleep duration": 7, "Stress level": 5, "focus_level": 6, "academic_workload": 4,
+                                    "mood": "Calm", "social_activity_level": 3, "reflection": "Good week",
+                                    "text": "Done!", "survey_done": True})
+    del answers.text, answers.survey_done      # as ai_manager.show_survey_results() does
+
+    response = SurveyResponse(**{"user_id": "123", **answers.model_dump()})     # as app.py's /submit_survey does
+    ai_output = SimpleNamespace(mental_wellness_risk_score=40, burnout_risk_score=50, sentiment="Neutral", crisis_alert=False)
+    assert response == SurveyResponse("123", 7, 5, 6, 4, "Calm", 3, "Good week")
+    assert LogicManager().assess(response, ai_output, []).route
+
 # Check that heading turns a key into a title
 def test_questionnaire_heading():
     assert Questionnaire.heading("social_activity_level") == "Social Activity Level"
@@ -468,7 +484,6 @@ def test_unknown_user_and_failed_saves():
 
     accounts.data.fail_saves = True
     assert accounts.register("Bob", "pass1!", "pass1!").message == "Could not create your account. Please try again."
-    # CHANGED: your new wording (both messages)
     assert accounts.change_username(uid, "carol").message == "There was an error with updating your username. Please try again."
     assert accounts.change_password(uid, "pass1!", "new2@", "new2@").message == "There has been an issue with updating your password. Please try again later"
 

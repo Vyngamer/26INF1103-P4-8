@@ -13,7 +13,7 @@ from markupsafe import escape
 from ai_manager import AIManager
 from data_manager import DataManager
 from io_helpers.hasher import PasswordHasher
-from io_helpers.user_input import UserInput
+from io_helpers.survey_response import SurveyResponse
 from io_helpers.validators import username_errors, password_errors
 from ai_manager_helper.data_classes.conversation import Conversation
 from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
@@ -463,7 +463,7 @@ def submit_survey():
         dict_user_input = {"user_id": current_user_id, **dict_user_input}
 
         # get the user input and ai output as an object
-        user_input_obj = UserInput(**dict_user_input)
+        user_input_obj = SurveyResponse(**dict_user_input)
         ai_output_obj = AIOutput(**ai_output)
 
         # get the previous attempts
