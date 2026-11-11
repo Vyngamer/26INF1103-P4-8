@@ -72,8 +72,6 @@ def register():
         except (ConnectionError, ValueError) as e:
             error = "Unable to connect to the database. Please try again later."
             return render_template("register.html", error=error)
-
-        data_manager.close()
         return redirect(url_for("login"))
 
     return render_template("register.html")
@@ -277,42 +275,32 @@ def delete_account():
     current_user_id = session.get('user_id')
     if not current_user_id:
         return redirect(url_for('login'))
-
     user = data_manager.get_user_by_id(current_user_id)
     if user is None:
         session.clear()
         return redirect(url_for('login'))
-
     # retrieve the user password and confirm text
     username = user.get_username()
     entered_password = request.form.get("delete_password", "")
     confirm_text = request.form.get("confirm_text", "").strip()
-
     errors = []
-    
     # collect error messages
     if not entered_password:
         errors.append("Please enter your current password")
     elif not PasswordHasher().verify(entered_password, user.get_password()):
         errors.append("Incorrect password. Your account was not deleted.")
-       
     if confirm_text != "DELETE":
         errors.append("Type DELETE in capital letters to confirm.")
-
     if errors:
-        return render_template('settings.html', username=username,
-                               error3=errors)
-
+        return render_template('settings.html', username=username, error3=errors)
     try:
         deleted = data_manager.delete_user(current_user_id)
     except Exception as error:
         print(f"Delete account error: {error}")
         deleted = False
-
     if not deleted:
         return render_template('settings.html', username=username,
                                error3=["There was an error deleting your account. Please try again later."])
-
     session.clear()
     flash("Your account has been deleted.")
     return redirect(url_for('main'))
