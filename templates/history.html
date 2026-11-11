@@ -35,18 +35,18 @@
                     <tbody>
                             {% for previous_attempt in previous_attempts %}
                             <tr>
-                                <td data-label="Date">{{ previous_attempt["date"] }}</td>
-                                <td data-label="Mental Wellness Score" class="score-cell">{{ previous_attempt["mental_wellness_risk_score"] }}/100</td>
+                                <td data-label="Date">{{ previous_attempt.get_date() }}</td>
+                                <td data-label="Mental Wellness Score" class="score-cell">{{ previous_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</td>
                                 <td data-label="Details">
                                     <span class="details-strong">
-                                        <span>Sleep {{ previous_attempt["sleep_duration"] }} hrs</span>
-                                        <span>Stress {{ previous_attempt["stress_level"] }}/10</span>
-                                        <span>Focus {{ previous_attempt["focus_level"] }}/10</span>
-                                        <span>Social {{ previous_attempt["social_activity_level"] }}/10</span>
+                                        <span>Sleep {{ previous_attempt.get_user_input()["sleep_duration"] }} hrs</span>
+                                        <span>Stress {{ previous_attempt.get_user_input()["stress_level"] }}/10</span>
+                                        <span>Focus {{ previous_attempt.get_user_input()["focus_level"] }}/10</span>
+                                        <span>Social {{ previous_attempt.get_user_input()["social_activity_level"] }}/10</span>
                                     </span>
                                 </td>
                                 <td class="action">
-                                    <a class="btn btn-sm btn-primary" href="{{ url_for('result', attempt_id=previous_attempt['record_id']) }}">
+                                    <a class="btn btn-sm btn-primary" href="{{ url_for('result', attempt_id=previous_attempt.get_record_id()) }}">
                                         View results
                                     </a>
                                 </td>
@@ -55,11 +55,6 @@
                     </tbody>
                 </table>
             </div>
-            {% if previous_attempts|length > 5 %}
-                <button type="button" class="btn btn-outline btn-sm view-more">
-                    View more
-                </button>
-            {% endif %}
         </section>
         {% else %}
         <p>No history oh no</p>
