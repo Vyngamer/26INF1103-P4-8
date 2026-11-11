@@ -22,13 +22,13 @@
 	          <p class="value"><span id="overallScore">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}</span>/100</p>
             <div class="meta">
               <span class="muted">Last check</span>
-              <strong id="lastCheck">{{ latest_attempt.get_date() + "," + latest_attempt.get_time() }}</strong>
+              <strong id="lastCheck">{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong>
             </div>
           </section>
 
           <section class="card">
             <h2 class="card-title">Previous attempt</h2>
-            <p class="card-sub" data-latest-date>latest_attempt.get_date() + "," + latest_attempt.get_time()</p>
+            <p class="card-sub" data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</p>
             <div class="tiles-2">
 		    <div class="tile"><p class="t-label">Mental Wellness score</p><p class="t-value" id="tWellness">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</p></div>
               <div class="tile"><p class="t-label">Burnout Risk Score</p><p class="t-value" id="tBurnout">{{ latest_attempt.get_ai_output()["burnout_risk_score"] }}/100</p></div>
@@ -69,7 +69,7 @@
                 View past results
               </a>
             </div>
-            <div class="footer-row"><span>Last completed check</span><strong data-latest-date>2 Nov 2026 · 9:30 AM</strong></div>
+            <div class="footer-row"><span>Last completed check</span><strong data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong></div>
           </section>
 
           <section class="card">
@@ -77,7 +77,7 @@
             <p class="card-sub">A quick snapshot from your last check</p>
             {% if latest_attempt.get_logic_output()["warnings"] %}
             {% for warning in latest_attempt.get_logic_output()["warnings"] %}
-            <div class="insight"><h4>{{ warning["title"] }}</h4><p>{{ warning["message"] }}</p></div>
+            <div class="insight"><h4>{{ warning }}</h4></div>
             {% endfor %}
             {% else %}
             <div class="insight"><h4>No Insights to share</h4><p>You're doing great! Keep up the good work.</p></div>
