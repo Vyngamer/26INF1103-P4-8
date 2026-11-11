@@ -92,7 +92,7 @@
 </head>
 
 <!-- for flash message -->
-{% if request.endpoint in ['main', 'settings'] %}
+{% if request.endpoint in ['main', 'update_password', 'update_username'] %}
   {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
           {% for category, message in messages %}
@@ -123,6 +123,49 @@
                 message.remove();
             }, 300);
         });
+    });
+</script>
+<script>
+    document.addEventListener('click', function (event) {
+        const button = event.target.closest('.pw-toggle');
+
+        if (!button) return;
+
+        const wrapper = button.closest('.pw-wrap');
+        const input = wrapper.querySelector('input');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.setAttribute('aria-label', 'Hide password');
+
+            // Eye with a cross
+            button.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <path d="M3 3l18 18" />
+                    <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                    <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3 3.8" />
+                    <path d="M6.6 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8" />
+                </svg>
+            `;
+
+        } else {
+            input.type = 'password';
+            button.setAttribute('aria-label', 'Show password');
+
+            // Normal eye
+            button.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
+            `;
+        }
     });
 </script>
 </html>
