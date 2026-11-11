@@ -3,6 +3,8 @@ import os
 import threading
 import sys
 import markdown
+import logic_manager
+import json
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from dotenv import load_dotenv
@@ -10,13 +12,18 @@ from markupsafe import escape
 from ai_manager import AIManager
 from data_manager import DataManager
 from io_helpers.hasher import PasswordHasher
+from io_helpers.user_input import UserInput
 from io_helpers.validators import username_errors, password_errors
 from ai_manager_helper.data_classes.conversation import Conversation
 from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
+from ai_manager_helper.api_client_classes.gemini_client import GeminiClient
+from ai_manager_helper.data_classes.ai_output import AIOutput
+from logic_manager_helper.LogicManager import LogicManager
 
 ai_manager = AIManager()
 ai_manager.connect_client()
 data_manager = DataManager()
+logic_manager = LogicManager()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
@@ -124,7 +131,8 @@ def history():
     else:
         # get current user past attempts from the database
         username = data_manager.get_user_by_id(current_user_id)
-        previous_attempts = data_manager.get_previous_attempts(current_user_id)
+        #previous_attempts = data_manager.get_previous_attempts(current_user_id)
+        previous_attempts = data_manager.get_user_records(current_user_id)
     return render_template('history.html', username=username.get_username(), previous_attempts=previous_attempts)
 
 
@@ -301,10 +309,143 @@ def confirm_survey():
 
 @app.route('/submit_survey')
 def submit_survey():
-    conversation.set_done(True)
-    survey_results = ai_manager.show_survey_results()
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        return redirect(url_for('login'))
+    else:
+        conversation.set_done(True)
+        user_input = ai_manager.show_survey_results()
+        assessor = GeminiClient(
+            "gemini-3.5-flash-lite",
+            system_instruction="""
+                You are an expert student counselor and psychological assessment AI specializing in adolescent and higher education mental health.
 
-    return redirect(url_for('progress'))
+                Your job is to analyze quantitative student wellness metrics alongside qualitative reflection text to produce a structured JSON mental health assessment.
+
+                Only answer questions related to the user's mental health.
+
+                ### INPUT DATA DEFINITIONS
+
+                - Sleep Duration: Average daily sleep hours over the past week (0-24). The user had {sleep} hours of sleep.
+                - Stress Level: Current stress (1 = Very Low, 10 = Very High). The user's stress level is {stress} out of 10.
+                - Focus Level: Ability to concentrate (1 = Very Poor, 10 = Excellent). The user's focus level is {focus} out of 10.
+                - Academic Workload: Coursework load (1 = Light, 10 = Very Heavy). The user's academic workload is {workload} out of 10.
+                - Mood for the Day: Emotional state ["Motivated", "Calm", "Anxious", "Sad", "Exhausted"]. The user's mood is {mood}.
+                - Social Activity Level: Engagement level (1 = Isolated, 10 = Very Social). The user's social activity level is {social} out of 10.
+                - Reflection: Free-response text capturing personal thoughts and concerns. The user's reflection text is {reflection}.
+
+                ### EVALUATION & SCORING RUBRIC
+
+                1. Mental Wellness Risk Score (0-100):
+                - Baseline calculation: Aggregate high stress, low focus, poor sleep (<6 hours), low social activity (<=3), and negative mood ("Anxious", "Sad", "Exhausted").
+                - Qualitative Adjustment: Analyze the reflection text.
+                    - Expressing hopelessness, feeling overwhelmed, or severe anxiety increases the score by +15 to +30 points.
+                    - Neutral or constructive reflection keeps the baseline score intact.
+                    - Expressing positive coping mechanisms or a calm mindset decreases the score by -10 to -20 points.
+                - Scale: 0-40 (Low Risk), 41-70 (Medium Risk), 71-100 (High Risk).
+
+                2. Burnout Risk Score (0-100):
+                - Heavily weight the interaction between Academic Workload (>=7), Sleep Duration (<6h), Focus Level (<=2), and Mood ("Exhausted" or "Anxious").
+                - High Workload + Low Sleep + Low Focus = Automatic score >70.
+                - High Workload balanced by High Sleep and High Social Activity = Moderate score (40-60).
+
+                3. Crisis Alert (Boolean: true/false):
+                - MUST BE true IF AND ONLY IF:
+                    - Reflection text contains thoughts or explicit mentions of self-harm, suicidal ideation, feeling completely hopeless or giving up on life, feeling unsafe, or extreme mental breakdowns.
+                    - OR Mental Wellness Risk Score is extremely high (>=85) with social activity = 1 and severe sleep deprivation (<4 hours).
+                - Otherwise MUST BE false.
+
+                4. Sentiment Analysis (Strictly one of: "Positive", "Neutral", "Negative"):
+                - Primary basis: The reflection text combined with emotional mood state.
+                - "Exhausted", "Anxious", or "Sad" with distressed reflection = "Negative".
+                - "Motivated" or "Calm" with positive reflection = "Positive".
+                - Balanced or matter-of-fact reflections = "Neutral".
+
+                5. Primary Stressor (1-3 Words):
+                - Summarize the single greatest contributor to their current state.
+                - Examples: "Academic Workload", "Sleep Deprivation", "Social Isolation", "Exam Anxiety", "Time Management".
+
+                6. Personalized Recommendations (String):
+                - Provide a concise (2-3 sentences), warm, empathetic, and actionable wellness suggestion.
+                - Tailor recommendations directly to the user's specific metrics.
+                - For example, if sleep <5 hours, focus on improving sleep habits before tackling workload.
+
+                """,
+            response_json_format={
+                "type": "object",
+                "properties": {
+                    "mental_wellness_risk_score": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "burnout_risk_score": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "sentiment": {
+                        "type": "string",
+                        "enum": ["Positive", "Neutral", "Negative"]
+                    },
+                    "crisis_alert": {
+                        "type": "boolean"
+                    },
+                    "primary_stressor": {
+                        "type": "string"
+                    },
+                    "personalized_recommendations": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "mental_wellness_risk_score",
+                    "burnout_risk_score",
+                    "sentiment",
+                    "crisis_alert",
+                    "primary_stressor",
+                    "personalized_recommendations"]})
+        assessor.connect_client()
+        result = assessor.call_api(user_input.model_dump_json(exclude={"text", "survey_done"}))
+        ai_output = json.loads(result.data)
+        dict_user_input = user_input.model_dump()
+        dict_user_input = {"user_id": current_user_id, **dict_user_input}
+
+        # get the user input and ai output as an object
+        user_input_obj = UserInput(**dict_user_input)
+        ai_output_obj = AIOutput(**ai_output)
+
+        # get the previous attempts
+        previous_attempts = data_manager.get_previous_attempts(current_user_id)
+
+        # get the logic output
+        logic_output = logic_manager.assess(user_input_obj, ai_output_obj, previous_attempts)
+
+        # merge records into 1
+        assessment = data_manager.merge_record(dict_user_input, ai_output, logic_manager.to_dict(logic_output))
+        # save to db
+        success = data_manager.save(assessment)
+        # latest_assessment = data_manager.get_latest_user_record(current_user_id)
+        # latest_assessment_id = latest_assessment.get_record_id()
+        # latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
+        # print(latest_assessment_id)
+        # choosen_attempt = None
+        # for previous_attempt in previous_attempts:
+        #     if previous_attempt.get_record_id() == latest_assessment_id:
+        #         choosen_attempt = previous_attempt
+        #         break
+        #     if not choosen_attempt:
+        #         choosen_attempt = None
+        #     print(type(choosen_attempt))
+        # get the ID of the new record
+        latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
+        # load everything the user has
+        user_records = data_manager.get_user_records(current_user_id)
+        print(latest_assessment_id)
+        for user_record in user_records:
+            if user_record.get_record_id() == latest_assessment_id:
+                choosen_attempt = user_record
+        return render_template('results.html', choosen_attempt=choosen_attempt)
 
 @app.route('/deny-survey')
 def deny_survey():
