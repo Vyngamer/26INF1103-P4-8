@@ -2,9 +2,7 @@
 Functionality for user to view history
 '''
 
-from abc import ABC, abstractmethod
 from datetime import datetime
-from io_helpers.console import Console
 
 
 DATE_FORMAT = "%d-%m-%Y"
@@ -14,118 +12,24 @@ def todays_records(data, user_id):
     today = datetime.now().strftime(DATE_FORMAT)
     return [record for record in data.get_user_records(user_id) if record.get_date() == today]
 
-
-# Abstract base class for a titled report printed to the console
-class ReportView(ABC):
-    def __init__(self, title, width):
-        self.title = title
-        self.width = width
-
-    def show(self):
-        Console.title(self.title, self.width)
-        self.render_body()
-        print("=" * self.width)
-
-    @abstractmethod
-    def render_body(self):
-        pass
+# One row per assessment for the history page, newest first
+# Each row holds user's answers, AI scores, date, time & record_id
+def history_rows(data, user_id):
+    return [{**record.get_user_input(), **record.get_ai_output(),
+             "date": record.get_date(), "time": record.get_time(), "record_id": record.get_record_id()}
+            for record in data.get_user_records(user_id)]
 
 
-# Originally view_assessment_details()
-# Display one record on the screen
-class AssessmentDetailView(ReportView):
-    def __init__(self, record, title="ASSESSMENT DETAILS"):
-        super().__init__(title, Console.DEFAULT_WIDTH)
-        self.record = record
-
-    def render_body(self):
-        record = self.record
-        user_input = record.get_user_input()
-        ai_output = record.get_ai_output()
-        logic_output = record.get_logic_output()
-
-        print(f"Date      : {record.get_date()}")
-        print(f"Time      : {record.get_time()}")
-
-        print("\n--- User Inputs ---")
-        print(f"Sleep Duration       : {user_input['sleep_duration']} hours")
-        print(f"Stress Level         : {user_input['stress_level']}/10")
-        print(f"Focus Level          : {user_input['focus_level']}/10")
-        print(f"Academic Workload    : {user_input['academic_workload']}/10")
-        print(f"Mood                 : {user_input['mood']}")
-        print(f"Social Activity      : {user_input['social_activity_level']}/10")
-        print(f"Reflection           : {user_input['reflection']}")
-
-        print("\n--- AI Assessment Results ---")
-        print(f"Mental Wellness Risk : {ai_output['mental_wellness_risk_score']}/100")
-        print(f"Burnout Risk Score   : {ai_output['burnout_risk_score']}/100")
-        print(f"Sentiment            : {ai_output['sentiment']}")
-        print(f"Crisis Alert         : {ai_output['crisis_alert']}")
-        print(f"Primary Stressor     : {ai_output['primary_stressor']}")
-
-        print("\n--- Risk Evaluation & Support Guidance ---")
-        print(f"Risk Tier            : {logic_output['mental_wellness_risk_tier']}")
-        print(f"Route                : {logic_output['route']}")
-
-        print("Warnings:")
-        warnings = logic_output.get("warnings", [])
-
-        if warnings:
-            for warning in warnings:
-                print(f"  - {warning}")
-        else:
-            print("  - No warnings triggered")
-
-        print(f"Counselling Required : {"Yes" if logic_output['counselling_recommendation'] else "No"}")
-
-        print("\n--- Personalised Recommendations ---")
-        print(ai_output["personalized_recommendations"])
-
-        print("\n--- Historical Insights ---")
-        messages = logic_output.get("display_messages", [])
-        if messages:
-            for msg in messages:
-                print(f"  - {msg}")
-        else:
-            print("  - No historical insights available.")
+# User's most recent assessment record
+def latest_record(data, user_id):
+    records = data.get_user_records(user_id)
+    return records[0] if records else None
 
 
-# Originally view_assessment_history()
-# Table of all of a user's assessments
-class AssessmentHistoryTable(ReportView):
-    def __init__(self, records):
-        super().__init__("ASSESSMENT HISTORY", 78)
-        self.records = records
-
-    def render_body(self):
-        # Display table headings
-        print(
-            f"{'No.':<5}"
-            f"{'Date':<14}"
-            f"{'Time':<11}"
-            f"{'Risk Score':<13}"
-            f"{'Burnout':<11}"
-            f"{'Risk Tier':<12}"
-            f"{'Mood':<12}"
-        )
-
-        print("-" * self.width)
-
-        # Display each assessment
-        for index, record in enumerate(self.records, start=1):
-            user_input = record.get_user_input()
-            ai_output = record.get_ai_output()
-            logic_output = record.get_logic_output()
-
-            print(
-                f"{index:<5}"
-                f"{record.get_date():<14}"
-                f"{record.get_time():<11}"
-                f"{ai_output['mental_wellness_risk_score']:<13}"
-                f"{ai_output['burnout_risk_score']:<11}"
-                f"{logic_output['mental_wellness_risk_tier']:<12}"
-                f"{user_input['mood']:<12}"
-            )
-
-        print("-" * self.width)
-        print(f"Total assessments: {len(self.records)}")
+# Find user's assessment record from id.
+# None if there is no such record or record belongs to another user
+def find_record(data, user_id, record_id):
+    for record in data.get_user_records(user_id):
+        if record.get_record_id() == record_id:
+            return record
+    return None
