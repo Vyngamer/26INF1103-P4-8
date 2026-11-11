@@ -7,6 +7,7 @@ import logic_manager
 import json
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from flask_mail import Mail, Message
 from dotenv import load_dotenv
 from markupsafe import escape
 from ai_manager import AIManager
@@ -29,6 +30,20 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 conversation = Conversation()
+
+# email config
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
+
+# mail recepient
+mail_recipient = app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+
+mail = Mail(app)
 
 # route for index, this will be the default page when the app runs
 @app.route("/")
@@ -461,19 +476,6 @@ def submit_survey():
         assessment = data_manager.merge_record(dict_user_input, ai_output, logic_manager.to_dict(logic_output))
         # save to db
         success = data_manager.save(assessment)
-        # latest_assessment = data_manager.get_latest_user_record(current_user_id)
-        # latest_assessment_id = latest_assessment.get_record_id()
-        # latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
-        # print(latest_assessment_id)
-        # choosen_attempt = None
-        # for previous_attempt in previous_attempts:
-        #     if previous_attempt.get_record_id() == latest_assessment_id:
-        #         choosen_attempt = previous_attempt
-        #         break
-        #     if not choosen_attempt:
-        #         choosen_attempt = None
-        #     print(type(choosen_attempt))
-        # get the ID of the new record
         latest_assessment_id = data_manager.get_latest_user_record(current_user_id).get_record_id()
         # load everything the user has
         user_records = data_manager.get_user_records(current_user_id)
@@ -481,9 +483,36 @@ def submit_survey():
         for user_record in user_records:
             if user_record.get_record_id() == latest_assessment_id:
                 choosen_attempt = user_record
+        # perform logic check
+        if (choosen_attempt.get_ai_output()["mental_wellness_risk_score"] > 80) or (choosen_attempt.get_ai_output()["burnout_risk_score"] > 80) or (choosen_attempt.get_ai_output()["crisis_alert"] == True) or (choosen_attempt.get_logic_output()["counselling_recommendation"] == True) or (choosen_attempt.get_logic_output()["route"] == "Urgent support") or (choosen_attempt.get_logic_output()["route"] == "Counsellor follow-up"):
+            recepient = mail_recipient
+            subject = "Student Requiring Attention"
+            student_id = current_user_id
+            username = data_manager.get_user_by_id(student_id).get_username()
+            body = f'''
+            Dear Counsellor,
+
+            A Student is requiring your attention.
+            User ID = {student_id}
+            Username = {username}
+
+            Please get in contact with this student ASAP
+
+            Best Regards,
+            AI Counsellor
+            '''
+            success = send_email(recepient, subject, body)
+            if success:
+                print("EMAIL SENT")
+            else:
+                print("EMAIL NOT SENT")
+        # check if the current attempt's wellness risk score is over 75 or if the 
+        # logic used here, if mental_wellness score or burnout score is more than 80 OR crisis_alert = true OR
+        # counselling recommendation is true OR route is Urgent support or Counsellor follow-up
         return render_template('results.html', choosen_attempt=choosen_attempt)
 
 @app.route('/deny-survey')
+
 def deny_survey():
     ai_manager.deny_survey()
     threading.Thread(target=get_AI_response, args=('The survey results are not accurate.',)).start()
@@ -509,3 +538,15 @@ def logout():
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template("errors/error_404.html")
+
+
+# email
+# function for sending an email
+def send_email(recipient, subject, body):
+    try:
+        msg = Message(subject=subject, recipients=[recipient], body=body)
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
