@@ -13,8 +13,6 @@ class InvalidInput(ValueError):
 
 # abstract base class for every answer check
 class Prompt(ABC):
-    def __init__(self, message):
-        self.message = message
 
     # Returns the converted answer, or raises InvalidInput with the reason
     def parse(self, raw):
@@ -42,8 +40,7 @@ class Prompt(ABC):
 class TextPrompt(Prompt):
     EMPTY_MESSAGE = "Input cannot be empty. Please try again."
 
-    def __init__(self, message, max_length=None, too_long_msg=None):
-        super().__init__(message)
+    def __init__(self, max_length=None, too_long_msg=None):
         self.max_length = max_length
         if max_length is not None and too_long_msg is None:
             too_long_msg = f"Please enter at most {max_length} characters."
@@ -61,8 +58,7 @@ class TextPrompt(Prompt):
 
 # Number input with range validation.
 class RangePrompt(Prompt):
-    def __init__(self, message, minimum, maximum, cast=int):
-        super().__init__(message)
+    def __init__(self, minimum, maximum, cast=int):
         self.minimum = minimum
         self.maximum = maximum
         self.cast = cast    # cast=int for whole numbers, cast=float for decimals
@@ -83,11 +79,11 @@ class RangePrompt(Prompt):
 # Returns the chosen option
 # Inherits number parsing / range checking from RangePrompt
 class ChoicePrompt(RangePrompt):
-    def __init__(self, options, message):
+    def __init__(self, options):
         options = list(options)
         if not options:     # Rejects an empty list of options
             raise ValueError("ChoicePrompt needs at least one option.")
-        super().__init__(message, 1, len(options))
+        super().__init__(1, len(options))
         self.options = options
         # Msg for an answer that is neither one of the options nor its number
         self.choose_msg = "Please choose one of: " + ", ".join(str(option) for option in options) + "."

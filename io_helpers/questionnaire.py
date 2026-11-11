@@ -23,25 +23,18 @@ class Questionnaire:
     def __init__(self):
         self.questions = self.default_questions()
 
-    # Builds a 1-10 scale prompt
-    @staticmethod
-    def _scale(description):
-        return RangePrompt(f"On a scale of 1-10, {description} for the past week?: ", 1, 10)
-
-    # Default survey questions as (key, prompt) pairs
+    # Default survey questions as (key, answer check) pairs
     @classmethod
     def default_questions(cls):
         return [
-            ("sleep_duration", RangePrompt(
-                "How many hours per day did you sleep on average for the past week?: ", 0, 24, cast=float)),
-            ("stress_level", cls._scale("how stressed have you been")),
-            ("focus_level", cls._scale("how focused have you been")),
-            ("academic_workload", cls._scale("how heavy has your academic workload been")),
-            ("mood", ChoicePrompt(cls.MOOD_OPTIONS, "Select your mood from the following options:")),
-            ("social_activity_level", cls._scale("how socially active have you been")),
+            ("sleep_duration", RangePrompt(0, 24, cast=float)),
+            ("stress_level", RangePrompt(1, 10)),
+            ("focus_level", RangePrompt(1, 10)),
+            ("academic_workload", RangePrompt(1, 10)),
+            ("mood", ChoicePrompt(cls.MOOD_OPTIONS)),
+            ("social_activity_level", RangePrompt(1, 10)),
             ("reflection", TextPrompt(
-                "Reflection: ", cls.REFLECTION_LIMIT,
-                f"Please enter a reflection with at most {cls.REFLECTION_LIMIT} characters.")),
+                cls.REFLECTION_LIMIT, f"Please enter a reflection with at most {cls.REFLECTION_LIMIT} characters.")),
         ]
 
     # e.g. "sleep_duration" -> "Sleep Duration"
