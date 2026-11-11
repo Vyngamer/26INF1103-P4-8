@@ -118,3 +118,12 @@ class LogicManager:
             route=route,
             display_messages=display_messages,
         )
+
+    def to_dict(self, output: LogicOutput) -> dict:
+        return {
+            "mental_wellness_risk_tier": output.mental_wellness_risk_tier,
+            "warnings": output.warnings,
+            "route": output.route,
+            "counselling_recommendation": output.counselling_recommendation,
+            "display_messages": output.display_messages,
+        }
