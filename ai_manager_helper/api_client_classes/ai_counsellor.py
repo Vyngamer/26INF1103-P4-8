@@ -43,15 +43,9 @@ class AICounsellor(GeminiClient):
 
         super().__init__(model, system_instruction, response_json_format=response_json_format)
 
-    def confirm_survey(self, survey):
-        self._system_instruction = """
-            Based on the survey provided, display the results to the user and confirm with them if the results are accurate. 
-        """
-        self._response_json_format = None
+    def deny_survey(self, survey_results):
+        self._system_instruction = "The user is unsatisfied with the survey results: "
+        self._system_instruction += json.dumps(survey_results)
+        self._system_instruction += "Ask the user what field of the survey is incorrect and amend it until the user is satisfied."
 
-        output_response = self.call_api(json.dumps(survey)).data
-
-        print(output_response)
-        return output_response
-         
-
+        

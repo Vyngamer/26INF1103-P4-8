@@ -29,9 +29,14 @@ class AIManager:
     def check_survey_end(self, response):
         return response['survey_done']
     
-    def confirm_survey(self):
-        output_response = self._client.confirm_survey(self._survey_results)
-        return output_response
+    def show_survey_results(self):
+        survey_results = SurveyEntitySchema(**self._survey_results)
+
+        del survey_results.text, survey_results.survey_done
+        return survey_results
+
+    def deny_survey(self):
+        self._client.deny_survey(self._survey_results)
 
 if __name__ == "__main__":
     ai_manager = AIManager()

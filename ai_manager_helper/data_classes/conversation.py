@@ -15,6 +15,7 @@ class Conversation:
     def __init__(self):
         self.__conversation_list = []
         self.__bot_typing = False
+        self.__done = False
 
     def add_message(self, sender, message):
         self.__conversation_list.append(Message(sender, message))
@@ -34,6 +35,12 @@ class Conversation:
 
     def get_last_log(self):
         return self.__conversation_list[-1].asdict()
+
+    def is_done(self):
+        return self.__done
+
+    def set_done(self, done):
+        self.__done = done
 
 
 if __name__ == "__main__":
