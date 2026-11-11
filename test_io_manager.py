@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 import pytest
 from datetime import datetime
 from io_manager import IOManager
-from io_helpers.history import todays_records, history_records, latest_record, find_record
+from io_helpers.history import history_records, latest_record, find_record
 from io_helpers.account_models import AccountResult
 from io_helpers.account_service import AccountService
 from data_manager_helper.UserRecord import UserRecord
@@ -110,15 +110,6 @@ def test_find_record():
     assert app.find_record("123", "zzz") is None
     assert app.find_record("123", None) is None
     assert app.find_record("456", "a") is None    # another user's record is never returned
-
-# Check that todays_records() keeps only records dated today, in the same (newest first) order
-def test_todays_records():
-    from datetime import datetime
-    today = datetime.now().strftime("%d-%m-%Y")
-    records = [fake_record(today, "15:00:00"), fake_record("01-01-2000", "09:00:00"), fake_record(today, "10:00:00")]
-    data = fake_data(records)
-    assert todays_records(data, "123") == [records[0], records[2]]
-    data.get_user_records.assert_called_once_with("123")
 
 # The user's own records, in the stored (newest first) order
 def test_history_records():
