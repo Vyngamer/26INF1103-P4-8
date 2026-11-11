@@ -72,6 +72,7 @@ def register():
         except (ConnectionError, ValueError) as e:
             error = "Unable to connect to the database. Please try again later."
             return render_template("register.html", error=error)
+        flash("Account Created Successfully!!")
         return redirect(url_for("login"))
 
     return render_template("register.html")
