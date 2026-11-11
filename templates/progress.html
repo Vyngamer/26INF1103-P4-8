@@ -254,7 +254,83 @@
             }
         </script>
         {% else %}
-            <p>No progress data available.</p>
+                    <div class="page-head">
+	      <h1>Progress viewer</h1>
+        <div class="empty-state-container">
+        <img 
+          src="../static/assets/no_data.jpeg" 
+          alt="Wellness Illustration" 
+          class="empty-state-img"
+        />
+        <h2 class="empty-state-title">No Previous Attempts Yet</h2>
+        <p class="empty-state-description">
+          Complete at least 2 wellness checks to start seeing your progress and key insights here.
+        </p>
+        <a href={{ url_for('wellness_check') }}  class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5-12-7.5z"/></svg>
+            Start wellness check
+        </a>
+      </div>
+
+      <style>
+        .empty-state-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 80vh;
+          padding: 40px 20px;
+          text-align: center;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .empty-state-img {
+          max-width: 320px;
+          width: 100%;
+          height: auto;
+          margin-bottom: 24px;
+        }
+
+        .empty-state-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #1e1b4b;
+          margin: 0 0 12px 0;
+        }
+
+        .empty-state-description {
+          font-size: 15px;
+          color: #64748b;
+          max-width: 440px;
+          line-height: 1.5;
+          margin: 0 0 28px 0;
+        }
+
+        .primary-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background-color: #4c3596;
+          color: #ffffff;
+          font-size: 16px;
+          font-weight: 600;
+          padding: 14px 28px;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .primary-btn:hover {
+          background-color: #3b287a;
+        }
+
+        .primary-btn:active {
+          transform: scale(0.98);
+        }
+      </style>
+        </div>
         {% endif %}
     </div>
 </div>
