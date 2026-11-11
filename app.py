@@ -210,7 +210,8 @@ def update_username():
         if success:
             success_message = "Your Usesrname has been successfully updated"
             updated_username = data_manager.get_user_by_id(current_user_id).get_username()
-            return render_template("settings.html", success=success_message, username = updated_username)
+            flash(success_message)
+            return render_template("settings.html", username = updated_username)
         else:
             error = "There was an error with updating your username"
             return render_template("settings.html", error = error, username = current_username)
@@ -259,7 +260,8 @@ def update_password():
         success = data_manager.update_user(current_user_id, updates)
         if success:
             success_message = "Your Password has been successfully updated!"
-            return render_template('settings.html', username=current_username, success2=success_message)
+            flash(success_message)
+            return render_template('settings.html', username=current_username)
         else:
             error.append("There has been an issue with updating your password, try again later")
             if len(error)>0:
