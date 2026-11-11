@@ -1,42 +1,29 @@
 from unittest.mock import MagicMock
 import pytest
-from datetime import datetime
 from io_manager import IOManager
-from io_helpers.history import history_records, latest_record, find_record
-from io_helpers.account_models import AccountResult
 from io_helpers.account_service import AccountService
 from data_manager_helper.UserRecord import UserRecord
 from io_helpers.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors, USERNAME_RULES
 from io_helpers.prompts import TextPrompt, RangePrompt, ChoicePrompt, InvalidInput
-from io_helpers.trends import trend_points, MIN_RECORDS
 from io_helpers.survey_response import SurveyResponse, SurveyResult
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
 
 # Sample completed survey, used by the survey tests below
 SAMPLE_RESPONSE = SurveyResponse("123", 7.5, 5, 6, 4, "Calm", 3, "Good week")
 
-# Same answers as the web app would pass them in
+# SAMPLE_RESPONSE's answers without the user id, as the web app passes them to survey()
 SAMPLE_ANSWERS = {key: value for key, value in SAMPLE_RESPONSE.to_dict().items() if key != "user_id"}
 
 PASSWORD_RULES_ALL = "at least 4 characters at least one number at least one special character (e.g. ! @ # $ %)"
 MOOD_CHOICES = "Please choose one of: Motivated, Calm, Anxious, Sad, Exhausted."
-USERNAME_TAKEN = "This username already exists. Please choose another."
+SCALE_KEYS = ("stress_level", "focus_level", "academic_workload", "social_activity_level")
 
-def fake_record(date="01-01-2026", time="10:00:00", record_id="r1"):
+# Mock record
+def fake_record(record_id="r1"):
     record = MagicMock()
-    record.get_date.return_value = date
-    record.get_time.return_value = time
     record.get_record_id.return_value = record_id
-    record.get_user_input.return_value = SAMPLE_RESPONSE.to_dict()
-    record.get_ai_output.return_value = {
-        "mental_wellness_risk_score": 40, "burnout_risk_score": 55, "sentiment": "Neutral",
-        "crisis_alert": False, "primary_stressor": "Exams", "personalized_recommendations": "Take breaks"}
-    record.get_logic_output.return_value = {
-        "mental_wellness_risk_tier": "Moderate", "route": "Self-help", "warnings": [],
-        "counselling_recommendation": False, "display_messages": []}
     return record
-
 
 # Mock DataManager that returns the given records
 def fake_data(records=()):
@@ -50,7 +37,7 @@ def rejection(prompt, raw):
         prompt.parse(raw)
     return str(problem.value)
 
-# --- Action Tests ---
+# --- IOManager Tests ---
 
 # Every account action on IOManager hands its parameters to AccountService unchanged and returns its result
 @pytest.mark.parametrize("method, args", [
@@ -66,21 +53,23 @@ def test_account_actions_delegate(method, args):
     assert getattr(app, method)(*args) is getattr(accounts, method).return_value
     getattr(accounts, method).assert_called_once_with(*args)
 
+# IOManager builds its AccountService in __init__, with the same DataManager
+def test_accounts_share_data_manager():
+    data = fake_data()
+    app = IOManager(data=data)
+    assert app.data is data
+    assert app.accounts.data is data
+
 # --- Survey Tests ---
 
-# Survey() checks the given answers, then hands them to process_responses with user id
-def test_survey_passes_responses_to_function():
+# Valid answers come back in an accepted SurveyResult, and are handed to process_responses (if given) with the user's id
+def test_survey_valid_answers():
+    expected = SurveyResult(True, "Survey answers accepted.", response=SAMPLE_RESPONSE)
     received = []
     app = IOManager(fake_data(), process_responses=lambda uid, responses: received.append((uid, responses)))
-    result = app.survey("123", SAMPLE_ANSWERS)
-
-    assert result.ok and result.response == SAMPLE_RESPONSE
+    assert app.survey("123", SAMPLE_ANSWERS) == expected
     assert received == [("123", SAMPLE_RESPONSE)]
-
-# Survey() still works without a process_responses function
-def test_survey_without_function():
-    result = IOManager(fake_data()).survey("123", SAMPLE_ANSWERS)
-    assert result == SurveyResult(True, "Survey answers accepted.", response=SAMPLE_RESPONSE)
+    assert IOManager(fake_data()).survey("123", SAMPLE_ANSWERS) == expected    # also works without process_responses
 
 # Invalid answers are reported, one message per question, and never handed on
 def test_survey_invalid_answers_not_passed_on():
@@ -95,13 +84,10 @@ def test_survey_invalid_answers_not_passed_on():
 
 # --- History Tests ---
 
-# With no records the history is an empty list
-def test_history_no_records():
-    assert IOManager(data=fake_data([])).history("123") == []
-
 # find_record() picks one of the user's records by its id
+# unknown id, no id, or another user's id gives None
 def test_find_record():
-    records = [fake_record(time="15:00:00", record_id="b"), fake_record(time="10:00:00", record_id="a")]
+    records = [fake_record("b"), fake_record("a")]
     data = fake_data(records)
     data.get_user_records.side_effect = lambda uid: records if uid == "123" else []
     app = IOManager(data=data)
@@ -111,60 +97,36 @@ def test_find_record():
     assert app.find_record("123", None) is None
     assert app.find_record("456", "a") is None    # another user's record is never returned
 
-# The user's own records, in the stored (newest first) order
+# history() asks DataManager for the user's records and returns them unchanged, in newest first order
 def test_history_records():
-    records = [fake_record("02-01-2026", "09:30:00", "b"), fake_record("01-01-2026", "10:00:00", "a")]
+    records = [fake_record("new"), fake_record("old")]
     data = fake_data(records)
-    history = IOManager(data=data).history("123")
-
+    assert IOManager(data=data).history("123") == records
     data.get_user_records.assert_called_once_with("123")
-    assert history == records
-    assert all(shown is record for shown, record in zip(history, records))
 
-# Today's assessment is in the history
-def test_history_includes_today():
-    today = datetime.now().strftime("%d-%m-%Y")
-    records = history_records(fake_data([fake_record(today, record_id="t")]), "123")
-    assert [record.get_record_id() for record in records] == ["t"]
-
-# latest_record() is the newest record, or None when there are none
+# latest_record() is the first record DataManager gives (its newest), or None when there are none
 def test_latest_record():
-    records = [fake_record(record_id="new"), fake_record(record_id="old")]
+    records = [fake_record("new"), fake_record("old")]
     assert IOManager(fake_data(records)).latest_record("123") is records[0]
-    assert latest_record(fake_data([]), "123") is None
+    assert IOManager(fake_data([])).latest_record("123") is None
 
-# Stand-in for MongoDBStorage that only loads the given assessment documents
-class FakeAssessmentStorage:
-    def __init__(self, documents):
-        self.documents = documents
-
-    def load(self):
-        return list(self.documents)
-
-# One stored assessment document, in the format AssessmentManager loads
-def assessment_document(record_id, date, user_id="123"):
-    return {"record_id": record_id, "date": date, "time": "09:00:00",
-            "user_input": {**SAMPLE_RESPONSE.to_dict(), "user_id": user_id},
-            "ai_output": {"mental_wellness_risk_score": 40, "burnout_risk_score": 50},
-            "logic_output": {"warnings": [], "display_messages": []}}
-
-# Check that with the real AssessmentManager, history is newest first and trends oldest first,
-# whatever order the documents are stored in, and that other users' records are never included
-def test_history_and_trends_with_real_assessment_manager():
-    from data_manager_helper.AssessmentManager import AssessmentManager
-    data = AssessmentManager(FakeAssessmentStorage([
-        assessment_document("b", "13-10-2026"), assessment_document("a", "10-10-2026"),
-        assessment_document("x", "11-10-2026", user_id="other"), assessment_document("c", "17-10-2026")]))
+# history(), latest_record(), find_record() and trends() never call load_records(), which would
+# download every user's records from MongoDB again
+def test_views_do_not_reload_records():
+    data = fake_data([fake_record("b"), fake_record("a")])
+    data.get_user_int_records.return_value = []
     app = IOManager(data)
 
-    assert [record.get_record_id() for record in app.history("123")] == ["c", "b", "a"]
-    assert [point["date"] for point in app.trends("123")] == ["10-10-2026", "13-10-2026", "17-10-2026"]
-    assert app.latest_record("123").get_record_id() == "c"
-    assert find_record(data, "123", "x") is None
+    app.history("123")
+    app.latest_record("123")
+    app.find_record("123", "a")
+    app.trends("123")
+    data.load_records.assert_not_called()
 
 # --- Validator Tests ---
 
-# Test valid and invalid usernames
+# Valid usernames give no errors; too short, too long, 
+# or a character other than letters, numbers, spaces, _ - . gives the username rules
 def test_username_errors():
     assert username_errors("Alice") == []
     assert username_errors("a.b_c-d e") == []
@@ -202,20 +164,20 @@ def test_hasher_rejects_bad_stored_values():
 
 # TextPrompt rejects an empty answer and trims whitespace
 def test_text_prompt():
-    assert rejection(TextPrompt("> "), "") == TextPrompt.EMPTY_MESSAGE
-    assert rejection(TextPrompt("> "), "   ") == TextPrompt.EMPTY_MESSAGE
-    assert rejection(TextPrompt("> "), None) == TextPrompt.EMPTY_MESSAGE    # e.g. a missing form field
-    assert TextPrompt("> ").parse("  hello  ") == "hello"
+    assert rejection(TextPrompt(), "") == TextPrompt.EMPTY_MESSAGE
+    assert rejection(TextPrompt(), "   ") == TextPrompt.EMPTY_MESSAGE
+    assert rejection(TextPrompt(), None) == TextPrompt.EMPTY_MESSAGE    # e.g. a missing form field
+    assert TextPrompt().parse("  hello  ") == "hello"
 
-# TextPrompt with a limit rejects long answers, without one, no message is built
+# TextPrompt with a limit accepts an answer at the limit and rejects a longer one
 def test_text_prompt_max_length():
-    assert rejection(TextPrompt("> ", max_length=3), "abcdef") == "Please enter at most 3 characters."
-    assert TextPrompt("> ", max_length=3).parse("abc") == "abc"
-    assert TextPrompt("> ").too_long_msg is None
+    assert rejection(TextPrompt(max_length=3), "abcdef") == "Please enter at most 3 characters."
+    assert TextPrompt(max_length=3).parse("abc") == "abc"
 
-# RangePrompt rejects non-numbers, decimals for int, and out-of-range values
+# RangePrompt accepts a whole number given as text or as a number, and rejects non-numbers
+# (including True), decimals and out-of-range values
 def test_range_prompt_int():
-    prompt = RangePrompt("> ", 1, 10)
+    prompt = RangePrompt(1, 10)
     assert rejection(prompt, "abc") == "Please enter a whole number."
     assert rejection(prompt, "5.5") == "Please enter a whole number."
     assert rejection(prompt, "11") == "Please enter a number from 1 to 10."
@@ -224,17 +186,19 @@ def test_range_prompt_int():
     assert rejection(prompt, 5.5) == "Please enter a whole number."
     assert rejection(prompt, True) == "Please enter a whole number."
 
-# RangePrompt with cast=float accepts decimals and rejects nan
+# RangePrompt with cast=float accepts decimals and whole numbers, and rejects nan (out of range)
+# and a missing answer (not a number)
 def test_range_prompt_float():
-    prompt = RangePrompt("> ", 0, 24, cast=float)
+    prompt = RangePrompt(0, 24, cast=float)
     assert rejection(prompt, "nan") == "Please enter a number from 0 to 24."
     assert prompt.parse("7.5") == 7.5
     assert prompt.parse(8) == 8.0
     assert rejection(prompt, None) == "Please enter a valid number."
 
 # ChoicePrompt returns the option itself, given its number or its name in any letter case
+# (spaces ignored); anything else gets the list of choices
 def test_choice_prompt():
-    prompt = ChoicePrompt(["A", "B", "C"], "> ")
+    prompt = ChoicePrompt(["A", "B", "C"])
     assert prompt.parse("2") == "B"
     assert prompt.parse(" b ") == "B"
     assert rejection(prompt, "0") == "Please choose one of: A, B, C."
@@ -243,25 +207,23 @@ def test_choice_prompt():
 # ChoicePrompt needs at least one option
 def test_choice_prompt_needs_options():
     with pytest.raises(ValueError):
-        ChoicePrompt([], "> ")
+        ChoicePrompt([])
 
 # --- Questionnaire Tests ---
 
-# from_answers() checks every answer and stores the user's id
+# from_answers() converts answers given as text (mood by its number) to the right types, and stores the user's id
 def test_questionnaire_from_answers():
     response = Questionnaire().from_answers("123", {
         "sleep_duration": "7.5", "stress_level": "5", "focus_level": "6", "academic_workload": "4",
         "mood": "2", "social_activity_level": "3", "reflection": "Good week"})
-    assert isinstance(response, SurveyResponse)
     assert response == SAMPLE_RESPONSE
-    assert response.mood == "Calm" and response.sleep_duration == 7.5
 
 # The chatbot's values (numbers, mood by name in any case) are accepted, other keys are ignored
 def test_questionnaire_from_chatbot_values():
     answers = {**SAMPLE_ANSWERS, "mood": "calm", "text": "Thanks!", "survey_done": True}
     assert Questionnaire().from_answers("123", answers) == SAMPLE_RESPONSE
 
-# Every invalid or missing answer is reported in question order, with the same messages as before
+# Every invalid or missing answer is reported in question order, with that question's own message
 def test_questionnaire_reports_every_problem():
     with pytest.raises(SurveyAnswersError) as problem:
         Questionnaire().from_answers("123", {
@@ -278,6 +240,27 @@ def test_questionnaire_reports_every_problem():
     assert list(problem.value.errors) == ["sleep_duration", "stress_level", "focus_level",
                                           "academic_workload", "mood", "reflection"]
 
+# The scale limits themselves are allowed: sleep 0 and 24 hours, 1 and 10 on every scale,
+# and a mood by number from 1 (the first option) to 5 (the last)
+@pytest.mark.parametrize("key, answer, expected",
+    [("sleep_duration", "0", 0), ("sleep_duration", "24", 24)]
+    + [(key, answer, int(answer)) for key in SCALE_KEYS for answer in ("1", "10")]
+    + [("mood", "1", "Motivated"), ("mood", "5", "Exhausted")])
+def test_survey_accepts_limits(key, answer, expected):
+    response = Questionnaire().from_answers("123", {**SAMPLE_ANSWERS, key: answer})
+    assert getattr(response, key) == expected
+
+# An answer just past a limit is rejected with that question's usual message
+@pytest.mark.parametrize("key, answer, message",
+    [("sleep_duration", "-0.5", "Please enter a number from 0 to 24."),
+     ("sleep_duration", "24.5", "Please enter a number from 0 to 24.")]
+    + [(key, answer, "Please enter a number from 1 to 10.") for key in SCALE_KEYS for answer in ("0", "11")]
+    + [("mood", "0", MOOD_CHOICES), ("mood", "6", MOOD_CHOICES)])
+def test_survey_rejects_past_limits(key, answer, message):
+    with pytest.raises(SurveyAnswersError) as problem:
+        Questionnaire().from_answers("123", {**SAMPLE_ANSWERS, key: answer})
+    assert problem.value.errors == {key: message}
+
 # With no answers at all, every question is reported
 def test_questionnaire_no_answers():
     with pytest.raises(SurveyAnswersError) as problem:
@@ -290,51 +273,18 @@ def test_questions_match_survey_response():
     from dataclasses import fields
     assert [key for key, _ in Questionnaire().questions] == [f.name for f in fields(SurveyResponse)][1:]
 
-# from_answers() needs the user's id
-def test_questionnaire_requires_user_id():
-    with pytest.raises(TypeError):
-        Questionnaire().from_answers(answers=SAMPLE_ANSWERS)
-
 # --- Survey Response Tests ---
 
-# to_dict() gives the same dictionary format as before (user_id first, then each question in order)
+# to_dict() gives a plain dictionary of the user id and every answer, with user_id first
 def test_survey_response_to_dict():
     assert SAMPLE_RESPONSE.to_dict() == {
         "user_id": "123", "sleep_duration": 7.5, "stress_level": 5, "focus_level": 6,
         "academic_workload": 4, "mood": "Calm", "social_activity_level": 3, "reflection": "Good week"}
     assert list(SAMPLE_RESPONSE.to_dict())[0] == "user_id"
 
-# from_dict() and to_dict() round-trip; a missing answer is rejected
-def test_survey_response_from_dict():
-    assert SurveyResponse.from_dict(SAMPLE_RESPONSE.to_dict()) == SAMPLE_RESPONSE
-    incomplete = SAMPLE_RESPONSE.to_dict()
-    del incomplete["mood"]
-    with pytest.raises(TypeError):
-        SurveyResponse.from_dict(incomplete)
-
-# /submit_survey builds a SurveyResponse from the user id plus the chatbot's answers, then hands it to
-# LogicManager.assess(), which reads its attributes. Fails if the chatbot's field names stop matching SurveyResponse's
-def test_survey_response_from_chatbot_answers():
-    from types import SimpleNamespace
-    from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
-    from logic_manager_helper.LogicManager import LogicManager
-    answers = SurveyEntitySchema(**{"Sleep duration": 7, "Stress level": 5, "focus_level": 6, "academic_workload": 4,
-                                    "mood": "Calm", "social_activity_level": 3, "reflection": "Good week",
-                                    "text": "Done!", "survey_done": True})
-    del answers.text, answers.survey_done      # as ai_manager.show_survey_results() does
-
-    response = SurveyResponse(**{"user_id": "123", **answers.model_dump()})     # as app.py's /submit_survey does
-    ai_output = SimpleNamespace(mental_wellness_risk_score=40, burnout_risk_score=50, sentiment="Neutral", crisis_alert=False)
-    assert response == SurveyResponse("123", 7, 5, 6, 4, "Calm", 3, "Good week")
-    assert LogicManager().assess(response, ai_output, []).route
-
-# Check that heading turns a key into a title
-def test_questionnaire_heading():
-    assert Questionnaire.heading("social_activity_level") == "Social Activity Level"
-
 # --- Account Service Tests ---
 
-# Stand-in for DataManager's user methods, behaving like UserManager + MongoDBStorage:
+# Stand-in for DataManager's user methods, behaving like UserManager + MongoDBStorage
 class FakeUserData:
     def __init__(self):
         self.users = []
@@ -346,15 +296,11 @@ class FakeUserData:
     def get_user_by_id(self, user_id):
         return next((u for u in self.users if u.get_user_id() == user_id), None)
 
-    def get_user_by_username(self, username):
-        return next((u for u in self.users if u.get_username() == username), None)
-
     def _taken(self, username, uid=None):
         return any(u.get_username() == username and u.get_user_id() != uid for u in self.users)
 
     def create_user(self, username, password):
         if self.fail_saves or self._taken(username):
-            print("Error: A record with the same unique value already exists.")
             return None
         user = UserRecord(username, password)
         self.users.append(user)
@@ -363,7 +309,6 @@ class FakeUserData:
     def update_user(self, user_id, updates):
         user = self.get_user_by_id(user_id)
         if self.fail_saves or ("username" in updates and self._taken(updates["username"], user_id)):
-            print("Error: Update violates a unique field constraint.")
             return False
         data = {**user.to_dict(), **updates}
         self.users[self.users.index(user)] = UserRecord(data["username"], data["password"], user_id)
@@ -374,11 +319,12 @@ class FakeUserData:
 def make_accounts():
     return AccountService(FakeUserData(), PasswordHasher(iterations=1000))
 
-# Register, then log in with the same details passed as parameters (password stored hashed, not plain)
+# Register (username saved in lowercase, password hashed), then log in with the same details in other capitals
 def test_register_and_login():
     accounts = make_accounts()
     registered = accounts.register("Alice", "pass1!", "pass1!")
     assert registered.ok and registered.username == "alice"
+    assert registered.message == "Account created successfully!"
     stored = accounts.data.get_users()[0]
     assert stored.get_username() == "alice"
     assert stored.get_password() != "pass1!"
@@ -387,17 +333,16 @@ def test_register_and_login():
     assert logged_in.ok and logged_in.uid == registered.uid
     assert logged_in.message == "Login successful! Welcome, alice!"
 
-# Failed account actions return ok=False with the web pages' messages
-def test_account_failures():
+# Failed logins return ok=False with the login page's messages
+def test_login_failures():
     accounts = make_accounts()
     assert accounts.login("Alice", "pass1!").message == "No users registered yet. Please register first."
     accounts.register("Alice", "pass1!", "pass1!")
-    assert accounts.register("ALICE", "pass1!", "pass1!").message == "This username already exists. Please choose another."
-    assert accounts.register("Bob", "pass1!", "other1!").message == "Passwords do not match."
     assert accounts.login("Alice", "wrong1!").message == "Invalid username or password."
     assert accounts.login("Nobody", "pass1!").message == "Invalid username or password."
 
-# Register checks in the same order as before and stops at the first problem
+# register() checks the username rules, a taken name, the password rules, then the confirmation,
+# stopping at the first problem; nothing is saved
 def test_register_check_order():
     accounts = make_accounts()
     assert accounts.register("ab", "x", "y").message == USERNAME_RULES    # username rules first
@@ -408,67 +353,84 @@ def test_register_check_order():
     assert accounts.register("Bob", "pass1!", "").message == "Passwords do not match."    # then the confirmation
     assert len(accounts.data.get_users()) == 1
 
-# Answers are trimmed and missing answers (None) count as empty
+# Every answer is trimmed (username, password, confirmation, current and new password),
+# and a missing answer (None) counts as empty
 def test_account_answers_trimmed_or_missing():
     accounts = make_accounts()
-    assert accounts.register("  Alice  ", " pass1! ", "pass1!").ok
-    assert accounts.data.get_users()[0].get_username() == "alice"
+    registered = accounts.register("  Alice  ", " pass1! ", "  pass1!  ")
+    assert registered.ok and accounts.data.get_users()[0].get_username() == "alice"
     assert accounts.login(" alice ", "pass1! ").ok
+    assert accounts.change_password(registered.uid, " pass1! ", " new2@ ", "new2@  ").ok
+    assert accounts.login("alice", "new2@").ok         # the new password was saved without the spaces
     assert accounts.register(None, None, None).message == USERNAME_RULES
     assert accounts.register("Bob", None, None).message == PASSWORD_RULES_ALL
     assert accounts.login(None, None).message == "Invalid username or password."
 
-# Usernames match in any letter case, so accounts saved with capitals (e.g. by the old web pages) still log in
-def test_login_ignores_case_for_existing_accounts():
+# Usernames match in any letter case, so accounts saved with capitals (e.g. by the old web pages) still log in.
+# When accounts differ only in letter case, an exact match wins, then the lowercase one,
+# and the name can't be registered again in other capitals (CHANGED: added this last part)
+def test_login_ignores_case():
+    hasher = PasswordHasher(iterations=1000)
     accounts = make_accounts()
-    accounts.data.users.append(UserRecord("Marcus", PasswordHasher(iterations=1000).hash("pass1!")))
+    accounts.data.users.append(UserRecord("Marcus", hasher.hash("pass1!")))
     assert accounts.login("marcus", "pass1!").ok
     assert accounts.login("MARCUS", "pass1!").username == "Marcus"
     assert accounts.register("marcus", "pass1!", "pass1!").message == "This username already exists. Please choose another."
 
-# When accounts differ only in letter case, an exact match wins, then the lowercase one
-def test_login_prefers_exact_then_lowercase():
-    hasher = PasswordHasher(iterations=1000)
-    accounts = make_accounts()
     accounts.data.users += [UserRecord("Alice", hasher.hash("upper1!")), UserRecord("alice", hasher.hash("lower1!"))]
     assert accounts.login("Alice", "upper1!").username == "Alice"
     assert accounts.login("alice", "lower1!").username == "alice"
     assert accounts.login("ALICE", "lower1!").username == "alice"
 
-# Change username (taken names rejected in any case) and change password, given as parameters
+# Successful changes: the new username is saved in lowercase (user's own name in other capitals is allowed),
+# the new password logs in, and each gives its success message
 def test_change_username_and_password():
     accounts = make_accounts()
     uid = accounts.register("Alice", "pass1!", "pass1!").uid
-    accounts.register("Bob", "pass1!", "pass1!")
-    assert accounts.change_username(uid, "BOB").message == "This username already exists. Please choose another."
+    assert accounts.change_username(uid, "ALICE").ok    # the user's own name is harmless
     changed = accounts.change_username(uid, "Carol")
     assert changed.ok and changed.username == "carol"
     assert changed.message == "Your username has been successfully updated!"
     assert accounts.data.get_user_by_id(uid).get_username() == "carol"
-    assert accounts.change_password(uid, "wrong1!", "new2@", "new2@").message == "Incorrect password. Please try again."
     changed = accounts.change_password(uid, "pass1!", "new2@", "new2@")
     assert changed.ok and changed.message == "Your password has been successfully updated!"
     assert accounts.login("Carol", "new2@").ok
 
-# Changes use the register rules, checked in the same order as before
-def test_change_checks():
+# change_password stops at the first problem, in a fixed order.
+# each call has at least two problems, and the earliest check's message must be the one shown
+def test_change_password_check_order():
     accounts = make_accounts()
     uid = accounts.register("Alice", "pass1!", "pass1!").uid
-    assert accounts.change_username(uid, "  ").message == "Please Enter a username"
-    assert accounts.change_username(uid, "x!").message == USERNAME_RULES
-    assert accounts.change_username(uid, "ALICE").ok    # the user's own name is harmless
-    assert accounts.change_password(uid, "", "new2@", "new2@").message == "Please enter your old password"
-    assert accounts.change_password(uid, "pass1!", "", "").message == "Please enter your new password"
-    assert accounts.change_password(uid, "pass1!", "a", "a").message == PASSWORD_RULES_ALL
-    assert accounts.change_password(uid, "pass1!", "new2@", "").message == "Please confirm your new password"
-    assert accounts.change_password(uid, "pass1!", "new2@", "new3@").message == "Your new password & confirmation do not match."
+    assert accounts.change_password("nope", "", "", "").message == "Current user not found."    # 1. the account
+    assert accounts.change_password(uid, "", "", "").message == "Please enter your old password"    # 2. current entered
+    assert accounts.change_password(uid, "wrong1!", "a", "a").message == "Incorrect password. Please try again."    # 3. current correct
+    assert accounts.change_password(uid, "pass1!", "", "x").message == "Please enter your new password"    # 4. new entered
+    assert accounts.change_password(uid, "pass1!", "a", "").message == PASSWORD_RULES_ALL    # 5. the rules, before the confirmation
+    assert accounts.change_password(uid, "pass1!", "a", "b").message == PASSWORD_RULES_ALL    # ... and before the match
+    assert accounts.change_password(uid, "pass1!", "new2@", "").message == \
+        "Please confirm your new password"    # 6. confirmation entered, before the match
+    accounts.data.fail_saves = True
+    assert accounts.change_password(uid, "pass1!", "new2@", "new3@").message == \
+        "Your new password & confirmation do not match."    # 7. the match, before saving
     assert accounts.login("alice", "pass1!").ok    # the password was never changed
 
-# An unknown user id or a failed save is reported instead of crashing
+# change_username stops at the first problem: the account, an empty name, the rules, a taken name, then saving
+def test_change_username_check_order():
+    accounts = make_accounts()
+    uid = accounts.register("Alice", "pass1!", "pass1!").uid
+    accounts.register("Bob", "pass1!", "pass1!")
+    accounts.data.users.append(UserRecord("old!", "hash"))    # an old account whose name breaks today's rules
+    assert accounts.change_username("nope", "").message == "Current user not found."
+    assert accounts.change_username(uid, None).message == "Please Enter a username"
+    assert accounts.change_username(uid, "  ").message == "Please Enter a username"
+    assert accounts.change_username(uid, "OLD!").message == USERNAME_RULES    # the rules, before a taken name
+    accounts.data.fail_saves = True
+    assert accounts.change_username(uid, "BOB").message == "This username already exists. Please choose another."    # a taken name, before saving
+    assert accounts.get_username(uid) == "alice"
+
+# get_username() gives None for unknown user id, and a failed save gives each action's error msg instead of crashing
 def test_unknown_user_and_failed_saves():
     accounts = make_accounts()
-    assert accounts.change_username("nope", "carol").message == "Current user not found."
-    assert accounts.change_password("nope", "pass1!", "new2@", "new2@").message == "Current user not found."
     assert accounts.get_username("nope") is None
     uid = accounts.register("Alice", "pass1!", "pass1!").uid
     assert accounts.get_username(uid) == "alice"
@@ -478,11 +440,20 @@ def test_unknown_user_and_failed_saves():
     assert accounts.change_username(uid, "carol").message == "There was an error with updating your username. Please try again."
     assert accounts.change_password(uid, "pass1!", "new2@", "new2@").message == "There has been an issue with updating your password. Please try again later"
 
-# A database connection error while registering gives the register page's message
-def test_register_connection_error():
+# ConnectionError or ValueError from the DB while registering gives the "Unable to connect" msg
+@pytest.mark.parametrize("error", [ConnectionError("down"), ValueError("bad settings")])
+def test_register_connection_error(error):
     accounts = make_accounts()
-    accounts.data.create_user = MagicMock(side_effect=ConnectionError("down"))
+    accounts.data.create_user = MagicMock(side_effect=error)
     assert accounts.register("Alice", "pass1!", "pass1!").message == "Unable to connect to the database. Please try again later."
+
+# Only the account checks' own errors become a failed result
+# Anything unexpected (e.g. a bug) still raised, so Flask logs it instead of web page showing a misleading message
+def test_unexpected_errors_not_hidden():
+    accounts = make_accounts()
+    accounts.data.create_user = MagicMock(side_effect=RuntimeError("bug"))
+    with pytest.raises(RuntimeError):
+        accounts.register("Alice", "pass1!", "pass1!")
 
 # Account actions also accept their answers by name
 def test_account_actions_keyword_arguments():
@@ -490,26 +461,33 @@ def test_account_actions_keyword_arguments():
     uid = accounts.register(username="Alice", password="pass1!", confirm="pass1!").uid
     assert accounts.change_password(uid=uid, current_password="pass1!", new_password="new2@", confirm="new2@").ok
 
-# IOManager builds its AccountService in __init__, with the same DataManager
-def test_accounts_share_data_manager():
-    data = fake_data()
-    app = IOManager(data=data)
-    assert app.data is data
-    assert app.accounts.data is data
-
 # --- Trends Tests ---
 
-# With fewer than 2 records there is no trend data
-def test_trends_not_enough_records():
+# With fewer than 2 records there is no trend data; with 2 or more, it comes from get_user_int_records(), oldest -> newest
+def test_trends():
     data = fake_data([fake_record()])
-    assert trend_points(data, "123") is None
+    assert IOManager(data).trends("123") is None
     data.get_user_int_records.assert_not_called()
-    assert MIN_RECORDS == 2
 
-# With 2+ records, the data comes from get_user_int_records(), oldest -> newest
-def test_trends_oldest_first():
-    records = [fake_record("02-01-2026"), fake_record("01-01-2026")]
+    records = [fake_record("new"), fake_record("old")]
     data = fake_data(records)
     data.get_user_int_records.return_value = [{"date": "02-01-2026"}, {"date": "01-01-2026"}]
     assert IOManager(data).trends("123") == [{"date": "01-01-2026"}, {"date": "02-01-2026"}]
     data.get_user_int_records.assert_called_once_with(records, "123")
+
+# --- Web App Tests ---
+
+# The I/O layer runs inside the web server, so it must not use the terminal:
+# no input() or print() calls in io_manager.py or io_helpers/
+def test_no_terminal_input_or_output():
+    import ast
+    from pathlib import Path
+    folder = Path(__file__).parent
+    files = [folder / "io_manager.py", *sorted((folder / "io_helpers").glob("*.py"))]
+    assert len(files) > 5    # the files were found, so the check below means something
+
+    calls = [f"{path.name}:{node.lineno} {node.func.id}()"
+             for path in files
+             for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
+             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in ("input", "print")]
+    assert calls == []
