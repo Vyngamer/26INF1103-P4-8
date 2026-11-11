@@ -92,7 +92,7 @@
 </head>
 
 <!-- for flash message -->
-{% if request.endpoint in ['main', 'update_password', 'update_username'] %}
+{% if request.endpoint in ['main', 'update_password', 'update_username', 'login'] %}
   {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
           {% for category, message in messages %}
