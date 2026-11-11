@@ -82,47 +82,6 @@ def test_survey_invalid_answers_not_passed_on():
     assert result.message == f"Stress Level: Please enter a number from 1 to 10.; Mood: {MOOD_CHOICES}"
     assert received == []
 
-# --- History Tests ---
-
-# find_record() picks one of the user's records by its id
-# unknown id, no id, or another user's id gives None
-def test_find_record():
-    records = [fake_record("b"), fake_record("a")]
-    data = fake_data(records)
-    data.get_user_records.side_effect = lambda uid: records if uid == "123" else []
-    app = IOManager(data=data)
-
-    assert app.find_record("123", "a") is records[1]
-    assert app.find_record("123", "zzz") is None
-    assert app.find_record("123", None) is None
-    assert app.find_record("456", "a") is None    # another user's record is never returned
-
-# history() asks DataManager for the user's records and returns them unchanged, in newest first order
-def test_history_records():
-    records = [fake_record("new"), fake_record("old")]
-    data = fake_data(records)
-    assert IOManager(data=data).history("123") == records
-    data.get_user_records.assert_called_once_with("123")
-
-# latest_record() is the first record DataManager gives (its newest), or None when there are none
-def test_latest_record():
-    records = [fake_record("new"), fake_record("old")]
-    assert IOManager(fake_data(records)).latest_record("123") is records[0]
-    assert IOManager(fake_data([])).latest_record("123") is None
-
-# history(), latest_record(), find_record() and trends() never call load_records(), which would
-# download every user's records from MongoDB again
-def test_views_do_not_reload_records():
-    data = fake_data([fake_record("b"), fake_record("a")])
-    data.get_user_int_records.return_value = []
-    app = IOManager(data)
-
-    app.history("123")
-    app.latest_record("123")
-    app.find_record("123", "a")
-    app.trends("123")
-    data.load_records.assert_not_called()
-
 # --- Validator Tests ---
 
 # Valid usernames give no errors; too short, too long, 
@@ -474,6 +433,13 @@ def test_trends():
     data.get_user_int_records.return_value = [{"date": "02-01-2026"}, {"date": "01-01-2026"}]
     assert IOManager(data).trends("123") == [{"date": "01-01-2026"}, {"date": "02-01-2026"}]
     data.get_user_int_records.assert_called_once_with(records, "123")
+
+# trends() never calls load_records(), which would download every user's records from MongoDB again
+def test_trends_do_not_reload_records():
+    data = fake_data([fake_record("b"), fake_record("a")])
+    data.get_user_int_records.return_value = []
+    IOManager(data).trends("123")
+    data.load_records.assert_not_called()
 
 # --- Web App Tests ---
 

@@ -4,7 +4,6 @@ Main I/O Layer
 
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
 from io_helpers.account_service import AccountService
-from io_helpers.history import history_records, latest_record, find_record
 from io_helpers.trends import trend_points
 from io_helpers.survey_response import SurveyResult
 
@@ -59,20 +58,8 @@ class IOManager:
         return SurveyResult(True, "Survey answers accepted.", response=responses)
 
     '''
-    ASSESSMENT HISTORY
+    ASSESSMENT TRENDS
     '''
-
-    # Returns the user's assessment records for the history page, newest first
-    def history(self, uid):
-        return history_records(self.data, uid)
-
-    # Most recent assessment record (None if there is none)
-    def latest_record(self, uid):
-        return latest_record(self.data, uid)
-
-    # Returns user's record with record id, or None if missing or belongs to another user
-    def find_record(self, uid, record_id):
-        return find_record(self.data, uid, record_id)
 
     # Assessment trends
     # Returns the progress page's graph data, oldest -> newest, or None if there are fewer than 2 assessments
