@@ -2,10 +2,6 @@
 Functionality for user to view history
 '''
 
-# REMOVED: todays_records(), DATE_FORMAT and the datetime import. Nothing used them any more:
-# data_manager's replace_user_record() now keeps one assessment per user per day (in Singapore time),
-# while todays_records() used the computer's own clock.
-
 # User's assessment records for the history page, newest first
 def history_records(data, user_id):
     return data.get_user_records(user_id)
