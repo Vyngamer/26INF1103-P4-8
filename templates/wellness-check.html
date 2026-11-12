@@ -20,10 +20,41 @@
 	  {% endfor %}
       {% endif %}
       {% endwith %}
+{% if already_done_today %}
+          <div class="redo-modal-overlay" id="redoModal">
+              <div class="redo-modal">
 
+                  <h2>You've already checked in today!</h2>
+
+                  <p>
+                      You have already completed a wellness check today.
+                      Would you like to do another one?
+                  </p>
+
+                  <div class="redo-warning">
+                      Your previous assessment score will be replaced
+                      when you complete the new check.
+                  </div>
+
+                  <div class="redo-actions">
+
+                      <button type="button" class="redo-btn redo-yes"
+                          onclick="continueAssessment()">
+                          Yes, redo my check
+                      </button>
+
+                      <a href="{{ url_for('dashboard') }}" class="redo-btn redo-no">
+                          No, return to dashboard
+                      </a>
+
+                  </div>
+
+              </div>
+          </div>
+      {% endif %}
       <div class="page-head">
         <h1>Wellness check</h1>
-        <p>A quick conversation to understand how you’re feeling today. I’ll ask a few questions, and you can choose the responses that feel most like you.</p>
+        <p>A quick conversation to understand how you're feeling today. I'll ask a few questions, and you can choose the responses that feel most like you.</p>
       </div>
       <div class="support-notice">
         <div class="notice-icon">
@@ -157,7 +188,9 @@
 			})
 		})
 	});
-
+function continueAssessment() {
+  document.getElementById('redoModal').style.display = 'none';
+}
 </script>
 
 </body>
