@@ -618,3 +618,77 @@ td.action { text-align: right; }
 .pw-toggle:hover {
     color: #7952c7;
 }
+.support-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+
+    padding: 20px 24px;
+    margin: 24px 0;
+
+    background: #f5f1fc;
+    border: 1px solid #e4daf7;
+    border-left: 5px solid #7952c7;
+    border-radius: 14px;
+}
+
+.notice-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #e9e0fa;
+    border-radius: 12px;
+    color: #7952c7;
+}
+
+.notice-icon svg {
+    width: 23px;
+    height: 23px;
+}
+
+.notice-content {
+    flex: 1;
+}
+
+.notice-content h3 {
+    margin: 0 0 7px;
+    color: #35205f;
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.notice-content p {
+    margin: 0;
+    color: #655b78;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.notice-footer {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 12px;
+
+    color: #7952c7;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.notice-footer svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+    .support-notice {
+        padding: 16px;
+        gap: 12px;
+    }
+}
