@@ -19,7 +19,7 @@
         <div class="stack">
           <section class="score-card" aria-label="Overall wellness">
             <p class="label">Overall wellness</p>
-	          <p class="value"><span id="overallScore">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}</span>/100</p>
+	          <p class="value"><span id="overallScore">{{ latest_attempt.get_logic_output()["mental_wellness_risk_tier"] }}</span></p>
             <div class="meta">
               <span class="muted">Last check</span>
               <strong id="lastCheck">{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong>
@@ -30,7 +30,7 @@
             <h2 class="card-title">Previous attempt</h2>
             <p class="card-sub" data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</p>
             <div class="tiles-2">
-		    <div class="tile"><p class="t-label">Mental Wellness score</p><p class="t-value" id="tWellness">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</p></div>
+		    <div class="tile"><p class="t-label">Mental Wellness Risk score</p><p class="t-value" id="tWellness">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</p></div>
               <div class="tile"><p class="t-label">Burnout Risk Score</p><p class="t-value" id="tBurnout">{{ latest_attempt.get_ai_output()["burnout_risk_score"] }}/100</p></div>
             </div>
             <div class="tiles-4">

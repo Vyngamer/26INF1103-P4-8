@@ -51,7 +51,7 @@
             <p>View one wellbeing metric at a time with clear filters and a single large line graph.</p>
         </div>
         <div class="metric-tabs" role="tablist" aria-label="Choose a metric">
-            <button type="button" class="chip active" role="tab" aria-selected="true">Mental Wellness Score</button>
+            <button type="button" class="chip active" role="tab" aria-selected="true">Mental Wellness Risk Score</button>
             <button type="button" class="chip" role="tab" aria-selected="false">Burnout Risk Score</button>
             <button type="button" class="chip" role="tab" aria-selected="false">Social Activity Level</button>
             <button type="button" class="chip" role="tab" aria-selected="false">Stress Level</button>
@@ -61,7 +61,7 @@
         <section class="card chart-card">
             <div class="chart-head" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
             <div>
-                <h2 class="card-title" id="dynamicChartTitle" style="margin: 0; font-size: 1.2rem; color: #2d1e5f; font-weight: 600;">Mental Wellness score Trend</h2>
+                <h2 class="card-title" id="dynamicChartTitle" style="margin: 0; font-size: 1.2rem; color: #2d1e5f; font-weight: 600;">Mental Wellness Risk score Trend</h2>
                 <p class="card-sub" style="margin: 4px 0 0 0; color: #6b6382; font-size: 0.85rem;">A single large line graph for the selected metric, with clear axes.</p>
             </div>
             <p class="chart-hint" id="dynamicChartHint" style="margin: 0; color: #8c82a6; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">higher scores are better</p>
@@ -111,7 +111,7 @@
             const all_data = {{ history|tojson }};
             
             const metrics = {
-                "Mental Wellness Score": { data: [], max: 100 },
+                "Mental Wellness Risk Score": { data: [], max: 100 },
                 "Burnout Risk Score": { data: [], max: 100 },
                 "Social Activity Level": { data: [], max: 10 },
                 "Stress Level": { data: [], max: 10 },
@@ -123,7 +123,7 @@
             const formattedDates = [];
 
             all_data.forEach(attempt => {
-                metrics["Mental Wellness Score"].data.push(attempt.mental_wellness_risk_score);
+                metrics["Mental Wellness Risk Score"].data.push(attempt.mental_wellness_risk_score);
                 metrics["Burnout Risk Score"].data.push(attempt.burnout_risk_score);
                 metrics["Social Activity Level"].data.push(attempt.social_activity_level);
                 metrics["Stress Level"].data.push(attempt.stress_level);
@@ -183,7 +183,7 @@
 
                 if (chartTitle) chartTitle.textContent = metricName + " Trend";
                 if (chartHint) {
-                    if (metricName === "Mental Wellness Score" || metricName === "Burnout Risk Score" || metricName === "Stress Level") {
+                    if (metricName === "Mental Wellness Risk Score" || metricName === "Burnout Risk Score" || metricName === "Stress Level") {
                         chartHint.textContent = "lower scores reflect better wellbeing";
                     } else {
                         chartHint.textContent = "higher scores are better";
@@ -250,7 +250,7 @@
             });
 
             if (all_data.length > 0) {
-                drawGraph("Mental Wellness Score");
+                drawGraph("Mental Wellness Risk Score");
             }
         </script>
         {% else %}

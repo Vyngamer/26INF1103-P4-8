@@ -25,7 +25,8 @@
                     <thead>
                         <tr>
                             <th scope="col">Date</th>
-                            <th scope="col">Mental Wellness Score</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Mental Wellness Risk Score</th>
                             <th scope="col">Details</th>
                             <th scope="col">
                                 <span class="visually-hidden">Actions</span>
@@ -36,6 +37,7 @@
                             {% for previous_attempt in previous_attempts %}
                             <tr>
                                 <td data-label="Date">{{ previous_attempt.get_date() }}</td>
+                                <td data-label="Time">{{ previous_attempt.get_time() }}</td>
                                 <td data-label="Mental Wellness Score" class="score-cell">{{ previous_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</td>
                                 <td data-label="Details">
                                     <span class="details-strong">

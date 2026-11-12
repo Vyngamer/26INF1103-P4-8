@@ -16,7 +16,7 @@
         <div class="stack results-grid">
             <div class="grid-2">
             <section class="score-card">
-                <p class="label">Mental Wellness Score</p>
+                <p class="label">Mental Wellness Risk Score</p>
                 <p class="value">{{ choosen_attempt.get_ai_output()["mental_wellness_risk_score"] }}<small>/100</small></p>
                 <p class="note">A steadier check-in, with space to care for stress and rest.</p>
             </section>
@@ -27,6 +27,11 @@
             </section>
             </div>
 
+            <section class="card">
+                <h3 class="card-title card-title-sm">Primary Stressor</h3>
+                <p>{{ choosen_attempt.get_ai_output()["primary_stressor"] }}</p>
+            </section>
+            
             <section class="card reflection">
             <div class="reflection-head">
                 <h2 class="card-title">A reflection for you,</h2>
