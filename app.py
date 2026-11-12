@@ -441,12 +441,12 @@ def wellness_check():
         t.start()
         conversation.set_bot_typing(True)
 
-    return render_template('wellness-check.html', conversation=conversation)
+    return render_template('wellness-check.html', conversation=conversation, survey_results=None)
 
 @app.route('/get', methods=['GET','POST'])
 def chat():
     user_message = request.form["msg"]
-    conversation.add_message('user', user_message)
+    conversation.add_message('user', 'YT', user_message)
     conversation.set_bot_typing(True)
 
     return get_AI_response(user_message)
@@ -461,13 +461,8 @@ def wait_for_bot_response():
 @app.route('/confirm-survey', methods=['GET'])
 def confirm_survey():
     survey_results = ai_manager.show_survey_results()
-    html_output = '<p>Are all of these fields correct?</p>'
 
-    for key, value in survey_results.items():
-        html_output += '<p>' + key + ': ' + str(value) + '</p>'
-
-    flash(html_output)
-    return redirect(url_for('wellness_check'))
+    return render_template('wellness-check.html', conversation=conversation, survey_results=survey_results)
 
 # Raised by assess_and_save() when the assessment can't be finished, so nothing half-done is shown
 class AssessmentFailed(Exception):
@@ -638,7 +633,7 @@ def submit_survey():
         result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
     except Exception:
         app.logger.exception("Assessment failed")
-        conversation.add_message('ai', "Sorry, I couldn't finish your assessment just now. "
+        conversation.add_message('ai', 'AI' "Sorry, I couldn't finish your assessment just now. "
                                        "Please press Yes to try again.")
         return redirect(url_for('confirm_survey'))    # shows the answers again with Yes / No
 
@@ -820,17 +815,17 @@ def submit_survey():
     #     return render_template('results.html', choosen_attempt=choosen_attempt)
 
 @app.route('/deny-survey')
-
 def deny_survey():
     ai_manager.deny_survey()
     threading.Thread(target=get_AI_response, args=('The survey results are not accurate.',)).start()
     conversation.set_bot_typing(True)
 
-    return redirect(url_for('wellness_check'))
+    return redirect(url_for('wellness_check', conversation=conversation, survey_results=None))
+
 
 def get_AI_response(text):
     bot_response = ai_manager.prompt_bot(text)
-    conversation.add_message('ai', bot_response['text'])
+    conversation.add_message('ai', 'AI', bot_response['text'])
     conversation.set_bot_typing(False)
 
     return bot_response
@@ -858,3 +853,4 @@ def send_email(recipient, subject, body):
     except Exception as e:
         print(f"Failed to send email: {e}")
         return False
+
