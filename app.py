@@ -654,7 +654,6 @@ def submit_survey():
         conversation.set_bot_typing(True)
         threading.Thread(target=get_AI_response,
                          args=(f"Some answers need to be fixed: {result.message}",)).start()
-        done_today = latest_record is not None and latest_record.get_date() == today_date
 
         return redirect(url_for('wellness_check'))
 
