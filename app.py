@@ -436,7 +436,7 @@ def delete_account():
     return redirect(url_for('main'))
 
 @app.route('/wellness-check')
-def wellness_check():
+def wellness_check(continue_chat=False):
     uid, username = current_user()
     if uid is None:
         return redirect(url_for('login'))
@@ -445,7 +445,7 @@ def wellness_check():
     today_date = (date.today()).strftime("%d-%m-%Y")
     # get the date of the latest record
     latest_record = data_manager.get_latest_user_record(uid)
-    done_today = latest_record is not None and latest_record.get_date() == today_date
+    done_today = latest_record is not None and latest_record.get_date() == today_date and not continue_chat
 
     if len(conversation.logs()) == 0 and not conversation.is_bot_typing():
         t = threading.Thread(target=get_AI_response, args=('Hello!',))
@@ -471,7 +471,7 @@ def wait_for_bot_response():
      
 @app.route('/confirm-survey', methods=['GET'])
 def confirm_survey():
-    survey_results = ai_manager.show_survey_results()
+    survey_results = ai_manager.show_survey_results(by_alias=True)
 
     return render_template('wellness-check.html', conversation=conversation, survey_results=survey_results)
 
@@ -638,11 +638,12 @@ def submit_survey():
     try:
         answers = dict(ai_manager.show_survey_results())
     except (TypeError, ValidationError):    # no survey results yet, or they don't fit the chatbot's schema
-        return redirect(url_for('wellness_check'))
+        return redirect(url_for('wellness_check', contiue_chat=True))
 
     try:
         result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
-    except Exception:
+    except Exception as e:
+        print(e)
         app.logger.exception("Assessment failed")
         conversation.add_message('ai', 'AI' "Sorry, I couldn't finish your assessment just now. "
                                        "Please press Yes to try again.")
@@ -653,6 +654,8 @@ def submit_survey():
         conversation.set_bot_typing(True)
         threading.Thread(target=get_AI_response,
                          args=(f"Some answers need to be fixed: {result.message}",)).start()
+        done_today = latest_record is not None and latest_record.get_date() == today_date
+
         return redirect(url_for('wellness_check'))
 
     conversation.set_done(True)
@@ -831,7 +834,7 @@ def deny_survey():
     threading.Thread(target=get_AI_response, args=('The survey results are not accurate.',)).start()
     conversation.set_bot_typing(True)
 
-    return redirect(url_for('wellness_check', conversation=conversation, survey_results=None))
+    return redirect(url_for('wellness_check'))
 
 
 def get_AI_response(text):
