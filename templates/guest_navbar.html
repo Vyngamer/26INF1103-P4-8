@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AI Counsellor{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='assets/logo.png') }}">
+  {% block css %}{% endblock %}
+</head>
+<body>
+
+  <!-- The header lives here once, and the landing, login and sign-up pages reuse it -->
+  <header class="site-header">
+    <div class="inner">
+      <a href="{{ url_for('main') }}" class="brand"><img src="{{ url_for('static', filename='assets/logo.png') }}" alt="AI Counsellor — Listen, Support, Care"></a>
+      <nav class="header-actions" aria-label="Account">
+        <a href="{{ url_for('login') }}" class="link-login" aria-current="page">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-primary" aria-current="page">Get Started</a>
+      </nav>
+    </div>
+  </header>
+
+{% block content %}{% endblock %}
+
+</body>
+</html>

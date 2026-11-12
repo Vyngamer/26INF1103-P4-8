@@ -516,3 +516,105 @@ td.action { text-align: right; }
   .header-actions .link-login { display: none; }   /* Get Started still leads to login via the form */
   .chart-summary { grid-template-columns: 1fr; }
 }
+
+/* Force the What We Offer section to the centre */
+.offer {
+    width: 100%;
+    padding: 70px 20px;
+    box-sizing: border-box;
+}
+
+.offer-inner {
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.offer .section-title {
+    text-align: center !important;
+    margin-bottom: 40px;
+}
+
+.offer-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .offer-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 48px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    color: #777;
+}
+
+.toggle-password svg {
+    width: 20px;
+    height: 20px;
+}
+
+.toggle-password:hover {
+    color: #7952c7;
+}
+  .pw-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.pw-wrap input {
+    width: 100%;
+    padding-right: 45px;
+}
+
+.pw-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    color: #777;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pw-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.pw-toggle:hover {
+    color: #7952c7;
+}

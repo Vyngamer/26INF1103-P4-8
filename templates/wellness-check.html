@@ -8,6 +8,21 @@
   {% include 'navbar.html' %}
 
     <main class="main">
+
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      {% for message in messages %}
+      <div class="overlay" id="overlay">
+        <div class="popup">
+		  {{ message | safe }}
+          <button class="yes pop" onclick="selectYes()">Yes</button>
+          <button class="no pop" onclick="selectNo()">No</button>
+        </div>
+	  </div>
+	  {% endfor %}
+      {% endif %}
+      {% endwith %}
+
       <div class="page-head">
         <h1>Wellness check</h1>
         <p>A quick conversation to understand how you’re feeling today. I’ll ask a few questions, and you can choose the responses that feel most like you.</p>
@@ -23,6 +38,12 @@
         </div>
 
         <div class="chat-log" id="chatLog" aria-live="polite">
+		{% for log in conversation.logs() %}
+			<div class="msg {{ log.sender }}"><div class="avatar">YT</div><div class="bubble">{{ log.message }}</div></div>
+		{% endfor %}
+		{% if conversation.is_bot_typing() %}
+			<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div>
+		{% endif %}
 	</div>
 	
         <div class="quick-replies" id="quickReplies"></div>
@@ -30,7 +51,7 @@
         <form class="chat-input" id="chatForm" autocomplete="off">
           <label for="chatInput" class="visually-hidden">Write a message</label>
           <input type="text" id="chatInput" name="msg" placeholder="Write a message">
-          <button type="submit" class="send" id="sendBtn" aria-label="Send message">
+		  <button type="submit" class="send" id="sendBtn" aria-label="Send message" {{ 'disabled' if conversation.is_done() else '' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="M21 3l-7 18-4-7-7-4 18-7z"/></svg>
           </button>
         </form>
@@ -45,36 +66,73 @@
   </div>
 
 <script>
+	function selectYes() {
+		window.location.href = "{{ url_for('submit_survey') }}"
+	}
+
+	function selectNo() {
+		window.location.href = "{{ url_for('deny_survey') }}"
+	}
+
+    function botTyping(botTypingHtml) {
+        $('#sendBtn').prop('disabled', true);
+        $('#chatLog').append(botTypingHtml);
+        $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+        event.preventDefault();
+	}
+
+    function removeBotTyping(botHtml) {
+        $('#botTyping').remove();
+        $('#chatLog').append(botHtml);
+        $('#sendBtn').prop('disabled', false);
+        $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+        event.preventDefault();
+    }
+
+	{% if conversation.is_bot_typing() %}
 	$(document).ready(function() {
-			$('#chatForm').on('submit', function() {
-					var rawText = $('#chatInput').val();
-					var userHtml = '<div class="msg user"><div class="avatar">YT</div><div class="bubble">' + rawText + '</div></div>';
-					var botTypingHtml = '<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div'
+		$('#sendBtn').prop('disabled', true);
+		$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+		$.ajax({
+			type: 'GET',
+			url: '/get-bot-response'
+		}).done(function(data) {
+			botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data.message + '</div></div>';
+            removeBotTyping(botHtml) 
+		})
+	})
+	{% endif %}
 
-					$('#chatLog').append(userHtml);
-					$('#chatLog').append(botTypingHtml);
 
-					$('#chatInput').val('');
-					$('#sendBtn').prop('disabled', true);
-					$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
-					event.preventDefault();
+	$(document).ready(function() {
+		$('#chatForm').on('submit', function() {
+			var rawText = $('#chatInput').val();
+			var userHtml = '<div class="msg user"><div class="avatar">YT</div><div class="bubble">' + rawText + '</div></div>';
+			var botTypingHtml = '<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div>'
 
-					$.ajax({
-						data: {
-								msg: rawText,
-						},
-						type: 'POST',
-						url: '/get'
-						}).done(function(data) {
-								botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data + '</div></div>';
-								$('#botTyping').remove();
-								$('#chatLog').append($.parseHTML(botHtml));
-								$('#sendBtn').prop('disabled', false);
-								$('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
-								event.preventDefault();
-							})
+			$('#chatInput').val('');
+			$('#chatLog').append(userHtml);
+
+            botTyping(botTypingHtml)
+
+			$.ajax({
+				data: {
+					msg: rawText,
+				},
+				type: 'POST',
+				url: '/get'
+			}).done(function(data) {
+				botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data.text + '</div></div>';
+                removeBotTyping(botHtml)
+
+				if (data.survey_done == true) {
+                    botTyping(botTypingHtml)
+					window.location.href = '{{ url_for('confirm_survey') }}'
+				}
 			})
+		})
 	});
+
 </script>
 
 </body>

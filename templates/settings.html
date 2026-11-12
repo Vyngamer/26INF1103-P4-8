@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}My progress — AI Counsellor{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/progress.css') }}">
+<style>
+  /* Custom modern enhancements for the progress page */
+  .metric-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .chip {
+    background-color: #f3f0f7;
+    border: 1px solid #e1dced;
+    color: #4a3290;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .chip:hover {
+    background-color: #e8e2f3;
+  }
+
+  .chip.active {
+    background-color: #4a3290;
+    color: #ffffff;
+    border-color: #4a3290;
+    box-shadow: 0 4px 12px rgba(74, 50, 144, 0.2);
+  }
+
+  .chart-card {
+    background: #ffffff;
+    border: 1px solid #eae6f2;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(74, 50, 144, 0.04);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="app">
+  {% include 'navbar.html' %}
+  <div class="main">
+    <div class="page-head">
+      <h1>Settings</h1>
+      <p>Update your profile details and password securely from one place.</p>
+    </div>
+    <div class="grid-2 section-gap">
+      <section class="card settings-card">
+        <h2 class="card-title">Profile</h2>
+        <p class="card-sub">Edit your username and keep your account details up to date.</p>
+        <form method="POST" action="{{ url_for('update_username') }}">
+          {% if error1 %}
+          <p class="form-error" role="alert" style="color: crimson; font-size: 20px;">*{{ error1 }}</p>
+          {% endif %}
+          {% if success %}
+          <p class="form-error" role="alert" style="color: green; font-size: 20px;">{{ success }}</p>
+          {% endif %}
+          <div class="form-field">
+            <label for="current_username">Current Username</label>
+            <input class="input" type="text" id="current_username" name="current_username" value="{{ username }}"
+              disabled>
+          </div>
+          <div class="form-field">
+            <label for="username">New Username</label>
+            <input class="input" type="text" id="username" name="username">
+            <p class="hint">Use letters, numbers, or underscores. This is the username shown in your account and
+              profile.</p>
+          </div>
+          <div class="spacer"></div>
+          <button type="submit" class="btn btn-primary btn-block">Save changes</button>
+        </form>
+      </section>
+      <section class="card settings-card">
+        <h2 class="card-title">Change password</h2>
+        <p class="card-sub">Update your password securely and review the guidance below before saving.</p>
+        <form method="POST" action="{{ url_for('update_password') }}">
+          {% if error2 %}
+          {% for error in error2 %}
+          <p class="form-error" role="alert" style="color: crimson; font-size: 20px;">*{{ error }}</p>
+          {% endfor %}
+          {% endif %}
+          {% if success2 %}
+          <p class="form-error" role="alert" style="color: green; font-size: 20px;">{{ success2 }}</p>
+          {% endif %}
+          <div class="form-field">
+            <label for="current">Current password</label>
+            <div class="pw-wrap"><input class="input" type="password" id="current" name="current"
+                placeholder="••••••••••••"><button type="button" class="pw-toggle" aria-label="Show password"><svg
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg></button></div>
+          </div>
+          <div class="form-field">
+            <label for="newpw">New password</label>
+            <div class="pw-wrap"><input class="input" type="password" id="newpw" name="newpw"
+                placeholder="••••••••••••"><button type="button" class="pw-toggle" aria-label="Show password"><svg
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg></button></div>
+          </div>
+          <div class="form-field">
+            <label for="confirm">Confirm new password</label>
+            <div class="pw-wrap"><input class="input" type="password" id="confirm" name="confirm"
+                placeholder="••••••••••••"><button type="button" class="pw-toggle" aria-label="Show password"><svg
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg></button></div>
+          </div>
+          <div class="guidance">
+            <h4>Password guidance</h4>
+            <p>Use 8+ characters, include a mix of letters and numbers, and avoid repeating your username or previous
+              password.</p>
+          </div>
+          <div class="spacer"></div>
+          <button type="submit" class="btn btn-primary btn-block">Update password</button>
+        </form>
+      </section>
+    </div>
+    <section class="card settings-card" style="margin-top: 24px; border: 1px solid #f5c2c7;">
+      <h2 class="card-title" style="color: crimson;">Delete account</h2>
+      <p class="card-sub">
+        This permanently deletes your account and all of your wellness assessment records. This cannot be undone.
+      </p>
+      <form method="POST" action="{{ url_for('delete_account') }}" novalidate>
+        {% if error3 %}
+        {% for error in error3 %}
+        <p class="form-error" role="alert" style="color: crimson; font-size: 20px;">*{{ error }}</p>
+        {% endfor %}
+        {% endif %}
+        <div class="form-field">
+          <label for="delete_password">Enter your password</label>
+          <input class="input" type="password" id="delete_password" name="delete_password" autocomplete="new-password">
+        </div>
+        <div class="form-field">
+          <label for="confirm_text">Type DELETE to confirm</label>
+          <input class="input" type="text" id="confirm_text" name="confirm_text" autocomplete="off">
+        </div>
+        <div class="spacer"></div>
+        <button type="submit" class="btn btn-block" style="background: crimson; color: #ffffff;">
+          Delete my account
+        </button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

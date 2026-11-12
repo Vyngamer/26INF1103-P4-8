@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Your results — AI Counsellor{% endblock %}
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/results.css') }}">{% endblock %}
+
+{% block content %}
+<div class="app">
+    {% include 'navbar.html' %}	
+    <div class="main">
+        {% if choosen_attempt %}
+        <div class="page-head">
+        <a href="{{ url_for('history') }}" class="back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4M10 6l-6 6 6 6"/></svg>Back</a>
+    <h1>Your wellness check results</h1>
+    <p>A moment to reflect on how you're feeling and find a gentle next step. <span class="hint"></span></p>
+        </div>
+        <div class="stack results-grid">
+            <div class="grid-2">
+            <section class="score-card">
+                <p class="label">Mental Wellness Score</p>
+                <p class="value">{{ choosen_attempt.get_ai_output()["mental_wellness_risk_score"] }}<small>/100</small></p>
+                <p class="note">A steadier check-in, with space to care for stress and rest.</p>
+            </section>
+            <section class="score-card">
+                <p class="label">Burnout Risk Score</p>
+                <p class="value">{{ choosen_attempt.get_ai_output()["burnout_risk_score"] }}<small>/100</small></p>
+                <p class="note">Lower is better. Sleep and workload are the main drivers this time.</p>
+            </section>
+            </div>
+
+            <section class="card reflection">
+            <div class="reflection-head">
+                <h2 class="card-title">A reflection for you,</h2>
+                <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Check completed</span>
+            </div>
+            <p>{{ choosen_attempt.get_ai_output()['personalized_recommendations'] }}</p>
+            <p class="ai-tag">AI-generated · Based on your responses</p>
+            </section>
+
+            <div class="grid-2">
+            <section class="card">
+                <h3 class="card-title card-title-sm">Insights</h3>
+                <ul class="bullets">
+                    {% if choosen_attempt.get_logic_output()["warnings"] %}
+                    {% for warning in choosen_attempt.get_logic_output()["warnings"] %}
+                    <li>{{ warning }}</li>
+                    {% endfor %}
+                    {% else %}
+                    <p>No Insights available</p>
+                    {% endif %}
+                </ul>
+            </section>
+            <section class="card">
+                <h3 class="card-title card-title-sm">Comparison(s)</h3>
+                <ul class="bullets">
+                    {% if choosen_attempt.get_logic_output()["display_messages"] %}
+                    {% for message in choosen_attempt.get_logic_output()["display_messages"] %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                    {% else %}
+                    <p>No comparisons available</p>
+                    {% endif %}
+                </ul>
+            </section>
+            </div>
+        </div>
+        <div class="results-footer">
+            <div class="disclaimer">
+            <strong>Illustrative scores, not a clinical or validated test.</strong>
+            AI-generated reflections on self-reported wellbeing are not a diagnosis or medical advice, and do not replace professional care.
+            </div>
+            <div class="btns">
+            <a href="{{ url_for('progress') }}" class="btn btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m6 15 4-5 4 3 6-7"/></svg>View progress</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4M10 6l-6 6 6 6"/></svg>Return to dashboard</a>
+            </div>
+        </div>
+        {% else %}
+        <p>No results available for this attempt.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

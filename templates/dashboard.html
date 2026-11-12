@@ -8,9 +8,10 @@
   {% include 'navbar.html' %}	
 
     <main class="main">
+      {% if latest_attempt %}
       <div class="page-head">
-	      <h1>Welcome back, <span data-first-name>{{ user_details.username }}</span></h1>
-        <p>Your dashboard is ready. Review your last wellness check and start a new one whenever you’re ready.</p>
+	      <h1>Welcome back, <span data-first-name></span>{{ username }}</h1>
+        <p>Your dashboard is ready. Review your last wellness check and start a new one whenever you,re ready.</p>
       </div>
 
       <div class="dash-grid">
@@ -18,33 +19,36 @@
         <div class="stack">
           <section class="score-card" aria-label="Overall wellness">
             <p class="label">Overall wellness</p>
-	    <p class="value"><span id="overallScore">72</span>/100</p>
+	          <p class="value"><span id="overallScore">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}</span>/100</p>
             <div class="meta">
               <span class="muted">Last check</span>
-              <strong id="lastCheck">2 Nov 2026 · 9:30 AM</strong>
+              <strong id="lastCheck">{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong>
             </div>
-            <p class="meta muted" id="comparedWith" style="margin-top:10px">Compared with 26 Oct 2026 · 66/100</p>
           </section>
 
           <section class="card">
             <h2 class="card-title">Previous attempt</h2>
-            <p class="card-sub" data-latest-date>2 Nov 2026 · 9:30 AM</p>
+            <p class="card-sub" data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</p>
             <div class="tiles-2">
-		    <div class="tile"><p class="t-label">Mental Wellness score</p><p class="t-value" id="tWellness">{{ previous_attempt.mental_wellness_score }}/100</p></div>
-              <div class="tile"><p class="t-label">Burnout Risk Score</p><p class="t-value" id="tBurnout">{{ previous_attempt.burnout_risk_score }}/100</p></div>
+		    <div class="tile"><p class="t-label">Mental Wellness score</p><p class="t-value" id="tWellness">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</p></div>
+              <div class="tile"><p class="t-label">Burnout Risk Score</p><p class="t-value" id="tBurnout">{{ latest_attempt.get_ai_output()["burnout_risk_score"] }}/100</p></div>
             </div>
             <div class="tiles-4">
-		    <div class="tile lav"><p class="t-label">Sleep hours</p><p class="t-value" id="tSleep">{{ previous_attempt.sleep_duration }}/24</p></div>
-		    <div class="tile lav"><p class="t-label">Focus Level</p><p class="t-value" id="tFocus">{{ previous_attempt.focus_level }}/10</p></div>
-              <div class="tile lav"><p class="t-label">Stress Level</p><p class="t-value" id="tStress">{{ previous_attempt.stress_level }}/10</p></div>
-              <div class="tile lav"><p class="t-label">Social Activity Level</p><p class="t-value" id="tSocial">{{ previous_attempt.social_activity_level }}/10</p></div>
+              <div class="tile lav"><p class="t-label">Sleep hours</p><p class="t-value" id="tSleep">{{ latest_attempt.get_user_input()["sleep_duration"] }}/24</p></div>
+              <div class="tile lav"><p class="t-label">Stress Level</p><p class="t-value" id="tStress">{{ latest_attempt.get_user_input()["stress_level"] }}/10</p></div>
+              <div class="tile lav"><p class="t-label">Focus Level</p><p class="t-value" id="tFocus">{{ latest_attempt.get_user_input()["focus_level"] }}/10</p></div>
+              <div class="tile lav"><p class="t-label">Social Activity Level</p><p class="t-value" id="tSocial">{{ latest_attempt.get_user_input()["social_activity_level"] }}/10</p></div>
             </div>
             <div class="compare-box">
               <h4>Comparison</h4>
 	      <ul class="bullets">
-	      {% for message in previous_attempt.display_messages %} 
-	         <li>{{ message }}</li>	
-	      {% endfor %}
+          {% if latest_attempt.get_logic_output()["display_messages"] %}
+          {% for message in latest_attempt.get_logic_output()["display_messages"] %}
+                <li>{{ message }}</li>
+          {% endfor %}
+          {% else %}
+                <li>No comparison messages available.</li>
+          {% endif %}
 	      </ul>
             </div>
           </section>
@@ -60,24 +64,117 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5-12-7.5z"/></svg>
                 Start wellness check
               </a>
-              <a href="history.html" class="btn btn-outline">
+              <a href={{ url_for('history') }} class="btn btn-outline">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
                 View past results
               </a>
             </div>
-            <div class="footer-row"><span>Last completed check</span><strong data-latest-date>2 Nov 2026 · 9:30 AM</strong></div>
+            <div class="footer-row"><span>Last completed check</span><strong data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong></div>
           </section>
 
           <section class="card">
             <h2 class="card-title">Insights</h2>
             <p class="card-sub">A quick snapshot from your last check</p>
-            <div class="insight"><h4>High Burnout Warning (Sleep)</h4><p>Your burnout risk score was high and you had little sleep</p></div>
+            {% if latest_attempt.get_logic_output()["warnings"] %}
+            {% for warning in latest_attempt.get_logic_output()["warnings"] %}
+            <div class="insight"><h4>{{ warning }}</h4></div>
+            {% endfor %}
+            {% else %}
+            <div class="insight"><h4>No Insights to share</h4><p>You're doing great! Keep up the good work.</p></div>
+            {% endif %}
+            <!-- <div class="insight"><h4>High Burnout Warning (Sleep)</h4><p>Your burnout risk score was high and you had little sleep</p></div>
             <div class="insight"><h4>Burnout Warning (Workload)</h4><p>Your burnout risk score was high as well as your workload</p></div>
-            <div class="insight"><h4>Social Withdrawal Risk</h4><p>Your mood wasn’t too good and your social activity level was low</p></div>
+            <div class="insight"><h4>Social Withdrawal Risk</h4><p>Your mood wasn’t too good and your social activity level was low</p></div> -->
             <div class="insight advice"><h4>Advice For You (AI Generated)</h4><p>Stress management remains the area with the most room for improvement. A new check can help you track progress and identify small changes to build on.</p></div>
           </section>
         </div>
       </div>
+      {% else %}
+      <div class="page-head">
+	      <h1>Welcome, <span data-first-name></span>{{ username }}</h1>
+        <div class="empty-state-container">
+        <!-- Friendly illustration -->
+        <img 
+          src="../static/assets/no_data.jpeg" 
+          alt="Wellness Illustration" 
+          class="empty-state-img"
+        />
+
+        <!-- Header -->
+        <h2 class="empty-state-title">No Previous Attempts Yet</h2>
+
+        <!-- Description -->
+        <p class="empty-state-description">
+          Take your first wellness check to unlock personalized insights and monitor your progress over time.
+        </p>
+
+        <!-- Button matching your brand style -->
+        <a href={{ url_for('wellness_check') }}  class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5-12-7.5z"/></svg>
+            Start wellness check
+        </a>
+      </div>
+
+      <style>
+        .empty-state-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 80vh;
+          padding: 40px 20px;
+          text-align: center;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .empty-state-img {
+          max-width: 320px;
+          width: 100%;
+          height: auto;
+          margin-bottom: 24px;
+        }
+
+        .empty-state-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #1e1b4b;
+          margin: 0 0 12px 0;
+        }
+
+        .empty-state-description {
+          font-size: 15px;
+          color: #64748b;
+          max-width: 440px;
+          line-height: 1.5;
+          margin: 0 0 28px 0;
+        }
+
+        .primary-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background-color: #4c3596;
+          color: #ffffff;
+          font-size: 16px;
+          font-weight: 600;
+          padding: 14px 28px;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .primary-btn:hover {
+          background-color: #3b287a;
+        }
+
+        .primary-btn:active {
+          transform: scale(0.98);
+        }
+      </style>
+      </div>
+      {% endif %}
     </main>
   </div>
   <script src="js/app.js"></script>

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Sign up — AI Counsellor{% endblock %}
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">{% endblock %}
+{% include 'guest_navbar.html' %}
+{% block content %}
+  <main class="auth">
+    <div class="inner">
+      <section class="auth-intro">
+        <h1 class="display">Join your mental wellness space</h1>
+        <p class="lead">Start your journey with a private AI Counsellor, guided conversations, and a safe space to reflect and grow.</p>
+        <div class="feature-panel">
+          <div class="feature">
+            <div class="icon-bubble"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.6 4-1.3 7-5.2 7-9.6V6l-7-3z"/></svg></div>
+            <div><h3>Secure and private</h3><p>Your conversations are encrypted and protected from the moment you sign in.</p></div>
+          </div>
+          <div class="feature">
+            <div class="icon-bubble"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.3-9-8.6C1.6 8.2 3.6 5 6.8 5c2 0 3.4 1 5.2 3 1.8-2 3.2-3 5.2-3 3.2 0 5.2 3.2 3.8 6.4-2 4.3-9 8.6-9 8.6z"/></svg></div>
+            <div><h3>Empathetic support</h3><p>Speak freely and openly with a warm, understanding presence that learns with you.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="auth-card" aria-labelledby="cardTitle">
+        <a href="{{ url_for('main') }}" class="back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4M10 6l-6 6 6 6"/></svg>Back</a>
+        <h1 id="cardTitle">Sign up</h1>
+        <p class="sub">Create your account and begin your mental wellness journey.</p>
+
+        <form action="register" class="auth-form" method="POST">
+          {% if error %}
+          <p class="form-error" role="alert" style="color: crimson; font-size: 20px;">*{{ error }}</p>
+          {% endif %}
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Username">
+          </div>
+          <div class="form-group">
+    <label for="password">Password</label>
+    <div class="pw-wrap">
+        <input class="input" type="password" id="password" name="password"
+            placeholder="Password">
+
+        <button type="button" class="pw-toggle" aria-label="Show password">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true">
+                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                <circle cx="12" cy="12" r="3" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="confirm">Confirm password</label>
+    <div class="pw-wrap">
+        <input class="input" type="password" id="confirm" name="confirm"
+            placeholder="Confirm Password">
+
+        <button type="button" class="pw-toggle" aria-label="Show password">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true">
+                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                <circle cx="12" cy="12" r="3" />
+            </svg>
+        </button>
+    </div>
+</div>
+          <button type="submit" class="btn btn-vibrant btn-block">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            Create account
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <p class="alt-action">Already have an account?<a href="{{ url_for('login') }}" class="text-link">Log in</a></p>
+          <p class="privacy-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.6 4-1.3 7-5.2 7-9.6V6l-7-3z"/></svg>Your privacy is our priority</p>
+        </form>
+      </section>
+    </div>
+  </main>
+{% endblock %}
