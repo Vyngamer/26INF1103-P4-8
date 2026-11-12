@@ -5,6 +5,7 @@ from typing import Literal
 @dataclass
 class Message:
     sender: Literal['user', 'ai']
+    avatar: Literal['YT', 'AI']
     message: str
 
     def asdict(self):
@@ -17,8 +18,8 @@ class Conversation:
         self.__bot_typing = False
         self.__done = False
 
-    def add_message(self, sender, message):
-        self.__conversation_list.append(Message(sender, message))
+    def add_message(self, sender, avatar, message):
+        self.__conversation_list.append(Message(sender, avatar, message))
 
     def set_bot_typing(self, status):
         if not isinstance(status, bool):

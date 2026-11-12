@@ -19,7 +19,6 @@ class AIManager:
     def prompt_bot(self, message):
         output_response = json.loads(self._client.call_api(message).data)
         self._survey_results = output_response
-        print(output_response, file=sys.stdout)
 
         return {'text': output_response['text'], 'survey_done': output_response['survey_done']}
 

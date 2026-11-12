@@ -7,22 +7,20 @@
   
   {% include 'navbar.html' %}
     <main class="main">
-      {% with messages = get_flashed_messages() %}
-      {% if messages %}
-      {% for message in messages %}
+
+  
+	{% if survey_results %}
       <div class="overlay" id="overlay">
         <div class="popup">
-		  {{ message | safe }}
+			<p>Are all of these fields correct?</p>
+			{% for key, value in survey_results.items() %}
+				<p>{{ key }}: {{ value }}</p>
+			{% endfor %}
           <button class="yes pop" onclick="selectYes()">Yes</button>
           <button class="no pop" onclick="selectNo()">No</button>
         </div>
 	  </div>
-	  {% endfor %}
-      {% endif %}
-      {% endwith %}
-{% if already_done_today %}
-          <div class="redo-modal-overlay" id="redoModal">
-              <div class="redo-modal">
+	{% endif %}
 
                   <h2>You've already checked in today!</h2>
 
@@ -95,7 +93,7 @@
 
         <div class="chat-log" id="chatLog" aria-live="polite">
 		{% for log in conversation.logs() %}
-			<div class="msg {{ log.sender }}"><div class="avatar">YT</div><div class="bubble">{{ log.message }}</div></div>
+		<div class="msg {{ log.sender }}"><div class="avatar">{{ log.avatar }}</div><div class="bubble">{{ log.message }}</div></div>
 		{% endfor %}
 		{% if conversation.is_bot_typing() %}
 			<div class="msg ai typing" id="botTyping"><div class="avatar">AI</div><div class="bubble"><span></span><span></span><span></span></div></div>
