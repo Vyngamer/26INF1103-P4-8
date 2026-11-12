@@ -692,3 +692,163 @@ td.action { text-align: right; }
         gap: 12px;
     }
 }
+
+
+/* Modal background */
+.redo-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    background: rgba(35, 25, 55, 0.45);
+    backdrop-filter: blur(5px);
+}
+
+/* Modal container */
+.redo-modal {
+    width: 100%;
+    max-width: 460px;
+    padding: 35px;
+
+    background: #ffffff;
+    border: 1px solid #e9e2f5;
+    border-radius: 20px;
+
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(40, 25, 75, 0.18);
+
+    animation: modalAppear 0.3s ease;
+}
+
+@keyframes modalAppear {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Icon */
+.redo-modal-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #7952c7;
+    background: #f0eafa;
+    border-radius: 50%;
+}
+
+.redo-modal-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Text */
+.redo-modal h2 {
+    margin: 0 0 12px;
+    color: #302052;
+    font-size: 22px;
+}
+
+.redo-modal > p {
+    margin: 0;
+    color: #777087;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* Warning */
+.redo-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    margin: 22px 0;
+    padding: 14px;
+
+    background: #fff8eb;
+    border: 1px solid #f5e4c2;
+    border-radius: 12px;
+
+    color: #896326;
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: left;
+}
+
+.redo-warning svg {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+}
+
+/* Buttons */
+.redo-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.redo-actions form {
+    width: 100%;
+}
+
+.redo-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 46px;
+    padding: 12px 18px;
+
+    border: none;
+    border-radius: 10px;
+
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.redo-yes {
+    color: #ffffff;
+    background: #7952c7;
+}
+
+.redo-yes:hover {
+    background: #6540ad;
+}
+
+.redo-no {
+    color: #655b78;
+    background: #f3f0f7;
+}
+
+.redo-no:hover {
+    background: #e9e2f3;
+}
+
+@media (max-width: 480px) {
+    .redo-modal {
+        padding: 26px 20px;
+    }
+
+    .redo-modal h2 {
+        font-size: 19px;
+    }
+}
