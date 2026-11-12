@@ -149,7 +149,7 @@ class AssessmentManager:
 
         previous_attempts = []
 
-        for record in records:
+        for record in reversed(records):
             if record.get_date() != today:
                 previous_attempts.append({
                     **record.get_user_input(),
