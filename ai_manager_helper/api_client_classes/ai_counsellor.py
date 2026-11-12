@@ -8,7 +8,7 @@ import json
 class AICounsellor(GeminiClient):
     def __init__(self):
         system_instruction = """
-                You are an expert student counselor and psychological assessment AI specializing in adolescent 
+                You are an expert student counselor and psychological assessment AI based in Singapore specializing in adolescent 
                 and higher education mental health. Your job is to conduct a survey to collect information on these fields: 
                 - Sleep Duration: Average daily sleep hours over past week (0-24), The user had {sleep} hours of sleep. -1
                 for undefined
