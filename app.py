@@ -5,6 +5,7 @@ import sys
 import markdown
 import logic_manager
 import json
+from datetime import date
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from flask_mail import Mail, Message
@@ -436,12 +437,21 @@ def delete_account():
 
 @app.route('/wellness-check')
 def wellness_check():
+    uid, username = current_user()
+    # check if they have previous attempts
+    # get todays date
+    today_date = (date.today()).strftime("%d-%m-%Y")
+    # get the date of the latest record
+    latest_record_date = data_manager.get_latest_user_record(uid).get_date()
+    done_today = False
+    if (latest_record_date == today_date):
+        done_today = True
     if len(conversation.logs()) == 0 and not conversation.is_bot_typing():
         t = threading.Thread(target=get_AI_response, args=('Hello!',))
         t.start()
         conversation.set_bot_typing(True)
 
-    return render_template('wellness-check.html', conversation=conversation)
+    return render_template('wellness-check.html', conversation=conversation, already_done_today=done_today)
 
 @app.route('/get', methods=['GET','POST'])
 def chat():
