@@ -644,7 +644,7 @@ def submit_survey():
         result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
     except Exception:
         app.logger.exception("Assessment failed")
-        conversation.add_message('ai', 'AI' "Sorry, I couldn't finish your assessment just now. "
+        conversation.add_message('ai', 'AI', "Sorry, I couldn't finish your assessment just now. "
                                        "Please press Yes to try again.")
         return redirect(url_for('confirm_survey'))    # shows the answers again with Yes / No
 
