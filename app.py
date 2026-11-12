@@ -463,7 +463,7 @@ def confirm_survey():
     survey_results = ai_manager.show_survey_results()
     html_output = '<p>Are all of these fields correct?</p>'
 
-    for key, value in survey_results:
+    for key, value in survey_results.items():
         html_output += '<p>' + key + ': ' + str(value) + '</p>'
 
     flash(html_output)
