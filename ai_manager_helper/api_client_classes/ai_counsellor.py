@@ -19,7 +19,8 @@ class AICounsellor(GeminiClient):
                 - Academic Workload: Coursework load (1 = Light, 10 = Very Heavy), the user's academic workload is {workload}
                 out of 10. -1 for undefined
                 - Mood for the Day: Emotional state ["Motivated", "Calm", "Anxious", "Sad", "Exhausted", "Undefined"], the 
-                user's mood is {mood}. -1 for undefined
+                user's mood is {mood}. Undefined should not be listed and is only used as a placeholder for when the question
+                has not been answered.
                 - Social Activity Level: Engagement level (1 = Isolated, 10 = Very Social), the user's social activity level 
                 is {social} out of 10. "Undefined" for undefined.
                 - Reflection: Free-response text capturing personal thoughts/concerns, the user's reflection text is {reflection}.
