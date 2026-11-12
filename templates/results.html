@@ -26,19 +26,20 @@
                 <p class="note">Lower is better. Sleep and workload are the main drivers this time.</p>
             </section>
             </div>
-
-            <section class="card">
-                <h3 class="card-title card-title-sm">Primary Stressor</h3>
-                <p>{{ choosen_attempt.get_ai_output()["primary_stressor"] }}</p>
-            </section>
-            
+          
             <section class="card reflection">
-            <div class="reflection-head">
-                <h2 class="card-title">A reflection for you,</h2>
-                <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Check completed</span>
-            </div>
-            <p>{{ choosen_attempt.get_ai_output()['personalized_recommendations'] }}</p>
-            <p class="ai-tag">AI-generated · Based on your responses</p>
+                <div class="reflection-head">
+                    <h2 class="card-title">A reflection for you</h2>
+                    <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Check completed</span>
+                </div>
+
+                <p class="stressor">
+                    Main stressor: <strong>{{ choosen_attempt.get_ai_output()["primary_stressor"] }}</strong>
+                </p>
+
+                <p class="reflection-text">{{ choosen_attempt.get_ai_output()['personalized_recommendations'] }}</p>
+
+                <p class="ai-tag">AI-generated · Based on your responses</p>
             </section>
 
             <div class="grid-2">

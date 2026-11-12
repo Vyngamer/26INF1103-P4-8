@@ -852,3 +852,20 @@ td.action { text-align: right; }
         font-size: 19px;
     }
 }
+
+.reflection .stressor {
+    color: #29204f;
+    font-size: 15px;
+    margin-bottom: 16px;
+}
+
+.reflection .stressor strong {
+    color: #5034a5;
+    font-weight: 700;
+}
+
+.reflection .reflection-text {
+    color: #393451;
+    font-size: 16px;
+    line-height: 1.5;
+}
