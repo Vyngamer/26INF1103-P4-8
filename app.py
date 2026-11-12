@@ -585,9 +585,7 @@ def assess_and_save(uid, responses):
 
     # email the counsellor if the mental wellness or burnout score is over 80, crisis_alert is true,
     # counselling is recommended, or the route is Urgent support or Counsellor follow-up
-    if (ai_output["mental_wellness_risk_score"] > 80 or ai_output["burnout_risk_score"] > 80
-            or ai_output["crisis_alert"] or logic_output["counselling_recommendation"]
-            or logic_output["route"] in ("Urgent support", "Counsellor follow-up")):
+    if logic_output["counselling_recommendation"]:
         student_id = uid
         username = data_manager.get_user_by_id(uid).get_username()
         body = f'''
@@ -597,7 +595,24 @@ def assess_and_save(uid, responses):
             User ID = {student_id}
             Username = {username}
 
-            Please get in contact with this student ASAP
+            Here is a brief summary of the student scores:
+            Sleep: {user_input["sleep_duration"]} Hr(s)
+            Stress Level: {user_input["stress_level"]}
+            Focus Level: {user_input["focus_level"]}
+            Academic Workload: {user_input["academic_workload"]}
+            Mood: {user_input["mood"]}
+            Social Activity Level: {user_input["social_activity_level"]}
+            Reflection: {user_input["reflection"]}
+
+            This is the scores that the AI tabulated for them:
+            Mental Wellness Risk Score: {ai_output["mental_wellness_risk_score"]}
+            Burnout Risk Score: {ai_output["burnout_risk_score"]}
+
+            This is the advice that our AI gave them:
+            {ai_output["personalized_recommendations"]}
+
+            
+            Please get in contact with this student ASAP.
 
             Best Regards,
             AI Counsellor
