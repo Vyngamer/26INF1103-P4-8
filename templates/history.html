@@ -27,7 +27,8 @@
                             <th scope="col">Date</th>
                             <th scope="col">Time</th>
                             <th scope="col">Mental Wellness Risk Score</th>
-                            <th scope="col">Details</th>
+                            <th scope="col">Risk Tier</th>
+                            <th scope="col">Suggested Support</th>
                             <th scope="col">Counsellor Notified</th>
                             <th scope="col">
                                 <span class="visually-hidden">Actions</span>
@@ -40,15 +41,9 @@
                                 <td data-label="Date">{{ previous_attempt.get_date() }}</td>
                                 <td data-label="Time" class="time-text">{{ previous_attempt.get_time() }}</td>
                                 <td data-label="Mental Wellness Score" class="score-cell">{{ previous_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</td>                                
-                                <td data-label="Details">
-                                    <span class="details-strong">
-                                        <span>Sleep {{ previous_attempt.get_user_input()["sleep_duration"] }} hrs</span>
-                                        <span>Stress {{ previous_attempt.get_user_input()["stress_level"] }}/10</span>
-                                        <span>Focus {{ previous_attempt.get_user_input()["focus_level"] }}/10</span>
-                                        <span>Social {{ previous_attempt.get_user_input()["social_activity_level"] }}/10</span>
-                                    </span>
-                                </td>
-                                <td data-label="Counsellor notified">{% if previous_attempt.get_logic_output()["counselling_recommendation"] %}Yes{% else %}No{% endif %}</td>
+                                <td data-label="Mental Wellness Tier">{{ previous_attempt.get_logic_output()["mental_wellness_risk_tier"] }}</td>
+                                <td data-label="Next step">{{ previous_attempt.get_logic_output()["route"] }}</td>
+                                <td data-label="Counsellor Referral">{% if previous_attempt.get_logic_output()["counselling_recommendation"] %}Yes{% else %}No{% endif %}</td>
                                 <td class="action">
                                     <a class="btn btn-sm btn-primary" href="{{ url_for('result', attempt_id=previous_attempt.get_record_id()) }}">
                                         View results
