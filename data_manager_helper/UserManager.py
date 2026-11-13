@@ -1,15 +1,20 @@
 from data_manager_helper.UserRecord import UserRecord
+from data_manager_helper.StorageInterface import StorageInterface
 
-# Manages user records stored in MongoDB
+'''
+Keeps an in-memory list of user accounts.
+'''
+
 class UserManager:
 
-    def __init__(self, storage):
-        self.__storage = storage
-        self.__users = []
+    def __init__(self, storage: StorageInterface) -> None:
+        self.__storage: StorageInterface = storage
+        self.__users: list[UserRecord] = []
 
         self.load_users()
 
-    def load_users(self):
+    # load all users from storage
+    def load_users(self) -> list[UserRecord]:
         self.__users = []
         documents = self.__storage.load()
         self.__users = []
@@ -25,10 +30,11 @@ class UserManager:
 
         return self.get_users()
 
-    def get_users(self):
+    def get_users(self) -> list[UserRecord]:
         return self.__users.copy()
 
-    def create_user(self, username, password):
+    # create and save a new user
+    def create_user(self, username: str, password: str) -> str | None:
         user = UserRecord(username, password)
 
         result = self.__storage.save(user.to_dict())
@@ -39,7 +45,8 @@ class UserManager:
 
         return None
 
-    def get_user_by_id(self, user_id):
+    # get user id
+    def get_user_by_id(self, user_id: str) -> UserRecord | None:
         for user in self.__users:
 
             if user.get_user_id() == user_id:
@@ -47,7 +54,8 @@ class UserManager:
 
         return None
 
-    def get_user_by_username(self, username):
+    #get username
+    def get_user_by_username(self, username: str) -> UserRecord | None:
         for user in self.__users:
 
             if user.get_username() == username:
@@ -55,7 +63,8 @@ class UserManager:
 
         return None
 
-    def update_user(self, user_id, updates):
+    # update username or password of user
+    def update_user(self, user_id: str, updates: dict[str, str]) -> bool:
         allowed_fields = {"username", "password"}
 
         if not isinstance(updates, dict):
@@ -91,7 +100,8 @@ class UserManager:
 
         return False
 
-    def delete_user(self, user_id):  
+    # delete the user
+    def delete_user(self, user_id: str) -> bool:  
         result = self.__storage.delete({"user_id": user_id})
 
         if result:

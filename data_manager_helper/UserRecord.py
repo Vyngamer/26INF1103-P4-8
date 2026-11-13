@@ -1,28 +1,31 @@
 import uuid
-
-# Represents a user account in the application
+'''
+Represents a user account in the application
+'''
 class UserRecord:
-    def __init__(self, username, password, user_id=None):
-        
+    def __init__(self, username: str, password: str, user_id: str | None = None) -> None:
+
+        #generate a new id for a new user, keep the existing ide when loading one
         if user_id is None:
-            self.__user_id = str(uuid.uuid4())
+            self.__user_id: str = str(uuid.uuid4())
         
         else:
             self.__user_id = user_id
 
-        self.__username = username
-        self.__password = password
+        self.__username: str = username
+        self.__password: str = password
 
-    def get_user_id(self):
+    def get_user_id(self) -> str:
         return self.__user_id
 
-    def get_username(self):
+    def get_username(self) -> str:
         return self.__username
 
-    def get_password(self):
+    def get_password(self) -> str:
         return self.__password
 
-    def to_dict(self):
+    # return the account as a dict for saving into db
+    def to_dict(self) -> dict[str, str]:
         return {
             "user_id": self.__user_id,
             "username": self.__username,

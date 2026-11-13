@@ -1,12 +1,18 @@
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
 from data_manager_helper.StorageInterface import StorageInterface
+from typing import Any
+from pymongo.collection import Collection
 
-# Implements database storage operations using MongoDB
+'''
+Implements StorageInterface using a MongoDB collection
+'''
+
 class MongoDBStorage(StorageInterface):
-    def __init__(self, collection, unique_fields=None):
-        self.__collection = collection
+    def __init__(self, collection: Collection, unique_fields: list[str] | None = None):
+        self.__collection: Collection = collection
 
+        # create a unique index on each listed field if any
         if unique_fields:
             try:
                 for field in unique_fields:
@@ -18,7 +24,8 @@ class MongoDBStorage(StorageInterface):
             except PyMongoError as error:
                 print(f"Error creating unique index: {error}")
 
-    def load(self):
+    # returns all documents in the collection
+    def load(self) -> list[dict[str, Any]]:
         try:
             return list(self.__collection.find())
 
@@ -26,7 +33,8 @@ class MongoDBStorage(StorageInterface):
             print(f"Error loading records: {error}")
             return []
 
-    def save(self, data):
+    # inserts a document into db
+    def save(self, data: dict[str, Any]) -> str | None:
         if not isinstance(data, dict):
             raise ValueError("Data must be a dictionary.")
 
@@ -41,8 +49,9 @@ class MongoDBStorage(StorageInterface):
         except PyMongoError as error:
             print(f"Error saving record: {error}")
             return None
-    
-    def find_one(self, query):
+
+    # return first matching document
+    def find_one(self, query: dict[str, Any]) -> dict[str, Any] | None:
         try:
             return self.__collection.find_one(query)
 
@@ -50,7 +59,8 @@ class MongoDBStorage(StorageInterface):
             print(f"Error finding record: {error}")
             return None
 
-    def update(self, query, updates):
+    # set the given fields based no the first matching document
+    def update(self, query: dict[str, Any], updates: dict[str, Any]) -> bool:
         if not isinstance(query, dict) or not isinstance(updates, dict):
             raise ValueError("Query and updates must be dictionaries.")
 
@@ -70,7 +80,8 @@ class MongoDBStorage(StorageInterface):
             print(f"Error updating record: {error}")
             return False
 
-    def delete(self, query):
+    # delete the first matching document
+    def delete(self, query: dict[str, Any]) -> bool:
         if not isinstance(query, dict):
             raise ValueError("Query must be a dictionary.")
 
@@ -82,7 +93,8 @@ class MongoDBStorage(StorageInterface):
             print(f"Error deleting record: {error}")
             return False
 
-    def replace_today(self, user_id, today, new_record):
+    # replace user record based on today date
+    def replace_today(self, user_id: str, today: str, new_record: dict[str, Any]) -> bool:
         if not isinstance(new_record, dict):
             raise ValueError("New record must be a dictionary.")
 
@@ -105,7 +117,8 @@ class MongoDBStorage(StorageInterface):
             print(f"Error replacing today's record: {error}")
             return False
 
-    def delete_many(self, query):
+    # delete all matching documents and give number of deleted items
+    def delete_many(self, query: dict[str, Any]) -> int | None:
 
         try:
             if not isinstance(query, dict):

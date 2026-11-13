@@ -1,16 +1,23 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from typing import Any
 
 from data_manager_helper.AssessmentRecord import AssessmentRecord
+from data_manager_helper.StorageInterface import StorageInterface
+
+'''
+Keeps an in-memory list of assessment records
+'''
 
 class AssessmentManager:
-    def __init__(self, storage):
-        self.__storage = storage
-        self.__records = []
+    def __init__(self, storage: StorageInterface) -> None:
+        self.__storage: StorageInterface = storage
+        self.__records: list[AssessmentRecord] = []
 
         self.load_records()
 
-    def load_records(self):
+    # load all records
+    def load_records(self) -> list[AssessmentRecord]:
         documents = self.__storage.load()
         self.__records = []
 
@@ -28,7 +35,8 @@ class AssessmentManager:
 
         return self.get_records()
 
-    def save(self, record):
+    # save a record
+    def save(self, record: AssessmentRecord) -> bool:
         if not isinstance(record, AssessmentRecord):
             return False
 
@@ -42,17 +50,20 @@ class AssessmentManager:
 
         return False
 
-    def merge_record(self, user_input, ai_output, logic_output):
+    # combine 3 outputs into a record
+    def merge_record(self, user_input: dict[str, Any], ai_output: dict[str, Any], logic_output: dict[str, Any]):
         return AssessmentRecord(
             user_input,
             ai_output,
             logic_output
         )
 
-    def get_records(self):
+    # get all records
+    def get_records(self) -> list[AssessmentRecord]:
         return self.__records.copy()
 
-    def get_user_records(self, user_id):
+    # get that user records only
+    def get_user_records(self, user_id: str) -> list[AssessmentRecord]:
         user_records = []
 
         for record in self.__records:
@@ -61,6 +72,7 @@ class AssessmentManager:
             if user_input.get("user_id") == user_id:
                 user_records.append(record)
 
+        # sort new to old
         user_records.sort(
             key=lambda record: datetime.strptime(
                 record.get_date() + " " + record.get_time(),
@@ -71,7 +83,8 @@ class AssessmentManager:
 
         return user_records
 
-    def get_latest_user_record(self, user_id):
+    # get the latest record only from the user
+    def get_latest_user_record(self, user_id: str) -> AssessmentRecord | None:
         records = self.get_user_records(user_id)
 
         if records:
@@ -79,7 +92,8 @@ class AssessmentManager:
 
         return None
 
-    def get_user_int_records(self, records, user_id):
+    # get user records for numeric fields for graph
+    def get_user_int_records(self, records: list[AssessmentRecord], user_id: str) -> list[dict[str, Any]]:
         user_records = []
 
         for record in records:
@@ -99,7 +113,8 @@ class AssessmentManager:
 
         return user_records
 
-    def replace_user_record(self, user_id, record):
+    # replace user record for today with the new one
+    def replace_user_record(self, user_id: str, record: AssessmentRecord) -> bool:
         if not isinstance(record, AssessmentRecord):
             return False
 
@@ -122,6 +137,7 @@ class AssessmentManager:
         )
 
         if success:
+            # remove today old record
             updated_records = []
 
             for existing_record in self.__records:
@@ -140,7 +156,8 @@ class AssessmentManager:
 
         return False
 
-    def get_previous_attempts(self, user_id):
+    # return user previous attempts without the today record
+    def get_previous_attempts(self, user_id: str) -> list[dict[str, Any]]:
         records = self.get_user_records(user_id)
 
         today = datetime.now(
@@ -161,7 +178,8 @@ class AssessmentManager:
 
         return previous_attempts
 
-    def delete_user_records(self, user_id):
+    # delete all the user records
+    def delete_user_records(self, user_id: str) -> bool:
         deleted_count = self.__storage.delete_many(
             {"user_input.user_id": user_id}
         )
