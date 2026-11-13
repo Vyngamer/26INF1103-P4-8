@@ -4,11 +4,7 @@ and returns it converted to the right type, or rejects it with a message
 """
 
 from abc import ABC, abstractmethod
-
-
-# Raised by Prompt.convert() / Prompt.validate() to reject an answer.
-class InvalidInput(ValueError):
-    pass
+from errors.invalid_input import InvalidInput
 
 
 # abstract base class for every answer check
