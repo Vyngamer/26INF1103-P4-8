@@ -455,6 +455,11 @@ def wellness_check(continue_chat=False):
 
     return render_template('wellness-check.html', conversation=conversation, survey_results=None, already_done_today=done_today)
 
+@app.get('/reset-conversation')
+def reset_conversation():
+    conversation = Conversation()
+    return None
+
 @app.route('/get', methods=['GET','POST'])
 def chat():
     user_message = request.form["msg"]
@@ -568,7 +573,7 @@ def submit_survey():
 
         return redirect(url_for('wellness_check'))
 
-    conversation.set_done(True)
+    conversation.reset_conversation()
     # redirect, so refreshing the results page doesn't run the assessment (and the email) again
     return redirect(url_for('result', attempt_id=data_manager.get_latest_user_record(uid).get_record_id()))
 
