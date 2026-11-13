@@ -37,6 +37,11 @@ class AIManager:
     def deny_survey(self):
         self._client.deny_survey(self._survey_results)
 
+    def start_conversation(self):
+        output_response = json.loads(self._client.start_conversation().data)
+        
+        return {'text': output_response['text'], 'survey_done': output_response['survey_done']}
+
 if __name__ == "__main__":
     ai_manager = AIManager()
     ai_manager.connect_client()

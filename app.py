@@ -836,8 +836,12 @@ def deny_survey():
     return redirect(url_for('wellness_check'))
 
 
-def get_AI_response(text):
-    bot_response = ai_manager.prompt_bot(text)
+def get_AI_response(text, start_chat=False):
+    if start_chat:
+        bot_response = ai_manager.start_conversation()
+    else:
+        bot_response = ai_manager.prompt_bot(text)
+
     conversation.add_message('ai', 'AI', bot_response['text'])
     conversation.set_bot_typing(False)
 
@@ -866,4 +870,3 @@ def send_email(recipient, subject, body):
     except Exception as e:
         print(f"Failed to send email: {e}")
         return False
-

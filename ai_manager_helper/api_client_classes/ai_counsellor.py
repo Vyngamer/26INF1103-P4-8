@@ -49,4 +49,9 @@ class AICounsellor(GeminiClient):
         self._system_instruction += json.dumps(survey_results)
         self._system_instruction += "Ask the user what field of the survey is incorrect and amend it until the user is satisfied."
 
-        
+    def start_conversation(self):
+        result = self.call_api("Hello!")
+        self._system_instruction = ""
+
+        return result
+
