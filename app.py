@@ -348,6 +348,7 @@ def delete_account():
     flash("Your account has been deleted.")
     return redirect(url_for('main'))
 
+@app.route('/wellness-check/<continue_chat>')
 @app.route('/wellness-check')
 def wellness_check(continue_chat=False):
     uid, username = current_user()
@@ -366,6 +367,11 @@ def wellness_check(continue_chat=False):
         conversation.set_bot_typing(True)
 
     return render_template('wellness-check.html', conversation=conversation, survey_results=None, already_done_today=done_today)
+
+@app.get('/reset-conversation')
+def reset_conversation():
+    conversation = Conversation()
+    return None
 
 @app.route('/get', methods=['GET','POST'])
 def chat():
@@ -544,7 +550,7 @@ def submit_survey():
 
         return redirect(url_for('wellness_check'))
 
-    conversation.set_done(True)
+    conversation.reset_conversation()
     # redirect, so refreshing the results page doesn't run the assessment (and the email) again
     return redirect(url_for('result', attempt_id=data_manager.get_latest_user_record(uid).get_record_id()))
 
@@ -720,7 +726,7 @@ def deny_survey():
     threading.Thread(target=get_AI_response, args=('The survey results are not accurate.',)).start()
     conversation.set_bot_typing(True)
 
-    return redirect(url_for('wellness_check'))
+    return redirect(url_for('wellness_check', continue_chat=True))
 
 
 def get_AI_response(text, start_chat=False):

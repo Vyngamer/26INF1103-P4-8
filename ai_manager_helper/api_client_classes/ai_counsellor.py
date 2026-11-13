@@ -7,7 +7,7 @@ import json
 
 class AICounsellor(GeminiClient):
     def __init__(self):
-        system_instruction = """
+        self._default_system_instruction = """
                 You are an expert student counselor and psychological assessment AI based in Singapore specializing in adolescent 
                 and higher education mental health. Your job is to conduct a survey to collect information on these fields: 
                 - Sleep Duration: Average daily sleep hours over past week (0-24), The user had {sleep} hours of sleep. -1
@@ -40,9 +40,9 @@ class AICounsellor(GeminiClient):
 
         model = "gemini-3.5-flash-lite"
 
-        response_json_format = SurveyEntitySchema.model_json_schema()
+        self._default_response_json_format = SurveyEntitySchema.model_json_schema()
 
-        super().__init__(model, system_instruction, response_json_format=response_json_format)
+        super().__init__(model, self._default_system_instruction, response_json_format=self._default_response_json_format)
 
     def deny_survey(self, survey_results):
         self._system_instruction = "The user is unsatisfied with the survey results: "
@@ -146,6 +146,9 @@ class AICounsellor(GeminiClient):
                 "personalized_recommendations"]}
 
         result = self.call_api(json.dumps({key: value for key, value in user_input.items() if key != "user_id"}))
+        
+        self._response_json_format = self._default_response_json_format
+        self._system_instruction = self._default_system_instruction
 
         return result
 

@@ -43,6 +43,9 @@ class Conversation:
     def set_done(self, done):
         self.__done = done
 
+    def reset_conversation(self):
+        self.__conversation_list = []
+
 
 if __name__ == "__main__":
     conversation = Conversation()
