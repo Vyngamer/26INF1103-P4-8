@@ -39,6 +39,9 @@ class AIManager:
         
         return {'text': output_response['text'], 'survey_done': output_response['survey_done']}
 
+    def get_ai_output(self, user_input):
+        return self._client.get_ai_output(user_input)
+
 if __name__ == "__main__":
     ai_manager = AIManager()
     ai_manager.connect_client()
