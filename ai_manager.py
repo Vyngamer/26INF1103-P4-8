@@ -22,9 +22,6 @@ class AIManager:
 
         return {'text': output_response['text'], 'survey_done': output_response['survey_done']}
 
-    def validate_response(self, response):
-        return SurveyEntitySchema.validate_response(response)
-
     def check_survey_end(self, response):
         return response['survey_done']
     
