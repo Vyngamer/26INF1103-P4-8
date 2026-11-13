@@ -129,6 +129,7 @@
         $('#sendBtn').prop('disabled', true);
         $('#chatLog').append(botTypingHtml);
         $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+		$(window).scrollTop($(document).height());
         event.preventDefault();
 	}
 
@@ -137,6 +138,7 @@
         $('#chatLog').append(botHtml);
         $('#sendBtn').prop('disabled', false);
         $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+		$(window).scrollTop($(document).height());
         event.preventDefault();
     }
 
