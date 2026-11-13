@@ -5,7 +5,7 @@ Main I/O Layer
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
 from io_helpers.account_service import AccountService
 from io_helpers.trends import trend_points
-from io_helpers.survey_response import SurveyResult
+from io_helpers.survey_result import SurveyResult
 
 # I/O layer of web app
 # app.py creates one IOManager and calls it from its routes.

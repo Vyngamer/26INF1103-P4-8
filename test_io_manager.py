@@ -6,7 +6,8 @@ from data_manager_helper.UserRecord import UserRecord
 from io_helpers.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors, USERNAME_RULES
 from io_helpers.prompts import TextPrompt, RangePrompt, ChoicePrompt, InvalidInput
-from io_helpers.survey_response import SurveyResponse, SurveyResult
+from io_helpers.survey_response import SurveyResponse
+from io_helpers.survey_result import SurveyResult
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
 
 # Sample completed survey, used by the survey tests below
@@ -449,7 +450,7 @@ def test_no_terminal_input_or_output():
     import ast
     from pathlib import Path
     folder = Path(__file__).parent
-    files = [folder / "io_manager.py", *sorted((folder / "io_helpers").glob("*.py"))]
+    files = [folder / "io_manager.py", *sorted((folder / "io_helpers").rglob("*.py"))]
     assert len(files) > 5    # the files were found, so the check below means something
 
     calls = [f"{path.name}:{node.lineno} {node.func.id}()"
