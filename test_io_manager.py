@@ -5,7 +5,10 @@ from io_helpers.account_service import AccountService
 from data_manager_helper.UserRecord import UserRecord
 from io_helpers.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors, USERNAME_RULES
-from io_helpers.prompts import TextPrompt, RangePrompt, ChoicePrompt, InvalidInput
+from io_helpers.prompt_text import TextPrompt
+from io_helpers.prompt_range import RangePrompt
+from io_helpers.prompt_choice import ChoicePrompt
+from io_helpers.errors.invalid_input import InvalidInput
 from io_helpers.survey_response import SurveyResponse
 from io_helpers.survey_result import SurveyResult
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError

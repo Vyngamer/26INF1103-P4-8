@@ -2,7 +2,10 @@
 Survey Questions
 '''
 
-from io_helpers.prompts import RangePrompt, ChoicePrompt, TextPrompt, InvalidInput
+from io_helpers.prompt_range import RangePrompt
+from io_helpers.prompt_choice import ChoicePrompt
+from io_helpers.prompt_text import TextPrompt
+from io_helpers.errors.invalid_input import InvalidInput
 from io_helpers.survey_response import SurveyResponse
 from io_helpers.errors.survey_error import SurveyAnswersError
 
