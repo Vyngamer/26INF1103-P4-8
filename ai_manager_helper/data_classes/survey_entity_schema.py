@@ -17,24 +17,3 @@ class SurveyEntitySchema(BaseModel):
 
     model_config = ConfigDict(extra='forbid', strict=True)
 
-    def validate_response(response):
-        try:
-            SurveyEntitySchema(**response)
-
-        except ValidationError as e:
-            print(e)
-            return False
-        
-        return True
-    
-    @field_validator('focus_level', 'stress_level', 'sleep_duration', 'social_activity_level', 'academic_workload')
-    def not_negative_or_zero(cls, value):
-        if not 1 <= value <= 10: 
-            raise ValueError(f'{value} is not valid.')
-        return value
-
-    @field_validator('reflection', 'text')
-    def text_not_empty(cls, text):
-        if text == "" or text == "None":
-            raise ValueError(f'{text} not valid')
-        return text
