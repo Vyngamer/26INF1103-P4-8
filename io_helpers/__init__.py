@@ -1,12 +1,24 @@
 '''
 I/O helper package used by io_manager.py
 
-account_models   - User account results and errors (AccountResult, AccountError)
+account_result   - User account results (AccountResult)
 account_service  - User account actions (AccountService)
 hasher           - Salted password hashing (PasswordHasher)
-prompts         - Answer checks that convert one given answer or reject it with a message
+prompts          - Abstract class for other prompts. (Prompt)
+                   Child classes implement answer checks that
+                   convert one given answer or reject it with a message
+prompt_text      - Text prompt for a single answer (TextPrompt)
+prompt_range     - Range prompt for a single answer (RangePrompt)
+prompt_choice    - Choice prompt for a single answer (ChoicePrompt)
 questionnaire    - Survey questions and their answer checks (Questionnaire)
 trends           - Assessment trends data for the progress page (trend_points)
 validators       - Username and password rules (username_errors, password_errors)
-survey_response  - One completed survey's answers (SurveyResponse) and a submission's result (SurveyResult)
+survey_response  - One completed survey's answers (SurveyResponse)
+survey_result    - One completed surveys' result (SurveyResults)
+
+Errors
+account_error    - Account-related error (AccountError)
+invalid_input    - Invalid prompt answer error (InvalidInput)
+survey_error     - Survey question input error (SurveyError)
+
 '''
