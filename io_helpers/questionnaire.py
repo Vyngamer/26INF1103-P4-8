@@ -2,17 +2,12 @@
 Survey Questions
 '''
 
-from io_helpers.prompts import RangePrompt, ChoicePrompt, TextPrompt, InvalidInput
+from io_helpers.prompt_range import RangePrompt
+from io_helpers.prompt_choice import ChoicePrompt
+from io_helpers.prompt_text import TextPrompt
+from io_helpers.errors.invalid_input import InvalidInput
 from io_helpers.survey_response import SurveyResponse
-
-
-# Raised by Questionnaire.from_answers() when any answer is invalid.
-# errors maps each invalid question key to its problem, in question order
-class SurveyAnswersError(InvalidInput):
-    def __init__(self, errors):
-        self.errors = dict(errors)
-        super().__init__("; ".join(f"{Questionnaire.heading(key)}: {problem}"
-                                   for key, problem in self.errors.items()))
+from io_helpers.errors.survey_error import SurveyAnswersError
 
 
 # Questionnaire class

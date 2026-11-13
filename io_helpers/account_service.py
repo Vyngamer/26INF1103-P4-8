@@ -4,7 +4,8 @@ User Account Actions
 
 import functools
 from io_helpers.hasher import PasswordHasher
-from io_helpers.account_models import AccountResult, AccountError
+from io_helpers.account_result import AccountResult
+from io_helpers.errors.account_error import AccountError
 from io_helpers.validators import username_errors, password_errors
 
 # Decorator for AccountService actions
@@ -38,9 +39,7 @@ class AccountService:
     def _clean_username(cls, username):
         return cls._clean(username).lower()
 
-    # NEW: Find the account for a username in any letter case, so accounts saved with capitals
-    # before usernames were lowercased (e.g. "Marcus") can still log in.
-    # If several accounts differ only in case: an exact match wins, then the lowercase one
+    # Find account with username (case-insensitive)
     def _find_user(self, username):
         users = self.data.get_users()
         for wanted in (username, username.lower()):
@@ -79,7 +78,7 @@ class AccountService:
     def _check_password_rules(password):
         problems = password_errors(password)
         if problems:
-            raise AccountError(" ".join(problems))
+            raise AccountError("Password must have " + ", ".join(problems) + ".")
 
     # Register New User
     @account_action
