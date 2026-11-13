@@ -3,10 +3,10 @@ User Account Actions
 '''
 
 import functools
-from hasher import PasswordHasher
+from io_helpers.hasher import PasswordHasher
 from io_helpers.account_result import AccountResult
-from errors.account_error import AccountError
-from validators import username_errors, password_errors
+from io_helpers.errors.account_error import AccountError
+from io_helpers.validators import username_errors, password_errors
 
 # Decorator for AccountService actions
 # Wraps the method so any AccountError raised inside it becomes a failed AccountResult.

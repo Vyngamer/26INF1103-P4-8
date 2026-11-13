@@ -2,9 +2,9 @@
 Survey Questions
 '''
 
-from prompts import RangePrompt, ChoicePrompt, TextPrompt, InvalidInput
-from survey_response import SurveyResponse
-from errors.survey_error import SurveyAnswersError
+from io_helpers.prompts import RangePrompt, ChoicePrompt, TextPrompt, InvalidInput
+from io_helpers.survey_response import SurveyResponse
+from io_helpers.errors.survey_error import SurveyAnswersError
 
 
 # Questionnaire class

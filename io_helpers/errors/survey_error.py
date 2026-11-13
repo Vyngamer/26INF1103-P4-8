@@ -2,8 +2,7 @@
 Survey Answers Error
 '''
 
-from invalid_input import InvalidInput
-from io_helpers.questionnaire import Questionnaire
+from io_helpers.errors.invalid_input import InvalidInput
 
 
 # Raised by Questionnaire.from_answers() when any answer is invalid.
@@ -11,5 +10,5 @@ from io_helpers.questionnaire import Questionnaire
 class SurveyAnswersError(InvalidInput):
     def __init__(self, errors):
         self.errors = dict(errors)
-        super().__init__("; ".join(f"{Questionnaire.heading(key)}: {problem}"
+        super().__init__("; ".join(f"{key.replace('_', ' ').title()}: {problem}"
                                    for key, problem in self.errors.items()))

@@ -4,7 +4,7 @@ and returns it converted to the right type, or rejects it with a message
 """
 
 from abc import ABC, abstractmethod
-from errors.invalid_input import InvalidInput
+from io_helpers.errors.invalid_input import InvalidInput
 
 
 # abstract base class for every answer check
