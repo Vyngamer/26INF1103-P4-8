@@ -5,21 +5,21 @@
 <body data-page="dashboard">
   <div class="app">
 
-  {% include 'navbar.html' %}	
+  {% include 'navbar.html' %}
 
     <main class="main">
       {% if latest_attempt %}
       <div class="page-head">
-	      <h1>Welcome back, <span data-first-name></span>{{ username }}</h1>
-        <p>Your dashboard is ready. Review your last wellness check and start a new one whenever you,re ready.</p>
+        <h1>Welcome back, <span data-first-name></span>{{ username }}</h1>
+        <p>Your dashboard is ready. Review your last wellness check and start a new one whenever you're ready.</p>
       </div>
 
       <div class="dash-grid">
         <!-- Left column -->
         <div class="stack">
           <section class="score-card" aria-label="Overall wellness">
-            <p class="label">Overall Risk Tier</p>
-	          <p class="value"><span id="overallScore">{{ latest_attempt.get_logic_output()["mental_wellness_risk_tier"] }}</span></p>
+            <p class="label">Risk Tier</p>
+            <p class="value"><span id="overallScore">{{ latest_attempt.get_logic_output()["mental_wellness_risk_tier"] }}</span></p>
             <div class="meta">
               <span class="muted">Last check</span>
               <strong id="lastCheck" class="date-text">{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong>
@@ -27,29 +27,24 @@
           </section>
 
           <section class="card">
-            <h2 class="card-title">Previous attempt</h2>
+            <h2 class="card-title">Previous Attempt</h2>
             <p class="card-sub date-text" data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</p>
             <div class="tiles-2">
-		    <div class="tile"><p class="t-label">Mental Wellness Risk score</p><p class="t-value" id="tWellness">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</p></div>
+              <div class="tile"><p class="t-label">Mental Wellness Risk Score</p><p class="t-value" id="tWellness">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</p></div>
               <div class="tile"><p class="t-label">Burnout Risk Score</p><p class="t-value" id="tBurnout">{{ latest_attempt.get_ai_output()["burnout_risk_score"] }}/100</p></div>
             </div>
             <div class="tiles-4">
-              <div class="tile lav"><p class="t-label">Sleep hours</p><p class="t-value" id="tSleep">{{ latest_attempt.get_user_input()["sleep_duration"] }}/24</p></div>
+              <div class="tile lav"><p class="t-label">Sleep Hours</p><p class="t-value" id="tSleep">{{ latest_attempt.get_user_input()["sleep_duration"] }}/24</p></div>
               <div class="tile lav"><p class="t-label">Stress Level</p><p class="t-value" id="tStress">{{ latest_attempt.get_user_input()["stress_level"] }}/10</p></div>
               <div class="tile lav"><p class="t-label">Focus Level</p><p class="t-value" id="tFocus">{{ latest_attempt.get_user_input()["focus_level"] }}/10</p></div>
               <div class="tile lav"><p class="t-label">Social Activity Level</p><p class="t-value" id="tSocial">{{ latest_attempt.get_user_input()["social_activity_level"] }}/10</p></div>
+              <div class="tile lav"><p class="t-label">Academic Workload Level</p><p class="t-value" id="tWorkload">{{ latest_attempt.get_user_input()["academic_workload"] }}/10</p></div>
+              <div class="tile lav"><p class="t-label">Mood</p><p class="t-value" id="tMood">{{ latest_attempt.get_user_input()["mood"] }}</p></div>
             </div>
-            <div class="compare-box">
-              <h4>Comparison</h4>
-	      <ul class="bullets">
-          {% if latest_attempt.get_logic_output()["display_messages"] %}
-          {% for message in latest_attempt.get_logic_output()["display_messages"] %}
-                <li>{{ message }}</li>
-          {% endfor %}
-          {% else %}
-                <li>No comparison messages available.</li>
-          {% endif %}
-	      </ul>
+
+            <div class="compare-box checkin-box">
+              <h4>Reflection</h4>
+              <p>{{ latest_attempt.get_user_input()["reflection"] }}</p>
             </div>
           </section>
         </div>
@@ -60,7 +55,7 @@
             <h2 class="card-title">Ready for your next check?</h2>
             <p class="card-sub">Start a new wellness check now, or review your previous results before continuing.</p>
             <div class="actions">
-	        <a href={{ url_for('wellness_check') }}  class="btn btn-primary">
+              <a href={{ url_for('wellness_check') }} class="btn btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5-12-7.5z"/></svg>
                 Start wellness check
               </a>
@@ -73,7 +68,7 @@
           </section>
 
           <section class="card">
-            <h2 class="card-title">Insights</h2>
+            <h2 class="card-title">Summary</h2>
             <p class="card-sub">A quick snapshot from your last check</p>
             {% if latest_attempt.get_logic_output()["warnings"] %}
             {% for warning in latest_attempt.get_logic_output()["warnings"] %}
@@ -82,10 +77,21 @@
             {% else %}
             <div class="insight"><h4>No Insights to share</h4><p>You're doing great! Keep up the good work.</p></div>
             {% endif %}
-            <!-- <div class="insight"><h4>High Burnout Warning (Sleep)</h4><p>Your burnout risk score was high and you had little sleep</p></div>
-            <div class="insight"><h4>Burnout Warning (Workload)</h4><p>Your burnout risk score was high as well as your workload</p></div>
-            <div class="insight"><h4>Social Withdrawal Risk</h4><p>Your mood wasn’t too good and your social activity level was low</p></div> -->
-            <div class="insight advice"><h4>A Reflection for You (AI Generated)</h4>
+
+            <div class="compare-box">
+              <h4>Comparison</h4>
+              <ul class="bullets">
+                {% if latest_attempt.get_logic_output()["display_messages"] %}
+                {% for message in latest_attempt.get_logic_output()["display_messages"] %}
+                <li>{{ message }}</li>
+                {% endfor %}
+                {% else %}
+                <li>No comparison messages available.</li>
+                {% endif %}
+              </ul>
+            </div>
+
+            <div class="insight advice"><h4>Advice for you (AI Generated)</h4>
               <p class="stressor">
               Main stressor: <strong>{{ latest_attempt.get_ai_output()["primary_stressor"] }}</strong>
               </p>
@@ -96,12 +102,12 @@
       </div>
       {% else %}
       <div class="page-head">
-	      <h1>Welcome, <span data-first-name></span>{{ username }}</h1>
+        <h1>Welcome, <span data-first-name></span>{{ username }}</h1>
         <div class="empty-state-container">
         <!-- Friendly illustration -->
-        <img 
-          src="../static/assets/no_data.jpeg" 
-          alt="Wellness Illustration" 
+        <img
+          src="../static/assets/no_data.jpeg"
+          alt="Wellness Illustration"
           class="empty-state-img"
         />
 
