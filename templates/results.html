@@ -51,7 +51,7 @@
                     <h4>Reflection</h4>
                     <p>{{ ui["reflection"] }}</p>
                 </div>
-                <p class="ai-tag">{{ choosen_attempt.get_date() }} · {{ choosen_attempt.get_time() }}</p>
+                <p class="ai-tag date-text" data-time="{{ choosen_attempt.get_time() }}">{{ choosen_attempt.get_date() }}</p>
             </section>
 
             <section class="card reflection">
@@ -119,4 +119,28 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.date-text').forEach(element => {
+        const [day, month, year] = element.textContent.trim().split('-').map(Number);
+        const [hour, minute] = element.dataset.time.trim().split(':').map(Number);
+
+        const date = new Date(year, month - 1, day, hour, minute);
+
+        const datePart = date.toLocaleDateString('en-SG', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        const timePart = date.toLocaleTimeString('en-SG', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+
+        element.textContent = `${datePart} at ${timePart}`;
+    });
+});
+</script>
 {% endblock %}
