@@ -75,44 +75,6 @@ def register():
         flash(result.message)
         return redirect(url_for("login"))
 
-        '''
-        # get the form details
-        username = request.form.get("username")
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm")
-
-        # check if the passwords match
-        if password != confirm_password:
-            error = "Passwords do not match."
-            return render_template("register.html", error=error)
-
-        # check if the username and password meet the requirements
-        username_problems = username_errors(username)
-        password_problems = password_errors(password)
-        print(f"Username problems: {username_problems}, Password problems: {password_problems}")
-        if username_problems or password_problems:
-            error = " ".join(username_problems + password_problems)
-            return render_template("register.html", error=error)
-
-        # check if the username already exists
-        if data_manager.get_user_by_username(username) is not None:
-            error = "Username already exists. Please choose another."
-            return render_template("register.html", error=error)
-
-        # if the username is ok, store the user
-        password_hash = PasswordHasher().hash(password)
-        try:
-            user_id = data_manager.create_user(username, password_hash)
-            if user_id is None:
-                error = "Could not create your account. Please try again."
-                return render_template("register.html", error=error)
-        except (ConnectionError, ValueError) as e:
-            error = "Unable to connect to the database. Please try again later."
-            return render_template("register.html", error=error)
-        flash("Account Created Successfully!!")
-        return redirect(url_for("login"))
-        '''
-
     return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -123,33 +85,6 @@ def login():
             return render_template("login.html", error=result.message)
         session['user_id'] = result.uid
         return redirect(url_for("dashboard"))
-    
-        '''
-        # get the form details
-        username = request.form.get("username")
-        password = request.form.get("password")
-
-        # set a flag for login
-        can_login = True
-
-        # check if the username exists
-        user = data_manager.get_user_by_username(username)
-        if user is None:
-            can_login = False
-            error = "Invalid username or password."
-            return render_template("login.html", error=error)
-
-        # check if the password is correct
-        password_hash = user.get_password()
-        if not PasswordHasher().verify(password, password_hash):
-            can_login = False
-            error = "Invalid username or password."
-            return render_template("login.html", error=error)
-
-        if can_login:
-            session['user_id'] = user.get_user_id()
-            return redirect(url_for("dashboard"))
-        '''
         
     return render_template("login.html")
 
@@ -248,26 +183,16 @@ def result():
 def progress():
     uid, username = current_user()
     if uid is None:
-        return redirect(url_for('login'))
-    # None if the user has fewer than 2 assessments; otherwise oldest -> newest
-    return render_template('progress.html', history=io_manager.trends(uid))
-
-    '''
-    current_user_id = session.get('user_id')
-    if not current_user_id:
         error = "You must be logged in to access the progress page."
         return redirect(url_for('login'))
     else:
         # get the wanted data from the users previous attempts
-        all_records = data_manager.load_records()
-        wanted_data = data_manager.get_user_int_records(all_records, current_user_id)
-        print(len(wanted_data))
-        if wanted_data is None:
-            wanted_data = None
-        if len(wanted_data) < 2:
-            wanted_data = None
-        return render_template('progress.html', history=wanted_data, )
-    '''
+        user_records = data_manager.get_user_records(uid)
+        if len(user_records) > 1:
+            history = data_manager.get_user_int_records(user_records, uid)[::-1]
+        else:
+            history = None
+        return render_template('progress.html', history=history)
 
 
 # route for settings
@@ -277,18 +202,6 @@ def settings():
     if uid is None:
         return redirect(url_for('login'))
     return render_template('settings.html', username=username)
-
-    '''
-    current_user_id = session.get('user_id')
-    if not current_user_id:
-        error = "You must be logged in to access the settings page"
-        return redirect(url_for('login'))
-    else:
-        current_username = data_manager.get_user_by_id(current_user_id).get_username()
-        if current_username is None:
-            current_username = None
-        return render_template('settings.html', username = current_username)
-        '''
 
 #route for updating username
 @app.route('/update_username',  methods=["GET", "POST"])

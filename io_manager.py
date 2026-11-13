@@ -4,7 +4,6 @@ Main I/O Layer
 
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
 from io_helpers.account_service import AccountService
-from io_helpers.trends import trend_points
 from io_helpers.survey_result import SurveyResult
 
 # I/O layer of web app
@@ -56,12 +55,3 @@ class IOManager:
         if self.process_responses is not None:
             self.process_responses(uid, responses)
         return SurveyResult(True, "Survey answers accepted.", response=responses)
-
-    '''
-    ASSESSMENT TRENDS
-    '''
-
-    # Assessment trends
-    # Returns the progress page's graph data, oldest -> newest, or None if there are fewer than 2 assessments
-    def trends(self, uid):
-        return trend_points(self.data, uid)

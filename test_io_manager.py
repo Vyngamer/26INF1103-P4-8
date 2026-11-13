@@ -424,27 +424,6 @@ def test_account_actions_keyword_arguments():
     uid = accounts.register(username="Alice", password="pass1!", confirm="pass1!").uid
     assert accounts.change_password(uid=uid, current_password="pass1!", new_password="new2@", confirm="new2@").ok
 
-# --- Trends Tests ---
-
-# With fewer than 2 records there is no trend data; with 2 or more, it comes from get_user_int_records(), oldest -> newest
-def test_trends():
-    data = fake_data([fake_record()])
-    assert IOManager(data).trends("123") is None
-    data.get_user_int_records.assert_not_called()
-
-    records = [fake_record("new"), fake_record("old")]
-    data = fake_data(records)
-    data.get_user_int_records.return_value = [{"date": "02-01-2026"}, {"date": "01-01-2026"}]
-    assert IOManager(data).trends("123") == [{"date": "01-01-2026"}, {"date": "02-01-2026"}]
-    data.get_user_int_records.assert_called_once_with(records, "123")
-
-# trends() never calls load_records(), which would download every user's records from MongoDB again
-def test_trends_do_not_reload_records():
-    data = fake_data([fake_record("b"), fake_record("a")])
-    data.get_user_int_records.return_value = []
-    IOManager(data).trends("123")
-    data.load_records.assert_not_called()
-
 # --- Web App Tests ---
 
 # The I/O layer runs inside the web server, so it must not use the terminal:
