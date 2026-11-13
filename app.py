@@ -435,6 +435,7 @@ def delete_account():
     flash("Your account has been deleted.")
     return redirect(url_for('main'))
 
+@app.route('/wellness-check/<continue_chat>')
 @app.route('/wellness-check')
 def wellness_check(continue_chat=False):
     uid, username = current_user()
@@ -743,7 +744,7 @@ def deny_survey():
     threading.Thread(target=get_AI_response, args=('The survey results are not accurate.',)).start()
     conversation.set_bot_typing(True)
 
-    return redirect(url_for('wellness_check'))
+    return redirect(url_for('wellness_check', continue_chat=True))
 
 
 def get_AI_response(text, start_chat=False):
