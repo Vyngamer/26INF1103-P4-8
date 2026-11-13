@@ -594,40 +594,104 @@ def assess_and_save(uid, responses):
     if logic_output["counselling_recommendation"]:
         student_id = uid
         username = data_manager.get_user_by_id(uid).get_username()
-        body = f'''
-            Dear Counsellor,
+        if logic_output["route"] == "Urgent support":
+            subject = "Urgent Support Needed"
+            body = f'''
+                Dear Counsellor,
 
-            A Student is requiring your attention.
-            User ID = {student_id}
-            Username = {username}
+                A Student requires urgent support.
+                User ID = {student_id}
+                Username = {username}
 
-            Here is a brief summary of the student scores:
-            Sleep: {user_input["sleep_duration"]} Hr(s)
-            Stress Level: {user_input["stress_level"]}
-            Focus Level: {user_input["focus_level"]}
-            Academic Workload: {user_input["academic_workload"]}
-            Mood: {user_input["mood"]}
-            Social Activity Level: {user_input["social_activity_level"]}
-            Reflection: {user_input["reflection"]}
+                Here is a brief summary of the student scores:
+                Sleep: {user_input["sleep_duration"]} Hr(s)
+                Stress Level: {user_input["stress_level"]}
+                Focus Level: {user_input["focus_level"]}
+                Academic Workload: {user_input["academic_workload"]}
+                Mood: {user_input["mood"]}
+                Social Activity Level: {user_input["social_activity_level"]}
+                Reflection: {user_input["reflection"]}
 
-            This is the scores that the AI tabulated for them:
-            Mental Wellness Risk Score: {ai_output["mental_wellness_risk_score"]}
-            Burnout Risk Score: {ai_output["burnout_risk_score"]}
+                This is the scores that the AI tabulated for them:
+                Mental Wellness Risk Score: {ai_output["mental_wellness_risk_score"]}
+                Burnout Risk Score: {ai_output["burnout_risk_score"]}
 
-            This is the advice that our AI gave them:
-            {ai_output["personalized_recommendations"]}
+                This is the advice that our AI gave them:
+                {ai_output["personalized_recommendations"]}
 
-            
-            Please get in contact with this student ASAP.
 
-            Best Regards,
-            AI Counsellor
+                Please get in contact with this student ASAP.
+
+                Best Regards,
+                AI Counsellor
+                '''
+        elif logic_output["route"] == "Counsellor follow-up":
+            subject = "Counsellor Follow up Needed"
+            body = f'''
+                Dear Counsellor,
+
+                Our AI has decided that this student requires counsellor follow-up.
+                User ID = {student_id}
+                Username = {username}
+
+                Here is a brief summary of the student scores:
+                Sleep: {user_input["sleep_duration"]} Hr(s)
+                Stress Level: {user_input["stress_level"]}
+                Focus Level: {user_input["focus_level"]}
+                Academic Workload: {user_input["academic_workload"]}
+                Mood: {user_input["mood"]}
+                Social Activity Level: {user_input["social_activity_level"]}
+                Reflection: {user_input["reflection"]}
+
+                This is the scores that the AI tabulated for them:
+                Mental Wellness Risk Score: {ai_output["mental_wellness_risk_score"]}
+                Burnout Risk Score: {ai_output["burnout_risk_score"]}
+
+                This is the advice that our AI gave them:
+                {ai_output["personalized_recommendations"]}
+
+
+                Please get in contact with this student ASAP.
+
+                Best Regards,
+                AI Counsellor
+                '''
+        else:
+            subject = "Student Requiring Attention"
+            body = f'''
+                Dear Counsellor,
+
+                Our AI has decided that this student requires counsellor follow-up.
+                User ID = {student_id}
+                Username = {username}
+
+                Here is a brief summary of the student scores:
+                Sleep: {user_input["sleep_duration"]} Hr(s)
+                Stress Level: {user_input["stress_level"]}
+                Focus Level: {user_input["focus_level"]}
+                Academic Workload: {user_input["academic_workload"]}
+                Mood: {user_input["mood"]}
+                Social Activity Level: {user_input["social_activity_level"]}
+                Reflection: {user_input["reflection"]}
+
+                This is the scores that the AI tabulated for them:
+                Mental Wellness Risk Score: {ai_output["mental_wellness_risk_score"]}
+                Burnout Risk Score: {ai_output["burnout_risk_score"]}
+
+                This is the advice that our AI gave them:
+                {ai_output["personalized_recommendations"]}
+
+
+                Please get in contact with this student ASAP.
+
+                Best Regards,
+                AI Counsellor
             '''
-        if send_email(mail_recipient, "Student Requiring Attention", body):
+
+        if send_email(mail_recipient, subject, body):
             print("EMAIL SENT")
         else:
             print("EMAIL NOT SENT")
-
 
 @app.route('/submit_survey')
 def submit_survey():
