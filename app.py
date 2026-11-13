@@ -638,7 +638,7 @@ def submit_survey():
     try:
         answers = dict(ai_manager.show_survey_results())
     except (TypeError, ValidationError):    # no survey results yet, or they don't fit the chatbot's schema
-        return redirect(url_for('wellness_check', contiue_chat=True))
+        return redirect(url_for('wellness_check', continue_chat=True))
 
     try:
         result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
