@@ -15,7 +15,7 @@ SAMPLE_RESPONSE = SurveyResponse("123", 7.5, 5, 6, 4, "Calm", 3, "Good week")
 # SAMPLE_RESPONSE's answers without the user id, as the web app passes them to survey()
 SAMPLE_ANSWERS = {key: value for key, value in SAMPLE_RESPONSE.to_dict().items() if key != "user_id"}
 
-PASSWORD_RULES_ALL = "at least 4 characters at least one number at least one special character (e.g. ! @ # $ %)"
+PASSWORD_RULES_ALL = "Password must have at least 4 characters, at least one number, at least one special character (e.g. ! @ # $ %)."
 MOOD_CHOICES = "Please choose one of: Motivated, Calm, Anxious, Sad, Exhausted."
 SCALE_KEYS = ("stress_level", "focus_level", "academic_workload", "social_activity_level")
 
@@ -308,7 +308,7 @@ def test_register_check_order():
     accounts.register("Alice", "pass1!", "pass1!")
     assert accounts.register("alice", "x", "y").message == "This username already exists. Please choose another."
     assert accounts.register("Bob", "abcd", "y").message == \
-        "at least one number at least one special character (e.g. ! @ # $ %)"    # then the password rules
+        "Password must have at least one number, at least one special character (e.g. ! @ # $ %)."    # then the password rules
     assert accounts.register("Bob", "pass1!", "").message == "Passwords do not match."    # then the confirmation
     assert len(accounts.data.get_users()) == 1
 

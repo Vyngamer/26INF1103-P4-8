@@ -79,7 +79,7 @@ class AccountService:
     def _check_password_rules(password):
         problems = password_errors(password)
         if problems:
-            raise AccountError(" ".join(problems))
+            raise AccountError("Password must have " + ", ".join(problems) + ".")
 
     # Register New User
     @account_action
