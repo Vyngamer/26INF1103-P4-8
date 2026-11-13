@@ -18,17 +18,17 @@
         <!-- Left column -->
         <div class="stack">
           <section class="score-card" aria-label="Overall wellness">
-            <p class="label">Overall wellness</p>
+            <p class="label">Overall Risk Tier</p>
 	          <p class="value"><span id="overallScore">{{ latest_attempt.get_logic_output()["mental_wellness_risk_tier"] }}</span></p>
             <div class="meta">
               <span class="muted">Last check</span>
-              <strong id="lastCheck">{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong>
+              <strong id="lastCheck" class="date-text">{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong>
             </div>
           </section>
 
           <section class="card">
             <h2 class="card-title">Previous attempt</h2>
-            <p class="card-sub" data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</p>
+            <p class="card-sub date-text" data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</p>
             <div class="tiles-2">
 		    <div class="tile"><p class="t-label">Mental Wellness Risk score</p><p class="t-value" id="tWellness">{{ latest_attempt.get_ai_output()["mental_wellness_risk_score"] }}/100</p></div>
               <div class="tile"><p class="t-label">Burnout Risk Score</p><p class="t-value" id="tBurnout">{{ latest_attempt.get_ai_output()["burnout_risk_score"] }}/100</p></div>
@@ -69,7 +69,7 @@
                 View past results
               </a>
             </div>
-            <div class="footer-row"><span>Last completed check</span><strong data-latest-date>{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong></div>
+            <div class="footer-row"><span>Last completed check</span><strong data-latest-date class="date-text">{{ latest_attempt.get_date() + " , " + latest_attempt.get_time() }}</strong></div>
           </section>
 
           <section class="card">
@@ -85,7 +85,12 @@
             <!-- <div class="insight"><h4>High Burnout Warning (Sleep)</h4><p>Your burnout risk score was high and you had little sleep</p></div>
             <div class="insight"><h4>Burnout Warning (Workload)</h4><p>Your burnout risk score was high as well as your workload</p></div>
             <div class="insight"><h4>Social Withdrawal Risk</h4><p>Your mood wasn’t too good and your social activity level was low</p></div> -->
-            <div class="insight advice"><h4>Advice For You (AI Generated)</h4><p>Stress management remains the area with the most room for improvement. A new check can help you track progress and identify small changes to build on.</p></div>
+            <div class="insight advice"><h4>A Reflection for You (AI Generated)</h4>
+              <p class="stressor">
+              Main stressor: <strong>{{ latest_attempt.get_ai_output()["primary_stressor"] }}</strong>
+              </p>
+              <p>{{ latest_attempt.get_ai_output()["personalized_recommendations"] }}</p>
+            </div>
           </section>
         </div>
       </div>
@@ -177,6 +182,33 @@
       {% endif %}
     </main>
   </div>
-  <script src="js/app.js"></script>
+<script>
+document.querySelectorAll('.date-text').forEach(element => {
+    const rawDate = element.textContent.trim();
+
+    const [datePart, timePart] = rawDate.split(',');
+
+    const [day, month, year] = datePart.trim().split('-');
+    const [hour, minute, second] = timePart.trim().split(':');
+
+    const date = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        Number(second)
+    );
+
+    element.textContent = date.toLocaleString('en-SG', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+});
+</script>
 </body>
 {% endblock %}
