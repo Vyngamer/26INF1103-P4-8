@@ -73,8 +73,8 @@ class IOManager:
             }
 
             # Subject
-            subject = ROUTES[assessment["route"]][0]
-            opening = ROUTES[assessment["route"]][1]
+            subject = ROUTES[assessment["logic_output"]["route"]][0]
+            opening = ROUTES[assessment["logic_output"]["route"]][1]
 
             # Email body
             body = f'''
@@ -85,20 +85,20 @@ class IOManager:
                 Username = {username}
 
                 Here is a brief summary of the student scores:
-                Sleep: {assessment["sleep_duration"]} Hr(s)
-                Stress Level: {assessment["stress_level"]}
-                Focus Level: {assessment["focus_level"]}
-                Academic Workload: {assessment["academic_workload"]}
-                Mood: {assessment["mood"]}
-                Social Activity Level: {assessment["social_activity_level"]}
-                Reflection: {assessment["reflection"]}
+                Sleep: {assessment["user_input"]["sleep_duration"]} Hr(s)
+                Stress Level: {assessment["user_input"]["stress_level"]}
+                Focus Level: {assessment["user_input"]["focus_level"]}
+                Academic Workload: {assessment["user_input"]["academic_workload"]}
+                Mood: {assessment["user_input"]["mood"]}
+                Social Activity Level: {assessment["user_input"]["social_activity_level"]}
+                Reflection: {assessment["user_input"]["reflection"]}
 
                 This is the scores that the AI tabulated for them:
-                Mental Wellness Risk Score: {assessment["mental_wellness_risk_score"]}
-                Burnout Risk Score: {assessment["burnout_risk_score"]}
+                Mental Wellness Risk Score: {assessment["ai_output"]["mental_wellness_risk_score"]}
+                Burnout Risk Score: {assessment["ai_output"]["burnout_risk_score"]}
 
                 This is the advice that our AI gave them:
-                {assessment["personalized_recommendations"]}
+                {assessment["ai_output"]["personalized_recommendations"]}
 
 
                 Please get in contact with this student ASAP.
