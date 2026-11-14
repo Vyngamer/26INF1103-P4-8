@@ -2,6 +2,7 @@
 Main I/O Layer
 '''
 
+from flask_mail import mail, Message
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
 from io_helpers.account_service import AccountService
 from io_helpers.survey_result import SurveyResult
@@ -11,9 +12,8 @@ from io_helpers.survey_result import SurveyResult
 # each action is given the logged-in user's id by the route (from Flask's session)
 class IOManager:
 
-    def __init__(self, data, process_responses=None, accounts=None):
-        self.data = data
-        self.accounts = accounts or AccountService(data)
+    def __init__(self, data, process_responses=None):
+        self.accounts = AccountService(data)
         self.process_responses = process_responses
 
     '''
@@ -53,5 +53,64 @@ class IOManager:
         except SurveyAnswersError as error:
             return SurveyResult(False, str(error), errors=error.errors)
         if self.process_responses is not None:
-            self.process_responses(uid, responses)
+           self.process_responses(uid, responses)
         return SurveyResult(True, "Survey answers accepted.", response=responses)
+
+    
+
+    '''
+    EMAIL
+    '''
+
+    # send email (To counsellor, when user requires counselling follow-up)
+    def send_email(recipient, uid, username, assessment: dict[str: str]):
+
+        # Subjects & openings dependent on logic manager's given route
+
+            ROUTES = {
+                "Urgent support": ["Urgent Support Needed", "A Student requires urgent support."],
+                "Counsellor follow-up": ["Counsellor Follow up Needed", "Our AI has flagged that this student requires counsellor follow-up."],
+            }
+
+            # Subject
+            subject = ROUTES[assessment["route"]][0]
+            opening = ROUTES[assessment["route"]][1]
+
+            # Email body
+            body = f'''
+                Dear Counsellor,
+
+                {opening}
+                User ID = {uid}
+                Username = {username}
+
+                Here is a brief summary of the student scores:
+                Sleep: {assessment["sleep_duration"]} Hr(s)
+                Stress Level: {assessment["stress_level"]}
+                Focus Level: {assessment["focus_level"]}
+                Academic Workload: {assessment["academic_workload"]}
+                Mood: {assessment["mood"]}
+                Social Activity Level: {assessment["social_activity_level"]}
+                Reflection: {assessment["reflection"]}
+
+                This is the scores that the AI tabulated for them:
+                Mental Wellness Risk Score: {assessment["mental_wellness_risk_score"]}
+                Burnout Risk Score: {assessment["burnout_risk_score"]}
+
+                This is the advice that our AI gave them:
+                {assessment["personalized_recommendations"]}
+
+
+                Please get in contact with this student ASAP.
+
+                Best Regards,
+                AI Counsellor
+            '''
+            
+            try:
+                msg = Message(subject=subject, recipients=[recipient], body=body)
+                mail.send(msg)
+                return True
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+                return False
