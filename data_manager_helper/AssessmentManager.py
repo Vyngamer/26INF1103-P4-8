@@ -51,7 +51,7 @@ class AssessmentManager:
         return False
 
     # combine 3 outputs into a record
-    def merge_record(self, user_input: dict[str, Any], ai_output: dict[str, Any], logic_output: dict[str, Any]):
+    def merge_record(self, user_input: dict[str, Any], ai_output: dict[str, Any], logic_output: dict[str, Any]) -> AssessmentRecord:
         return AssessmentRecord(
             user_input,
             ai_output,
