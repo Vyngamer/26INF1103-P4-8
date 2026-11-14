@@ -2,7 +2,7 @@
 Main I/O Layer
 '''
 
-from flask_mail import mail, Message
+from flask_mail import Message
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
 from io_helpers.account_service import AccountService
 from io_helpers.survey_result import SurveyResult
@@ -63,7 +63,7 @@ class IOManager:
     '''
 
     # send email (To counsellor, when user requires counselling follow-up)
-    def send_email(recipient, uid, username, assessment: dict[str: str]):
+    def send_email(recipient, uid, username, assessment: dict[str: str], mail):
 
         # Subjects & openings dependent on logic manager's given route
 

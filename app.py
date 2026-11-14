@@ -8,7 +8,7 @@ import json
 from datetime import date
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
-from flask_mail import Mail, Message
+from flask_mail import Mail
 from dotenv import load_dotenv
 from markupsafe import escape
 from ai_manager import AIManager
@@ -423,7 +423,7 @@ def assess_and_save(uid, responses):
     # counselling is recommended, or the route is Urgent support or Counsellor follow-up
     if logic_output["counselling_recommendation"]:
         uid, username = current_user()
-        io_manager.send_email(mail_recipient, uid, username, assessment)
+        io_manager.send_email(mail_recipient, uid, username, assessment, mail)
 
 @app.route('/submit_survey')
 def submit_survey():
@@ -438,6 +438,7 @@ def submit_survey():
 
     try:
         result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
+
     except Exception as e:
         print(e)
         app.logger.exception("Assessment failed")
