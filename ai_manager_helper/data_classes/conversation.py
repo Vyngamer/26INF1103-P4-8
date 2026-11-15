@@ -47,8 +47,10 @@ class Conversation:
         self.__conversation_list = []
 
 
+
 if __name__ == "__main__":
     conversation = Conversation()
     conversation.add_message('user', 'asdf')
     conversation.add_message('ai', 'Hello')
     print(conversation.logs())
+
