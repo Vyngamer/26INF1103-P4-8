@@ -1,32 +1,51 @@
 import re
 import os
 import threading
-import sys
-import markdown
 import logic_manager
 import json
 from datetime import date
 
+from google.genai import types
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from flask_mail import Mail
 from dotenv import load_dotenv
 from markupsafe import escape
-from ai_manager import AIManager
+from ai_manager_helper.ai_manager import AIManager
 from data_manager import DataManager
 from io_helpers.hasher import PasswordHasher
 from pydantic import ValidationError
 from io_manager import IOManager
 from ai_manager_helper.data_classes.conversation import Conversation
-from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
-from ai_manager_helper.api_client_classes.gemini_client import GeminiClient
+from ai_manager_helper.gemini_client import GeminiClient
+from ai_manager_helper.gemini_client_with_fallback import GeminiClientWithFallback
+from ai_manager_helper.crisis_safety_filter import CrisisSafetyFilter
 from ai_manager_helper.data_classes.ai_output import AIOutput
+from ai_manager_helper.counselling_strategy_factory import CounsellingStrategyFactory
 from logic_manager_helper.LogicManager import LogicManager
 
-ai_manager = AIManager()
-ai_manager.connect_client()
+retry_config = types.HttpRetryOptions(
+    attempts=5,                         
+    initial_delay=2.0,                  
+    max_delay=60.0,                     
+    http_status_codes=[408, 429, 500, 502, 503, 504],
+)     
+
+collect_survey_strategy = CounsellingStrategyFactory.create_strategy('survey')
+evaluate_survey_strategy = CounsellingStrategyFactory.create_strategy('evaluate')
+
+primary_client = GeminiClient('gemini-3.5-flash-lite', retry_config)
+primary_client.connect_client()
+fallback_client = GeminiClient('gemini-3.1-flash-lite', retry_config)
+client = GeminiClientWithFallback(primary_client, fallback_client)
+
+conversation = Conversation()
+safety_filter = CrisisSafetyFilter()
+
+ai_manager = AIManager(client, conversation, safety_filter)
+
 data_manager = DataManager()
 logic_manager = LogicManager()
-io_manager = IOManager(data_manager, process_responses=lambda uid, responses: assess_and_save(uid, responses))
+io_manager = IOManager(data_manager)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
@@ -361,38 +380,34 @@ def wellness_check(continue_chat=False):
     latest_record = data_manager.get_latest_user_record(uid)
     done_today = latest_record is not None and latest_record.get_date() == today_date and not continue_chat
 
-    if len(conversation.logs()) == 0 and not conversation.is_bot_typing():
-        t = threading.Thread(target=get_AI_response, args=('Hello!',))
-        t.start()
-        conversation.set_bot_typing(True)
+    if len(ai_manager.get_conversation_history()) == 0 and not ai_manager.is_bot_typing():
+        threading.Thread(target=ai_manager.process_message, args=('Hello!', collect_survey_strategy, True)).start()
 
-    return render_template('wellness-check.html', conversation=conversation, survey_results=None, already_done_today=done_today)
+    return render_template('wellness-check.html', conversation=ai_manager.get_conversation(), survey_results=None, already_done_today=done_today)
 
 @app.get('/reset-conversation')
 def reset_conversation():
-    conversation = Conversation()
+    ai_manager.reset_conversation()
     return None
 
 @app.route('/get', methods=['GET','POST'])
 def chat():
     user_message = request.form["msg"]
-    conversation.add_message('user', 'YT', user_message)
-    conversation.set_bot_typing(True)
 
-    return get_AI_response(user_message)
+    return ai_manager.process_message(user_message, collect_survey_strategy)
 
 @app.route('/get-bot-response', methods=['GET'])
 def wait_for_bot_response():
-    while conversation.is_bot_typing():
+    while ai_manager.is_bot_typing():
         continue
 
-    return conversation.get_last_log()
+    return ai_manager.get_last_log()
      
 @app.route('/confirm-survey', methods=['GET'])
 def confirm_survey():
     survey_results = ai_manager.show_survey_results(by_alias=True)
 
-    return render_template('wellness-check.html', conversation=conversation, survey_results=survey_results)
+    return render_template('wellness-check.html', conversation=ai_manager.get_conversation(), survey_results=survey_results)
 
 # Raised by assess_and_save() when the assessment can't be finished, so nothing half-done is shown
 class AssessmentFailed(Exception):
@@ -405,10 +420,11 @@ class AssessmentFailed(Exception):
 def assess_and_save(uid, responses):
     user_input = responses.to_dict()
     #user_input = ai survey result
-    result = ai_manager.get_ai_output(user_input)
+    result = ai_manager.process_message(json.dumps(user_input), evaluate_survey_strategy, True)
 
-    if not result.success:
-        raise AssessmentFailed(f"The AI assessment failed: {result.error}")
+    # if not result.success:
+    #     raise AssessmentFailed(f"The AI assessment failed: {result.error}")
+
     ai_output = json.loads(result.data)
 
     previous_attempts = data_manager.get_previous_attempts(uid)
@@ -432,15 +448,15 @@ def submit_survey():
         return redirect(url_for('login'))
 
     try:
-        user_input = dict(ai_manager.show_survey_results())
+        user_input = ai_manager.show_survey_results(by_class=True)
     except (TypeError, ValidationError):    # no survey results yet, or they don't fit the chatbot's schema
         return redirect(url_for('wellness_check', continue_chat=True))
 
     try:
         #result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
 
-        result = ai_manager.get_ai_output(user_input)
-        ai_output = json.loads(result.data)
+        result = ai_manager.process_message(json.dumps(user_input.model_dump()), evaluate_survey_strategy, True)
+        ai_output = result['text']
         #If failed, raise exception
 
         previous_attempts = data_manager.get_previous_attempts(uid)
@@ -459,19 +475,17 @@ def submit_survey():
     except Exception as e:
         print(e)
         app.logger.exception("Assessment failed")
-        conversation.add_message('ai', 'AI', "Sorry, I couldn't finish your assessment just now. "
+        ai_manager.add_message('ai', 'AI', "Sorry, I couldn't finish your assessment just now. "
                                        "Please press Yes to try again.")
         return redirect(url_for('confirm_survey'))    # shows the answers again with Yes / No
 
-    if not result.ok:    # an answer is invalid: the chatbot asks the user to fix it
-        ai_manager.deny_survey()
-        conversation.set_bot_typing(True)
-        threading.Thread(target=get_AI_response,
-                         args=(f"Some answers need to be fixed: {result.message}",)).start()
+    #if not result.ok:    # an answer is invalid: the chatbot asks the user to fix it
+    #    threading.Thread(target=ai_manager.process_message,
+    #                     args=(f"Some answers need to be fixed: {result.message}", collect_survey_strategy, True)).start()
 
-        return redirect(url_for('wellness_check'))
+    #    return redirect(url_for('wellness_check'))
 
-    conversation.reset_conversation()
+    ai_manager.reset_conversation()
     # redirect, so refreshing the results page doesn't run the assessment (and the email) again
     return redirect(url_for('result', attempt_id=data_manager.get_latest_user_record(uid).get_record_id()))
 
@@ -643,24 +657,9 @@ def submit_survey():
 
 @app.route('/deny-survey')
 def deny_survey():
-    ai_manager.deny_survey()
-    threading.Thread(target=get_AI_response, args=('The survey results are not accurate.',)).start()
-    conversation.set_bot_typing(True)
+    threading.Thread(target=ai_manager.process_message, args=('The survey results are not accurate.', collect_survey_strategy, True)).start()
 
     return redirect(url_for('wellness_check', continue_chat=True))
-
-
-def get_AI_response(text, start_chat=False):
-    if start_chat:
-        bot_response = ai_manager.start_conversation()
-    else:
-        bot_response = ai_manager.prompt_bot(text)
-
-    conversation.add_message('ai', 'AI', bot_response['text'])
-    conversation.set_bot_typing(False)
-
-    return bot_response
-
 
 @app.route('/logout')
 def logout():
