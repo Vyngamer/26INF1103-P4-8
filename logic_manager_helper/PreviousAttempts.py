@@ -7,13 +7,13 @@ class PreviousAttempts:
     def get_values(self, field: str) -> list:
         return [attempt[field] for attempt in self._attempts]
 
-    def get_latest(self, field: str):
+    def get_latest(self, field: str) -> int | float | None:
         if not self._attempts:
             return None
 
         return self._attempts[-1][field]
 
-    def get_average(self, field: str):
+    def get_average(self, field: str) -> float | None:
         values = self.get_values(field)
 
         if not values:
