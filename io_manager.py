@@ -12,9 +12,8 @@ from io_helpers.survey_result import SurveyResult
 # each action is given the logged-in user's id by the route (from Flask's session)
 class IOManager:
 
-    def __init__(self, data, process_responses=None):
+    def __init__(self, data):
         self.accounts = AccountService(data)
-        self.process_responses = process_responses
 
     '''
     ACCOUNT ACTIONS
@@ -52,8 +51,6 @@ class IOManager:
             responses = Questionnaire().from_answers(uid, answers)
         except SurveyAnswersError as error:
             return SurveyResult(False, str(error), errors=error.errors)
-        if self.process_responses is not None:
-           self.process_responses(uid, responses)
         return SurveyResult(True, "Survey answers accepted.", response=responses)
 
     

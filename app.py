@@ -432,12 +432,29 @@ def submit_survey():
         return redirect(url_for('login'))
 
     try:
-        answers = dict(ai_manager.show_survey_results())
+        user_input = dict(ai_manager.show_survey_results())
     except (TypeError, ValidationError):    # no survey results yet, or they don't fit the chatbot's schema
         return redirect(url_for('wellness_check', continue_chat=True))
 
     try:
-        result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
+        #result = io_manager.survey(uid, answers)    # checks every answer, then runs assess_and_save()
+
+        result = ai_manager.get_ai_output(user_input)
+        ai_output = json.loads(result.data)
+        #If failed, raise exception
+
+        previous_attempts = data_manager.get_previous_attempts(uid)
+        logic_output = logic_manager.to_dict(logic_manager.assess(user_input, AIOutput(**ai_output), previous_attempts))
+
+        # merge into one record and save it as today's (replacing any earlier one from today)
+        assessment = data_manager.merge_record(user_input, ai_output, logic_output)
+        # If cant be saved, raise error
+
+        # email the counsellor if the mental wellness or burnout score is over 80, crisis_alert is true,
+        # counselling is recommended, or the route is Urgent support or Counsellor follow-up
+        if logic_output["counselling_recommendation"]:
+            uid, username = current_user()
+            io_manager.send_email(mail_recipient, uid, username, assessment, mail)
 
     except Exception as e:
         print(e)
