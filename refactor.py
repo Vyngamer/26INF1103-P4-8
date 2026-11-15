@@ -1,20 +1,21 @@
 from google import genai
+from google.genai import types
+from google.genai._gaos.lib.compat_errors import APIConnectionError, NotFoundError
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 
-from ai_manager_helper.data_classes.api_result import APIResult
 from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
 from ai_manager_helper.data_classes.conversation import Conversation
 
+import re
+import logging
 import json
+
+logger = logging.getLogger(__name__)
 
 class IChatClient(ABC):
     @abstractmethod
-    def connect_client(self) -> None:
-        pass
-    
-    @abstractmethod
-    def send_message(self, prompt: str, system_instruction: Optional[str] = None, json_response_schema: Optional[dict] = None) -> APIResult:
+    def send_message(self, prompt: str, previous_interaction_id: str, system_instruction: Optional[str] = None, json_response_schema: Optional[dict] = None):
         pass
 
 class ICounsellingStrategy(ABC):
@@ -41,45 +42,69 @@ class IChatRepository(ABC):
         pass
 
 class GeminiClient(IChatClient):
-    def __init__(self, model: str) -> None:
+    def __init__(self, model: str, retry_config: types.HttpRetryOptions) -> None:
         self.__model = model
+        self.__retry_config = retry_config
         self.__client = None
 
     def connect_client(self) -> None:
-        self.__client = genai.Client()
+        self.__client = genai.Client(
+            http_options=types.HttpOptions(
+                retry_options=retry_config,
+                timeout=120*1000,
+            )
+        )
 
-    def send_message(self, prompt: str, previous_interaction_id: str, system_instruction: Optional[str] = None, response_json_format: Optional[dict] = None) -> APIResult:
-        try:
-            interaction = self.__client.interactions.create(
-                model=self.__model,
-                input=prompt,
-                system_instruction=system_instruction,
-                previous_interaction_id=previous_interaction_id,
-                response_format = {
-                    "type": "text",
-                    "mime_type": "application/json",
-                    "schema": response_json_format
-            })
+    def send_message(self, prompt: str, previous_interaction_id: str, system_instruction: Optional[str] = None, json_response_schema: Optional[dict] = None) -> str:
+        interaction = self.__client.interactions.create(
+            model=self.__model,
+            input=prompt,
+            system_instruction=system_instruction,
+            previous_interaction_id=previous_interaction_id,
+            response_format={
+                "type": "text",
+                "mime_type": "application/json",
+                "schema": json_response_schema
+            },
+        )
 
-            return APIResult.ok(interaction.model_dump())
+        return interaction.model_dump()
 
-        except Exception as e:
-            return APIResult.fail(e)
 
 class GeminiClientWithFallback(IChatClient):
     def __init__(self, primary_model: IChatClient, fallback_model: IChatClient) -> None:
         self.__primary = primary_model
-        self.__fallbak = fallback_model
+        self.__fallback = fallback_model
 
-    def connect_client(self) -> None:
-        pass
-
-    def send_message(self, prompt: str, previous_interaction_id: str, system_instruction: Optional[str] = None, response_json_format: Optional[dict] = None) -> APIResult:
+    def send_message(self, prompt: str, previous_interaction_id: str, system_instruction: Optional[str] = None, json_response_schema: Optional[dict] = None):
         try:
-            self.__primary.send_message(prompt, previous_interaction_id, response_json_format)
+            return self.__primary.send_message(prompt, previous_interaction_id, system_instruction, json_response_schema)
 
-        except 
-        
+        except (APIConnectionError, NotFoundError) as e:
+            logger.warning(
+                f"Primary AI model failed with error: {str(e)}. "
+                "Switching to fallback model..."
+            )
+
+            try: 
+                self.__fallback.connect_client()
+                return self.__fallback.send_message(prompt, previous_interaction_id, system_instruction, json_response_schema)
+                
+            except Exception as e:
+                logger.error(f"Fallback AI model also failed: {str(e)}")
+                raise Exception("All AI counselling services are currently unavailable.")
+
+class CrisisSafetyFilter:
+    CRISIS_KEYWORDS = [
+        r"suicide", r"kill myself", r"end it all", r"want to die", 
+        r"self[-\s]harm", r"hurt myself"
+    ]
+
+    def validate(self, text: str) -> None:
+        text_lower = text.lower()
+        for pattern in self.CRISIS_KEYWORDS:
+            if re.search(pattern, text_lower):
+                raise Exception("Crisis Detected")
 
 class CollectSurveyStrategy(ICounsellingStrategy):
     def get_system_instruction(self) -> str:
@@ -219,14 +244,16 @@ class CounsellingStrategyFactory:
         return strategies[strategy_type]()
 
 class AIManager:
-    def __init__(self, client: IChatClient, conversation: IChatRepository) -> None:
+    def __init__(self, client: IChatClient, conversation: IChatRepository, safety_filter: CrisisSafetyFilter) -> None:
         self.__client = client
         self.__conversation = conversation
+        self.__safety_filter = safety_filter
         self.__previous_interaction_id = None
         self.__instruction_flag = True
         self.__survey_results = None
     
     def process_message(self, prompt: str, strategy: ICounsellingStrategy) -> dict:
+        self.__safety_filter.validate(prompt)
         self.__conversation.add_message('user', 'YT', prompt)
 
         system_instruction = ""
@@ -235,12 +262,10 @@ class AIManager:
             self.__instruction_flag = False
 
         json_response_schema = strategy.get_json_response_schema()
-        result = self.__client.send_message(prompt, self.__previous_interaction_id, system_instruction, json_response_schema)
+        response = self.__client.send_message(prompt, self.__previous_interaction_id, system_instruction, json_response_schema)
 
         # Add error handling if error
 
-        print(result)
-        response = result.data
         self.__previous_interaction_id = response['id']
         self.__survey_results = json.loads(response['output_text'])
         ai_response = self.__survey_results['text']
@@ -249,9 +274,20 @@ class AIManager:
         return {'text': ai_response, 'survey_done': self.__survey_results['survey_done']}
     
 if __name__ == "__main__":
-    api_client = GeminiClient('gemini-3.5-flash-lite')
-    api_client.connect_client()
+
+    retry_config = types.HttpRetryOptions(
+        attempts=5,                         
+        initial_delay=2.0,                  
+        max_delay=60.0,                     
+        http_status_codes=[408, 429, 500, 502, 503, 504],
+    )     
+
+    primary_client = GeminiClient('gemini-3.5-flash-lite', retry_config)
+    primary_client.connect_client()
+    fallback_client = GeminiClient('gemini-3.1-flash-lite', retry_config)
+    client = GeminiClientWithFallback(primary_client, fallback_client)
+
     conversation = Conversation()
-    ai_manager = AIManager(api_client, conversation)
+    ai_manager = AIManager(client, conversation)
     collect_survey_strategy = CounsellingStrategyFactory.create_strategy('survey')
     print(ai_manager.process_message('Hello!', collect_survey_strategy)['text'])
