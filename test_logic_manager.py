@@ -364,7 +364,7 @@ from logic_manager_helper.PreviousAttempts import PreviousAttempts
 from logic_manager_helper.RiskTierClassifier import RiskTierClassifier
 from logic_manager_helper.SleepReminder import SleepReminder
 from logic_manager_helper.SupportRouter import SupportRouter
-from logic_manager_helper.LogicManager import LogicManager
+from LogicManager import LogicManager
 from logic_manager_helper.LogicOutput import LogicOutput
 
 def make_current(**overrides) -> CurrentAttempt:
