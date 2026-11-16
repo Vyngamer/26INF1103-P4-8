@@ -107,7 +107,7 @@ def web(monkeypatch):
 
     sys.modules.pop("app", None)    # app.py builds the app when imported, so import it fresh each test
     app_module = importlib.import_module("app")
-    import app_helper.chat_session as chat_session
+    import app_helpers.chat_session as chat_session
     monkeypatch.setattr(chat_session, "AIManager", fake_ai_manager)
 
     app_module.app.config["TESTING"] = True
