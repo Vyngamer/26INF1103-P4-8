@@ -426,3 +426,29 @@ def test_previous_attempts_copies_input():
 def test_risk_tier(score, expected):
     current = make_current(mental_wellness_risk_score=score)
     assert RiskTierClassifier().classify(current) == expected
+
+
+# test warning rules
+@pytest.mark.parametrize(
+    "rule, attempt, expected",
+    [
+        # test for SleepBurnoutRule
+        (SleepBurnoutRule(), dict(burnout_risk_score=76, sleep_duration=5.9), "High Burnout Warning (Sleep)"),
+        (SleepBurnoutRule(), dict(burnout_risk_score=75, sleep_duration=4), None),
+        (SleepBurnoutRule(), dict(burnout_risk_score=90, sleep_duration=6), None),
+        # test for WorkloadBurnoutRule
+        (WorkloadBurnoutRule(), dict(burnout_risk_score=61, academic_workload=7), "Burnout Warning (Workload)"),
+        (WorkloadBurnoutRule(), dict(burnout_risk_score=60, academic_workload=10), None),
+        (WorkloadBurnoutRule(), dict(burnout_risk_score=90, academic_workload=6), None),
+        # test for SocialWithdrawalRule
+        (SocialWithdrawalRule(), dict(social_activity_level=3, sentiment="Negative"), "Social Withdrawal Risk"),
+        (SocialWithdrawalRule(), dict(social_activity_level=4, sentiment="Negative"), None),
+        (SocialWithdrawalRule(), dict(social_activity_level=1, sentiment="Neutral"), None),
+        # test for CognitiveFatigueRule
+        (CognitiveFatigueRule(), dict(focus_level=4, sentiment="Negative"), "Cognitive Fatigue Risk"),
+        (CognitiveFatigueRule(), dict(focus_level=5, sentiment="Negative"), None),
+        (CognitiveFatigueRule(), dict(focus_level=1, sentiment="Positive"), None),
+    ],
+)
+def test_warning_rules(rule, attempt, expected):
+    assert rule.evaluate(make_current(**attempt)) == expected
