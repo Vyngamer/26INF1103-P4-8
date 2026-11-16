@@ -17,6 +17,7 @@ survey_result    - One completed surveys' result (SurveyResults)
 Errors
 account_error    - Account-related error (AccountError)
 invalid_input    - Invalid prompt answer error (InvalidInput)
+assessment_error - Assessment failed error (AssessmentFailed)
 survey_error     - Survey question input error (SurveyError)
 
 '''
