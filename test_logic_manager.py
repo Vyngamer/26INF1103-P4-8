@@ -594,3 +594,63 @@ def test_logic_output_lists_are_protected():
     warnings.append("b")
     output.warnings.append("c")
     assert output.warnings == ["a"]
+
+
+
+# test logic manager class, basically everything in one class so we will need some data
+normal = dict(sleep_duration=8, academic_workload=3, social_activity_level=7, focus_level=7,
+    mental_wellness_risk_score=20, burnout_risk_score=20, sentiment="Positive", crisis_alert=False)
+
+not_so_good = dict(sleep_duration=3, academic_workload=9, social_activity_level=3, focus_level=2,
+    mental_wellness_risk_score=78, burnout_risk_score=82, sentiment="Negative", crisis_alert=False)
+
+not_so_good_history = [{"sleep_duration": 5, "social_activity_level": s, "focus_level": f,
+     "mental_wellness_risk_score": 78, "burnout_risk_score": 82}
+    for s, f in [(6, 5), (5, 5), (4, 5), (3, 6)]]
+
+fields = {"sleep_duration", "academic_workload", "social_activity_level", "focus_level"}
+
+
+def split_inputs(attempt: dict):
+    """Split one dict into fake user_input / ai_output objects."""
+    user = {k: v for k, v in attempt.items() if k in fields}
+    ai = {k: v for k, v in attempt.items() if k not in fields}
+    return SimpleNamespace(**user), SimpleNamespace(**ai)
+
+
+@pytest.mark.parametrize(
+    "attempt, history, tier, warnings, route, recommend, messages_include",
+    [
+        pytest.param(normal, [], "Low", [], "Self-care guidance", False, [], id="healthy"),
+        pytest.param(
+            {**normal, "crisis_alert": True}, [], "Low", [], "Urgent support", True, [], id="crisis",
+        ),
+        pytest.param(
+            {**normal, "mental_wellness_risk_score": 55}, [], "Medium", [], "Self-care guidance", False, [],
+            id="medium-no-warnings",
+        ),
+        pytest.param(
+            not_so_good, not_so_good_history, "High",
+            ["High Burnout Warning (Sleep)", "Burnout Warning (Workload)",
+             "Social Withdrawal Risk", "Cognitive Fatigue Risk"],
+            "Counsellor follow-up", True,
+            ["You slept less than 7 hours. Try to get more sleep.",
+             "You slept 2.00 hours less than your average."],
+            id="struggling",
+        ),
+    ],
+)
+def test_logic_manager(attempt, history, tier, warnings, route, recommend, messages_include):
+    user, ai = split_inputs(attempt)
+    manager = LogicManager()
+    out = manager.assess(user, ai, history)
+
+    assert out.mental_wellness_risk_tier == tier
+    assert out.warnings == warnings
+    assert out.route == route
+    assert out.counselling_recommendation is recommend
+    for message in messages_include:
+        assert message in out.display_messages
+    if not history and attempt["sleep_duration"] >= 7:
+        assert out.display_messages == []
+    assert manager.to_dict(out) == out.to_dict()
