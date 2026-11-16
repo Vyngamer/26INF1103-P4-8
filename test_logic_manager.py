@@ -382,8 +382,8 @@ def make_current(**overrides) -> CurrentAttempt:
     return CurrentAttempt(**values)
 
 
-def make_history(*rows: dict) -> PreviousAttempts:
-    return PreviousAttempts(list(rows))
+def make_history(field: str, values: list[int | float]) -> PreviousAttempts:
+    return PreviousAttempts([{field: value} for value in values])
 
 
 # testing previous attempts
