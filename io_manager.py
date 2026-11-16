@@ -60,6 +60,7 @@ class IOManager:
     '''
 
     # send email (To counsellor, when user requires counselling follow-up)
+    @staticmethod
     def send_email(recipient, uid, username, assessment: dict[str: str], mail):
 
         # Subjects & openings dependent on logic manager's given route
