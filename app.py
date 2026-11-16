@@ -26,7 +26,7 @@ ai_manager = AIManager()
 ai_manager.connect_client()
 data_manager = DataManager()
 logic_manager = LogicManager()
-io_manager = IOManager(data_manager, process_responses=lambda uid, responses: assess_and_save(uid, responses))
+io_manager = IOManager(data_manager)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
@@ -448,6 +448,8 @@ def submit_survey():
 
         # merge into one record and save it as today's (replacing any earlier one from today)
         assessment = data_manager.merge_record(user_input, ai_output, logic_output)
+        if not data_manager.replace_user_record(uid, assessment):
+            raise AssessmentFailed("The assessment could not be saved.")
         # If cant be saved, raise error
 
         # email the counsellor if the mental wellness or burnout score is over 80, crisis_alert is true,
