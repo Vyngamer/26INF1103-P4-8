@@ -1,19 +1,19 @@
-from .CurrentAttempt import CurrentAttempt
-from .PreviousAttempts import PreviousAttempts
-from .LogicOutput import LogicOutput
-from .RiskTierClassifier import RiskTierClassifier
-from .SupportRouter import SupportRouter
-from .SleepReminder import SleepReminder
+from logic_manager_helper.CurrentAttempt import CurrentAttempt
+from logic_manager_helper.PreviousAttempts import PreviousAttempts
+from logic_manager_helper.LogicOutput import LogicOutput
+from logic_manager_helper.RiskTierClassifier import RiskTierClassifier
+from logic_manager_helper.SupportRouter import SupportRouter
+from logic_manager_helper.SleepReminder import SleepReminder
 
-from .warnings.SleepBurnoutRule import SleepBurnoutRule
-from .warnings.WorkloadBurnoutRule import WorkloadBurnoutRule
-from .warnings.SocialWithdrawalRule import SocialWithdrawalRule
-from .warnings.CognitiveFatigueRule import CognitiveFatigueRule
+from logic_manager_helper.warnings.SleepBurnoutRule import SleepBurnoutRule
+from logic_manager_helper.warnings.WorkloadBurnoutRule import WorkloadBurnoutRule
+from logic_manager_helper.warnings.SocialWithdrawalRule import SocialWithdrawalRule
+from logic_manager_helper.warnings.CognitiveFatigueRule import CognitiveFatigueRule
 
-from .comparisons.SleepComparison import SleepComparison
-from .comparisons.SocialComparison import SocialComparison
-from .comparisons.FocusComparison import FocusComparison
-from .comparisons.RiskScoreComparison import RiskScoreComparison
+from logic_manager_helper.comparisons.SleepComparison import SleepComparison
+from logic_manager_helper.comparisons.SocialComparison import SocialComparison
+from logic_manager_helper.comparisons.FocusComparison import FocusComparison
+from logic_manager_helper.comparisons.RiskScoreComparison import RiskScoreComparison
 
 class LogicManager:
     """Apply business rules and return a LogicOutput object."""

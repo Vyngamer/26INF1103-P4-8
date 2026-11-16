@@ -3,7 +3,6 @@ import os
 import threading
 import sys
 import markdown
-import logic_manager
 import json
 from datetime import date
 
@@ -21,7 +20,7 @@ from ai_manager_helper.data_classes.conversation import Conversation
 from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
 from ai_manager_helper.api_client_classes.gemini_client import GeminiClient
 from ai_manager_helper.data_classes.ai_output import AIOutput
-from logic_manager_helper.LogicManager import LogicManager
+from LogicManager import LogicManager
 
 ai_manager = AIManager()
 ai_manager.connect_client()
