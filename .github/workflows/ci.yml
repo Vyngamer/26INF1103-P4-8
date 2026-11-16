@@ -1,28 +1,63 @@
-name: Run Test Scripts (Pytest)
+# name: Run Test Scripts (Pytest)
+
+# on:
+#   push:
+#     branches: [main, master, develop]
+#   pull_request:
+#     branches: [main, master, develop]
+
+# jobs:
+#   test:
+#     name: run tests
+#     runs on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: set up python env
+#         uses: actions/setup-python@v5
+#         with: 
+#           python-version: "3.14.7"
+
+#       - name: install needed libraries
+#         run: |
+#           python -m pip install --upgrade pip
+
+#       - name: run logic manager tests
+#         run: python -m pytest test_logic_manager.py
+
+# different code
+name: Run Pytest
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [ main, master ]
   pull_request:
-    branches: [main, master, develop]
+    branches: [ main, master ]
 
 jobs:
   test:
-    name: run tests
-    runs on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      # 1. Download your code into the CI runner
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: set up python env
+      # 2. Install Python
+      - name: Set up Python
         uses: actions/setup-python@v5
-        with: 
-          python-version: "3.14.7"
+        with:
+          python-version: "3.11"
 
-      - name: install needed libraries
+      # 3. Install pytest and your project dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: run logic manager tests
-        run: python -m pytest test_logic_manager.py
+      # 4. Run your test file
+      - name: Run tests
+        run: pytest test_file.py
