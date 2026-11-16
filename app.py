@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from markupsafe import escape
 from ai_manager import AIManager
 from data_manager import DataManager
-from io_helpers.hasher import PasswordHasher
+from data_manager_helper.hasher import PasswordHasher
 from io_helpers.errors.assessment_error import AssessmentFailed
 from pydantic import ValidationError
 from io_manager import IOManager
@@ -98,20 +98,6 @@ def dashboard():
         latest_attempt = data_manager.get_latest_user_record(uid)
         return render_template('dashboard.html', username=username, latest_attempt=latest_attempt)
 
-    '''
-    current_user_id = session.get('user_id')
-    if not current_user_id:
-        error = "You must be logged in to access the dashboard."
-        return redirect(url_for('login'))
-    else:
-        # get current user past attempts from the database
-        username = data_manager.get_user_by_id(current_user_id)
-        latest_attempt = data_manager.get_latest_user_record(current_user_id)
-        # check if there are any previous attempts
-        if not latest_attempt:
-            latest_attempt = None
-        return render_template('dashboard.html', username=username.get_username(), latest_attempt = latest_attempt)
-    '''
 
 @app.route('/history')
 def history():
@@ -121,19 +107,6 @@ def history():
     else:
         previous_attempts = data_manager.get_user_records(uid)
         return render_template('history.html', username=username, previous_attempts=previous_attempts)
-
-    '''
-    current_user_id = session.get('user_id')
-    if not current_user_id:
-        error = "You must be logged in to access the history page."
-        return redirect(url_for('login'))
-    else:
-        # get current user past attempts from the database
-        username = data_manager.get_user_by_id(current_user_id)
-        #previous_attempts = data_manager.get_previous_attempts(current_user_id)
-        previous_attempts = data_manager.get_user_records(current_user_id)
-    return render_template('history.html', username=username.get_username(), previous_attempts=previous_attempts)
-    '''
 
 
 @app.route('/result', methods=["GET", "POST"])
@@ -155,30 +128,6 @@ def result():
     # still None if the id is unknown or belongs to another user; results.html then says no results are available
     return render_template('results.html', choosen_attempt=choosen_attempt)
 
-
-    '''
-    current_user_id = session.get('user_id')
-    if not current_user_id:
-        error = "You must be logged in to access the results page."
-        return redirect(url_for('login'))
-    else:
-        # get the id of the wanted attempt
-        current_record_id = request.args.get('attempt_id')
-        if current_record_id is None:
-            error = "No attempt ID provided."
-            return render_template("history.html", error=error)
-        else:
-            # get current user past attempts from the database
-            user_previous_attempts = data_manager.get_user_records(current_user_id)
-            choosen_attempt = None
-            for previous_attempt in user_previous_attempts:
-                if previous_attempt.get_record_id() == current_record_id:
-                    choosen_attempt = previous_attempt
-                    break
-            if not choosen_attempt:
-                choosen_attempt = None
-        return render_template('results.html', choosen_attempt=choosen_attempt)
-        '''
 
 @app.route('/progress', methods=["GET", "POST"])
 def progress():
@@ -218,32 +167,6 @@ def update_username():
     flash(result.message)
     return render_template("settings.html", username=result.username)
 
-    '''
-    # get current user id
-    current_user_id = session.get('user_id')
-    # get current username
-    current_username = data_manager.get_user_by_id(current_user_id).get_username()
-    # get the thing that the user enters
-    new_username = request.form.get("username").strip()
-    if not new_username:
-        error = "Please Enter a username"
-        return render_template("settings.html", error1=error, username = current_username)
-    if data_manager.get_user_by_username(new_username) is not None:
-        error = "Username already exists. Please choose another."
-        return render_template("settings.html", error1=error, username = current_username)
-    else:
-        updates = {"username" : new_username}
-        success = data_manager.update_user(current_user_id, updates)
-        if success:
-            success_message = "Your Username has been successfully updated"
-            updated_username = data_manager.get_user_by_id(current_user_id).get_username()
-            flash(success_message)
-            return render_template("settings.html", username = updated_username)
-        else:
-            error = "There was an error with updating your username"
-            return render_template("settings.html", error = error, username = current_username)
-            '''
-
 
 # route for password
 @app.route('/update_password', methods=["GET", "POST"])
@@ -260,57 +183,6 @@ def update_password():
     flash(result.message)
     return render_template('settings.html', username=username)
 
-    '''
-    # get current user id
-    current_user_id = session.get('user_id')
-    current_username = data_manager.get_user_by_id(current_user_id).get_username()
-    # get the current password, new password and confirm new password that the user entered
-    entered_current_password = request.form.get("current")
-    entered_new_password = request.form.get("newpw")
-    entered_confirm_new_password = request.form.get("confirm")
-    # check if each is empty
-    error = []
-    if not entered_current_password:
-        error.append("Please enter your old password")
-    if not entered_new_password:
-        error.append("Please enter your new password")
-    if not entered_confirm_new_password:
-        error.append("Please enter your confirm new password")
-    if len(error) > 0:
-        return render_template('settings.html', username=current_username, error2 = error)
-    
-    # get the current password
-    current_password = data_manager.get_user_by_id(current_user_id).get_password()
-    password_check = PasswordHasher().verify(entered_current_password, current_password)
-    if not password_check:
-        error.append("The current password you entered does not match your current password, Please try again")
-        if len(error)>0:
-            return render_template('settings.html', username=current_username, error2 = error)
-
-    # check if new pass and confirm new pass is same
-    match = True
-    if entered_new_password != entered_confirm_new_password:
-        match = False
-        error.append("Your new password and confirm new password does not match")
-        if len(error)>0:
-            return render_template('settings.html', username=current_username, error2 = error)
-
-    # do the proper changing of password
-    if password_check and match:
-        updates = {"password": PasswordHasher().hash(entered_new_password)}
-        success = data_manager.update_user(current_user_id, updates)
-        if success:
-            success_message = "Your Password has been successfully updated!"
-            flash(success_message)
-            return render_template('settings.html', username=current_username)
-        else:
-            error.append("There has been an issue with updating your password, try again later")
-            if len(error)>0:
-                return render_template('settings.html', username=current_username, error2 = error)
-        # updates = {"username" : new_username}
-        # success = data_manager.update_user(current_user_id, updates)
-    return render_template('settings.html', username = current_username)
-    '''
 
 # route for deleting account
 @app.route('/delete_account', methods=["POST"])
