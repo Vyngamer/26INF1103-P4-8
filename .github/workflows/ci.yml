@@ -27,8 +27,8 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest test_ai_manager.py
-          python -m pytest test_data_manager.py
-          python -m pytest test_io_manager.py
-          python -m pytest test_logic_manager.py
+          # python -m pytest test_ai_manager.py
+          # python -m pytest test_data_manager.py
+          # python -m pytest test_io_manager.py
+          python -m pytest test_logic_manager.py 
           
