@@ -440,7 +440,7 @@ def submit_survey():
         # email the counsellor if the mental wellness or burnout score is over 80, crisis_alert is true,
         # counselling is recommended, or the route is Urgent support or Counsellor follow-up
         if logic_output["counselling_recommendation"]:
-            if not io_manager.send_email(mail_recipient, uid, username, assessment, mail):
+            if not io_manager.send_email(mail_recipient, username, assessment, mail):
                 app.logger.error(f"Counsellor email could not be sent for user {uid}")
 
     except Exception as e:
