@@ -2,18 +2,21 @@
 Main I/O Layer
 '''
 
+import logging
 from flask_mail import Message
 from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
 from io_helpers.account_service import AccountService
 from io_helpers.survey_result import SurveyResult
+
+_logger = logging.getLogger(__name__)
 
 # I/O layer of web app
 # app.py creates one IOManager and calls it from its routes.
 # each action is given the logged-in user's id by the route (from Flask's session)
 class IOManager:
 
-    def __init__(self, data):
-        self.accounts = AccountService(data)
+    def __init__(self, data, accounts=None):
+        self.accounts = accounts or AccountService(data)
 
     '''
     ACCOUNT ACTIONS
@@ -35,6 +38,10 @@ class IOManager:
     def change_password(self, uid, current_password, new_password, confirm):
         return self.accounts.change_password(uid, current_password, new_password, confirm)
 
+    # Delete Account
+    def delete_account(self, uid, password, confirm_text):
+        return self.accounts.delete_account(uid, password, confirm_text)
+
     # Get username of the logged-in user, or None if their account no longer exists
     def get_username(self, uid):
         return self.accounts.get_username(uid)
@@ -53,7 +60,6 @@ class IOManager:
             return SurveyResult(False, str(error), errors=error.errors)
         return SurveyResult(True, "Survey answers accepted.", response=responses)
 
-    
 
     '''
     EMAIL
@@ -71,8 +77,6 @@ class IOManager:
             }
 
             # Subject
-            # subject = ROUTES[assessment["logic_output"]["route"]][0]
-            # opening = ROUTES[assessment["logic_output"]["route"]][1]
             subject = ROUTES[assessment.get_logic_output()["route"]][0]
             opening = ROUTES[assessment.get_logic_output()["route"]][1]
 
@@ -110,6 +114,6 @@ class IOManager:
                 msg = Message(subject=subject, recipients=[recipient], body=body)
                 mail.send(msg)
                 return True
-            except Exception as e:
-                print(f"Failed to send email: {e}")
+            except Exception:
+                _logger.exception("Failed to send email")
                 return False
