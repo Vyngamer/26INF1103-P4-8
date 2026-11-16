@@ -23,6 +23,9 @@ def account_action(method):
 # All account actions (was user_register / user_login / change_username / change_password).
 # Each action takes the user's answers as parameters (from the web app's forms)
 class AccountService:
+    # Confirmation text to delete a user's account
+    DELETE_CONFIRMATION = "DELETE"
+
     def __init__(self, data, passwords=None):
         self.data = data
         self.passwords = passwords or PasswordHasher()
@@ -148,6 +151,26 @@ class AccountService:
         if not self.data.update_user(uid, {"password": new_hash}):
             raise AccountError("There has been an issue with updating your password. Please try again later")
         return AccountResult(True, "Your password has been successfully updated!")
+
+    # Delete Account & all associated records
+    @account_action
+    def delete_account(self, uid, password, confirm_text):
+        user = self._load_current_user(uid)
+
+        problems = []
+        password = self._clean(password)
+        if not password:
+            problems.append("Please enter your current password.")
+        elif not self.passwords.verify(password, user.get_password()):
+            problems.append("Incorrect password. Your account was not deleted.")
+        if self._clean(confirm_text) != self.DELETE_CONFIRMATION:
+            problems.append(f"Type {self.DELETE_CONFIRMATION} in capital letters to confirm.")
+        if problems:
+            raise AccountError(" ".join(problems))
+
+        if not self.data.delete_user(uid):
+            raise AccountError("There was an error deleting your account. Please try again later.")
+        return AccountResult(True, "Your account has been deleted.")
 
     # Get username by user id, or None if there is no such user
     def get_username(self, uid):
