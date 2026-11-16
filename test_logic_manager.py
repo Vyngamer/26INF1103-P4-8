@@ -466,4 +466,41 @@ def test_warning_rules(rule, attempt, expected):
     ],
 )
 def test_sleep_reminder(sleep, expected):
-    assert SleepReminder().evaluate(make_current(sleep_duration=sleep)) == expected
+    assert SleepReminder().evaluate(make_current(sleep_duration=sleep)) == 
+
+# test logic router
+everything = dict(mental_wellness_risk_score=60, burnout_risk_score=70, sentiment="Negative")
+
+@pytest.mark.parametrize(
+    "attempt, tier, warnings, expected",
+    [
+        (dict(crisis_alert=True), "Low", [], "Urgent support"),
+        (dict(crisis_alert=True), "High", ["a", "b"], "Urgent support"),
+        ({}, "High", [], "Counsellor follow-up"),
+        ({}, "Low", ["a", "b"], "Counsellor follow-up"),
+        (everything, "Medium", [], "Counsellor follow-up"),
+        ({**everything, "sentiment": "Neutral"}, "Medium", [], "Self-care guidance"),
+        ({**everything, "burnout_risk_score": 69}, "Medium", [], "Self-care guidance"),
+        ({**everything, "mental_wellness_risk_score": 59}, "Medium", [], "Self-care guidance"),
+        ({}, "Medium", ["a"], "Self-care guidance"),
+        ({}, "Low", [], "Self-care guidance"),
+    ],
+)
+def test_support_router(attempt, tier, warnings, expected):
+    assert SupportRouter().decide(make_current(**attempt), tier, warnings) == expected
+
+
+# test comparison rules
+@pytest.mark.parametrize(
+    "history, sleep, expected",
+    [
+        ([], 7, None),
+        ([8, 8], 6.5, "You slept 1.50 hours less than your average."),
+        ([6], 8, "You slept 2.00 hours more than your average."),
+        ([7], 7, "You slept the same number of hours as your average."),
+    ],
+)
+
+def test_sleep_comparison(history, sleep, expected):
+    history = make_history("sleep_duration", history)
+    assert SleepComparison().evaluate(make_current(sleep_duration=sleep), history) == expected
