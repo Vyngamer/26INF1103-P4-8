@@ -26,4 +26,4 @@ run: |
   if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 -name: run logic manager tests
-run: pytest test_logic_manager.py
+run: python -m pytest test_logic_manager.py
