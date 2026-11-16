@@ -3,7 +3,7 @@ import pytest
 from io_manager import IOManager
 from io_helpers.account_service import AccountService
 from data_manager_helper.UserRecord import UserRecord
-from io_helpers.hasher import PasswordHasher
+from data_manager_helper.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors, USERNAME_RULES
 from io_helpers.prompt_text import TextPrompt
 from io_helpers.prompt_range import RangePrompt

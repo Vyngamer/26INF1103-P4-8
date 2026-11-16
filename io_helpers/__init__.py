@@ -3,7 +3,6 @@ I/O helper package used by io_manager.py
 
 account_result   - User account results (AccountResult)
 account_service  - User account actions (AccountService)
-hasher           - Salted password hashing (PasswordHasher)
 prompts          - Abstract class for other prompts. (Prompt)
                    Child classes implement answer checks that
                    convert one given answer or reject it with a message
