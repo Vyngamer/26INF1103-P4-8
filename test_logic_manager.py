@@ -466,7 +466,7 @@ def test_warning_rules(rule, attempt, expected):
     ],
 )
 def test_sleep_reminder(sleep, expected):
-    assert SleepReminder().evaluate(make_current(sleep_duration=sleep)) == 
+    assert SleepReminder().evaluate(make_current(sleep_duration=sleep)) == expected
 
 # test logic router
 everything = dict(mental_wellness_risk_score=60, burnout_risk_score=70, sentiment="Negative")
@@ -495,12 +495,78 @@ def test_support_router(attempt, tier, warnings, expected):
     "history, sleep, expected",
     [
         ([], 7, None),
+        # test sleep less than
         ([8, 8], 6.5, "You slept 1.50 hours less than your average."),
+        # test sleep more than
         ([6], 8, "You slept 2.00 hours more than your average."),
+        # test same as
         ([7], 7, "You slept the same number of hours as your average."),
     ],
 )
-
 def test_sleep_comparison(history, sleep, expected):
     history = make_history("sleep_duration", history)
     assert SleepComparison().evaluate(make_current(sleep_duration=sleep), history) == expected
+
+
+@pytest.mark.parametrize(
+    "history, social, expected_text",
+    [
+        ([], 5, None),
+        ([6, 5, 4], 3, "four consecutive attempts"),
+        ([9, 6, 5, 4], 3, "four consecutive attempts"),
+        ([6, 6], 4, "less than your previous average"),
+        ([5, 5], 4, None),
+        ([6, 5, 4, 3], 3, None),
+    ],
+)
+def test_social_comparison(history, social, expected_text):
+    history = make_history("social_activity_level", history)
+    msg = SocialComparison().evaluate(make_current(social_activity_level=social), history)
+    if expected_text is None:
+        assert msg is None
+    else:
+        assert expected_text in msg
+
+
+@pytest.mark.parametrize(
+    "history, focus, expected_text",
+    [
+        ([], 5, None),
+        ([7], 5, "dropped since your last attempt"),
+        ([5], 6, "improved since your last attempt"),
+        ([9, 9, 5], 5, "below your previous average"),
+        ([2, 2, 6], 6, "compared with your previous average"),
+        ([5], 5, None),
+        ([6], 5, None),
+    ],
+)
+def test_focus_comparison(history, focus, expected_text):
+    history = make_history("focus_level", history)
+    msg = FocusComparison().evaluate(make_current(focus_level=focus), history)
+    if expected_text is None:
+        assert msg is None
+    else:
+        assert expected_text in msg
+
+
+@pytest.mark.parametrize(
+    "field, label, history, score, expected_text",
+    [
+        ("burnout_risk_score", "burnout", [], 50, None),
+        ("burnout_risk_score", "burnout", [30], 50, None),
+        ("burnout_risk_score", "burnout", [60], 50, "Your burnout risk score has improved since your last attempt"),
+        ("burnout_risk_score", "burnout", [80, 55], 55, "Your burnout risk score has improved compared with your previous average"),
+        ("burnout_risk_score", "burnout", [55], 50, None),
+        ("mental_wellness_risk_score", "mental wellness", [80], 50, "Your mental wellness risk score has improved since"),
+        ("mental_wellness_risk_score", "mental wellness", [90, 60], 60, "Your mental wellness risk score has improved compared"),
+        ("mental_wellness_risk_score", "mental wellness", [40], 45, None),
+    ],
+)
+def test_risk_score_comparison(field, label, history, score, expected_text):
+    rule = RiskScoreComparison(field, label)
+    history = make_history(field, history)
+    msg = rule.evaluate(make_current(**{field: score}), history)
+    if expected_text is None:
+        assert msg is None
+    else:
+        assert expected_text in msg
