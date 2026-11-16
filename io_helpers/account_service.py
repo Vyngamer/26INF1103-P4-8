@@ -3,7 +3,7 @@ User Account Actions
 '''
 
 import functools
-from io_helpers.hasher import PasswordHasher
+from data_manager_helper.hasher import PasswordHasher
 from io_helpers.account_result import AccountResult
 from io_helpers.errors.account_error import AccountError
 from io_helpers.validators import username_errors, password_errors
