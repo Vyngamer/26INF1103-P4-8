@@ -387,3 +387,42 @@ def make_history(*rows: dict) -> PreviousAttempts:
 
 
 # testing previous attempts
+@pytest.mark.parametrize(
+    "values, latest, average",
+    [
+        ([], None, None),
+        ([5], 5, 5),
+        ([2, 4, 9], 9, 5),
+        ([6, 5, 4, 3], 3, 4.5),
+    ],
+)
+def test_previous_attempts(values, latest, average):
+    history = make_history("x", values)
+    assert history.get_values("x") == values
+    assert history.get_latest("x") == latest
+    assert history.get_average("x") == (None if average is None else pytest.approx(average))
+
+
+def test_previous_attempts_copies_input():
+    rows = [{"x": 1}]
+    history = PreviousAttempts(rows)
+    rows[0]["x"] = 100
+    assert history.get_latest("x") == 1
+
+
+# test the risk tier classifier
+@pytest.mark.parametrize(
+    "score, expected",
+    [
+        (0, "Low"),
+        (40, "Low"),
+        (41, "Medium"),
+        (70, "Medium"),
+        (71, "High"),
+        (100, "High"),
+    ],
+)
+
+def test_risk_tier(score, expected):
+    current = make_current(mental_wellness_risk_score=score)
+    assert RiskTierClassifier().classify(current) == expected
