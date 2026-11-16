@@ -654,3 +654,5 @@ def test_logic_manager(attempt, history, tier, warnings, route, recommend, messa
     if not history and attempt["sleep_duration"] >= 7:
         assert out.display_messages == []
     assert manager.to_dict(out) == out.to_dict()
+
+print("hi")
