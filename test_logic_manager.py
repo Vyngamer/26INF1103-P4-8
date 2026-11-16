@@ -452,3 +452,18 @@ def test_risk_tier(score, expected):
 )
 def test_warning_rules(rule, attempt, expected):
     assert rule.evaluate(make_current(**attempt)) == expected
+
+
+
+# test sleep reminder
+@pytest.mark.parametrize(
+    "sleep, expected",
+    [
+        (3, "You slept less than 7 hours. Try to get more sleep."),
+        (6.9, "You slept less than 7 hours. Try to get more sleep."),
+        (7, None),
+        (9, None),
+    ],
+)
+def test_sleep_reminder(sleep, expected):
+    assert SleepReminder().evaluate(make_current(sleep_duration=sleep)) == expected
