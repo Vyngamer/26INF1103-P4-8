@@ -570,3 +570,27 @@ def test_risk_score_comparison(field, label, history, score, expected_text):
         assert msg is None
     else:
         assert expected_text in msg
+
+
+
+# test logic output
+@pytest.mark.parametrize(
+    "route, expected",
+    [
+        ("Urgent support", True),
+        ("Counsellor follow-up", True),
+        ("Self-care guidance", False),
+    ],
+)
+def test_counselling_recommendation(route, expected):
+    output = LogicOutput("Low", [], route, [])
+    assert output.counselling_recommendation is expected
+    assert output.to_dict()["counselling_recommendation"] is expected
+
+
+def test_logic_output_lists_are_protected():
+    warnings = ["a"]
+    output = LogicOutput("Low", warnings, "Self-care guidance", [])
+    warnings.append("b")
+    output.warnings.append("c")
+    assert output.warnings == ["a"]
