@@ -29,6 +29,6 @@ jobs:
         run: |
           # python -m pytest tests/test_ai_manager.py -v
           python -m pytest tests/test_data_manager.py -v
-          # python -m pytest tests/test_io_manager.py -v
+          python -m pytest tests/test_io_manager.py -v
           python -m pytest tests/test_logic_manager.py -v
           
