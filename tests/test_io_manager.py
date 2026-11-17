@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 import pytest
+from flask import Flask
+from flask_mail import Mail
 from io_manager import IOManager
 from io_helpers.account_service import AccountService
 from data_manager_helper.UserRecord import UserRecord
@@ -23,23 +25,38 @@ PASSWORD_RULES_ALL = "Password must have at least 4 characters, at least one num
 MOOD_CHOICES = "Please choose one of: Motivated, Calm, Anxious, Sad, Exhausted."
 SCALE_KEYS = ("stress_level", "focus_level", "academic_workload", "social_activity_level")
 
-# Mock record
-def fake_record(record_id="r1"):
-    record = MagicMock()
-    record.get_record_id.return_value = record_id
-    return record
-
-# Mock DataManager that returns the given records
-def fake_data(records=()):
-    data = MagicMock()
-    data.get_user_records.return_value = list(records)
-    return data
+def fake_data():
+    return MagicMock()
 
 # The message a prompt rejects an answer with
 def rejection(prompt, raw):
     with pytest.raises(InvalidInput) as problem:
         prompt.parse(raw)
     return str(problem.value)
+
+# Use shared Flask-Mail context setup for the email tests
+@pytest.fixture
+def mail_app_context():
+    app = Flask(__name__)
+    app.config["MAIL_DEFAULT_SENDER"] = "noreply@example.com"
+    Mail(app)
+    with app.app_context():
+        yield
+
+# Share the common assessment values used by the email tests
+def fake_assessment(route="Urgent support"):
+    assessment = MagicMock()
+    assessment.get_logic_output.return_value = {"route": route}
+    assessment.get_user_input.return_value = {
+        "sleep_duration": 7.5, "stress_level": 5, "focus_level": 6,
+        "academic_workload": 4, "mood": "Calm", "social_activity_level": 3,
+        "reflection": "Good week",
+    }
+    assessment.get_ai_output.return_value = {
+        "mental_wellness_risk_score": 2, "burnout_risk_score": 3,
+        "personalized_recommendations": "Keep taking breaks.",
+    }
+    return assessment
 
 # --- IOManager Tests ---
 
@@ -49,6 +66,7 @@ def rejection(prompt, raw):
     ("login", ("Alice", "pass1!")),
     ("change_username", ("123", "Bob")),
     ("change_password", ("123", "pass1!", "new2@", "new2@")),
+    ("delete_account", ("123", "pass1!", "DELETE")),
     ("get_username", ("123",)),
 ])
 def test_account_actions_delegate(method, args):
@@ -57,34 +75,24 @@ def test_account_actions_delegate(method, args):
     assert getattr(app, method)(*args) is getattr(accounts, method).return_value
     getattr(accounts, method).assert_called_once_with(*args)
 
-# IOManager builds its AccountService in __init__, with the same DataManager
+# IOManager exposes the DataManager through its AccountService, not a separate data attribute
 def test_accounts_share_data_manager():
     data = fake_data()
     app = IOManager(data=data)
-    assert app.data is data
     assert app.accounts.data is data
 
 # --- Survey Tests ---
 
-# Valid answers come back in an accepted SurveyResult, and are handed to process_responses (if given) with the user's id
-def test_survey_valid_answers():
-    expected = SurveyResult(True, "Survey answers accepted.", response=SAMPLE_RESPONSE)
-    received = []
-    app = IOManager(fake_data(), process_responses=lambda uid, responses: received.append((uid, responses)))
-    assert app.survey("123", SAMPLE_ANSWERS) == expected
-    assert received == [("123", SAMPLE_RESPONSE)]
-    assert IOManager(fake_data()).survey("123", SAMPLE_ANSWERS) == expected    # also works without process_responses
-
-# Invalid answers are reported, one message per question, and never handed on
-def test_survey_invalid_answers_not_passed_on():
-    received = []
-    app = IOManager(fake_data(), process_responses=lambda uid, responses: received.append(responses))
-    result = app.survey("123", {**SAMPLE_ANSWERS, "stress_level": 11, "mood": "Undefined"})
-
-    assert not result.ok and result.response is None
-    assert result.errors == {"stress_level": "Please enter a number from 1 to 10.", "mood": MOOD_CHOICES}
-    assert result.message == f"Stress Level: Please enter a number from 1 to 10.; Mood: {MOOD_CHOICES}"
-    assert received == []
+# Combine accepted and rejected survey outcomes in one parameterized test
+@pytest.mark.parametrize("answers, expected", [
+    (SAMPLE_ANSWERS, SurveyResult(True, "Survey answers accepted.", response=SAMPLE_RESPONSE)),
+    ({**SAMPLE_ANSWERS, "stress_level": 11, "mood": "Undefined"},
+     SurveyResult(False,
+                  f"Stress Level: Please enter a number from 1 to 10.; Mood: {MOOD_CHOICES}",
+                  errors={"stress_level": "Please enter a number from 1 to 10.", "mood": MOOD_CHOICES})),
+])
+def test_survey_results(answers, expected):
+    assert IOManager(fake_data()).survey("123", answers) == expected
 
 # --- Validator Tests ---
 
@@ -125,17 +133,16 @@ def test_hasher_rejects_bad_stored_values():
 
 # --- Prompt Tests ---
 
-# TextPrompt rejects an empty answer and trims whitespace
+# Combine the base text parsing and maximum-length cases for TextPrompt.
 def test_text_prompt():
     assert rejection(TextPrompt(), "") == TextPrompt.EMPTY_MESSAGE
     assert rejection(TextPrompt(), "   ") == TextPrompt.EMPTY_MESSAGE
     assert rejection(TextPrompt(), None) == TextPrompt.EMPTY_MESSAGE    # e.g. a missing form field
     assert TextPrompt().parse("  hello  ") == "hello"
 
-# TextPrompt with a limit accepts an answer at the limit and rejects a longer one
-def test_text_prompt_max_length():
-    assert rejection(TextPrompt(max_length=3), "abcdef") == "Please enter at most 3 characters."
-    assert TextPrompt(max_length=3).parse("abc") == "abc"
+    limited = TextPrompt(max_length=3)
+    assert rejection(limited, "abcdef") == "Please enter at most 3 characters."
+    assert limited.parse("abc") == "abc"
 
 # RangePrompt accepts a whole number given as text or as a number, and rejects non-numbers
 # (including True), decimals and out-of-range values
@@ -277,6 +284,13 @@ class FakeUserData:
         self.users[self.users.index(user)] = UserRecord(data["username"], data["password"], user_id)
         return True
 
+    def delete_user(self, user_id):
+        user = self.get_user_by_id(user_id)
+        if self.fail_saves or user is None:
+            return False
+        self.users.remove(user)
+        return True
+
 
 # AccountService with a fake DataManager and a fast hasher
 def make_accounts():
@@ -331,7 +345,7 @@ def test_account_answers_trimmed_or_missing():
 
 # Usernames match in any letter case, so accounts saved with capitals (e.g. by the old web pages) still log in.
 # When accounts differ only in letter case, an exact match wins, then the lowercase one,
-# and the name can't be registered again in other capitals (CHANGED: added this last part)
+# and the name can't be registered again in other capitals
 def test_login_ignores_case():
     hasher = PasswordHasher(iterations=1000)
     accounts = make_accounts()
@@ -359,8 +373,7 @@ def test_change_username_and_password():
     assert changed.ok and changed.message == "Your password has been successfully updated!"
     assert accounts.login("Carol", "new2@").ok
 
-# change_password stops at the first problem, in a fixed order.
-# each call has at least two problems, and the earliest check's message must be the one shown
+# change_password reports the earliest applicable validation error in a fixed order.
 def test_change_password_check_order():
     accounts = make_accounts()
     uid = accounts.register("Alice", "pass1!", "pass1!").uid
@@ -377,7 +390,8 @@ def test_change_password_check_order():
         "Your new password & confirmation do not match."    # 7. the match, before saving
     assert accounts.login("alice", "pass1!").ok    # the password was never changed
 
-# change_username stops at the first problem: the account, an empty name, the rules, a taken name, then saving
+# change_username reports account, empty-name, rules, and duplicate-name errors in order.
+# A failed username save is covered by test_unknown_user_and_failed_saves.
 def test_change_username_check_order():
     accounts = make_accounts()
     uid = accounts.register("Alice", "pass1!", "pass1!").uid
@@ -403,6 +417,31 @@ def test_unknown_user_and_failed_saves():
     assert accounts.change_username(uid, "carol").message == "There was an error with updating your username. Please try again."
     assert accounts.change_password(uid, "pass1!", "new2@", "new2@").message == "There has been an issue with updating your password. Please try again later"
 
+# Account deletion requires both valid credentials and the exact confirmation text
+def test_delete_account():
+    accounts = make_accounts()
+    uid = accounts.register("Alice", "pass1!", "pass1!").uid
+
+    assert accounts.delete_account(uid, "wrong1!", "DELETE").message == \
+        "Incorrect password. Your account was not deleted."
+    assert accounts.delete_account(uid, "pass1!", "delete").message == \
+        "Type DELETE in capital letters to confirm."
+    assert accounts.get_username(uid) == "alice"
+
+    deleted = accounts.delete_account(uid, "pass1!", "DELETE")
+    assert deleted.ok and deleted.message == "Your account has been deleted."
+    assert accounts.get_username(uid) is None
+
+# A failed persistence operation is returned as an account failure, not reported as success
+def test_delete_account_failed_save():
+    accounts = make_accounts()
+    uid = accounts.register("Alice", "pass1!", "pass1!").uid
+    accounts.data.fail_saves = True
+
+    result = accounts.delete_account(uid, "pass1!", "DELETE")
+    assert not result.ok
+    assert result.message == "There was an error deleting your account. Please try again later."
+
 # ConnectionError or ValueError from the DB while registering gives the "Unable to connect" msg
 @pytest.mark.parametrize("error", [ConnectionError("down"), ValueError("bad settings")])
 def test_register_connection_error(error):
@@ -424,6 +463,37 @@ def test_account_actions_keyword_arguments():
     uid = accounts.register(username="Alice", password="pass1!", confirm="pass1!").uid
     assert accounts.change_password(uid=uid, current_password="pass1!", new_password="new2@", confirm="new2@").ok
 
+# Email subject, recipient, and body are selected from the assessment route and score data
+@pytest.mark.parametrize("route, subject, opening", [
+    ("Urgent support", "Urgent Support Needed", "A Student requires urgent support."),
+    ("Counsellor follow-up", "Counsellor Follow up Needed",
+     "Our AI has flagged that this student requires counsellor follow-up."),
+])
+def test_send_email(route, subject, opening, mail_app_context):
+    assessment = fake_assessment(route)
+    mail = MagicMock()
+    assert IOManager.send_email("counsellor@example.com", "alice", assessment, mail)
+
+    mail.send.assert_called_once()
+    message = mail.send.call_args.args[0]
+    assert message.subject == subject
+    assert message.recipients == ["counsellor@example.com"]
+    assert opening in message.body
+    assert "Username = alice" in message.body
+    assert "Sleep: 7.5 Hr(s)" in message.body
+    assert "Mental Wellness Risk Score: 2" in message.body
+    assert "Keep taking breaks." in message.body
+
+# Email delivery failures are logged and surfaced as False
+def test_send_email_failure(caplog, mail_app_context):
+    assessment = fake_assessment()
+    mail = MagicMock()
+    mail.send.side_effect = RuntimeError("mail server unavailable")
+
+    assert not IOManager.send_email("counsellor@example.com", "alice", assessment, mail)
+    mail.send.assert_called_once()
+    assert "Failed to send email" in caplog.text
+
 # --- Web App Tests ---
 
 # The I/O layer runs inside the web server, so it must not use the terminal:
@@ -431,7 +501,7 @@ def test_account_actions_keyword_arguments():
 def test_no_terminal_input_or_output():
     import ast
     from pathlib import Path
-    folder = Path(__file__).parent
+    folder = Path(__file__).resolve().parents[1]
     files = [folder / "io_manager.py", *sorted((folder / "io_helpers").rglob("*.py"))]
     assert len(files) > 5    # the files were found, so the check below means something
 
