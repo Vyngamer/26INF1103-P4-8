@@ -4,7 +4,7 @@ Account pages: register, login, logout and settings
 
 from flask import render_template, request, redirect, url_for, flash
 
-from app_helpers.routes.route_group import RouteGroup
+from app_helpers.routes.RouteGroup import RouteGroup
 
 
 # Turns account forms into IOManager calls and shows the result

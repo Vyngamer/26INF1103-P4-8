@@ -4,7 +4,7 @@ Wellness check pages: chatbot survey, confirmation & submission
 
 from flask import render_template, request, redirect, url_for
 
-from app_helpers.routes.route_group import RouteGroup
+from app_helpers.routes.RouteGroup import RouteGroup
 from io_helpers.errors.assessment_error import AssessmentFailed
 
 

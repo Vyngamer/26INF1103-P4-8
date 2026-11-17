@@ -4,7 +4,7 @@ Read-only pages: home, dashboard, history, result and progress
 
 from flask import render_template, request, redirect, url_for
 
-from app_helpers.routes.route_group import RouteGroup
+from app_helpers.routes.RouteGroup import RouteGroup
 
 
 # Shows a student's saved assessment records from Data Manager

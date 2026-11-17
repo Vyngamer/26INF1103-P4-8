@@ -4,7 +4,7 @@ Chat sessions of logged-in users
 
 import threading
 
-from app_helpers.chat_session import ChatSession
+from app_helpers.ChatSession import ChatSession
 
 
 # Keeps one ChatSession per user id
