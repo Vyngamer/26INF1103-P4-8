@@ -1,17 +1,27 @@
 services:
-  ai-counsellor:
+  ai-counsellor_part2:
     env_file: ".env"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - BACKUP_GEMINI_API_KEY=${BACKUP_GEMINI_API_KEY}
       - DISPLAY=${DISPLAY:-:0}
+      - MONGODB_URI=${MONGODB_URI}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     build:
       context: .
       args:
         - GEMINI_API_KEY=${GEMINI_API_KEY}
         - BACKUP_GEMINI_API_KEY=${BACKUP_GEMINI_API_KEY}
+        - MONGODB_URI=${MONGODB_URI}
+        - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+        - MAIL_USERNAME=${MAIL_USERNAME}
+        - MAIL_PASSWORD=${MAIL_PASSWORD}
       no_cache: true
     stdin_open: true
     tty: true
+    ports:
+      - "5000:5000"
     volumes:
       - ${X11_SOCKET:-/run/desktop/mnt/host/wslg/.X11-unix}:/tmp/.X11-unix
