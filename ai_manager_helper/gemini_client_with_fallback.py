@@ -10,6 +10,7 @@ class GeminiClientWithFallback(IChatClient):
     def __init__(self, primary_model: IChatClient, fallback_model: IChatClient) -> None:
         self.__primary = primary_model
         self.__fallback = fallback_model
+        self.__fallback_connected = False
 
     def send_message(self, prompt: str, previous_interaction_id: str, system_instruction: Optional[str] = None, json_response_schema: Optional[dict] = None):
         try:
@@ -22,7 +23,8 @@ class GeminiClientWithFallback(IChatClient):
             )
 
             try: 
-                self.__fallback.connect_client()
+                if not self.__fallback_connected:
+                    self.__fallback.connect_client()
                 return self.__fallback.send_message(prompt, previous_interaction_id, system_instruction, json_response_schema)
                 
             except Exception as e:
