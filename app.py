@@ -8,9 +8,6 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_mail import Mail
 
-import threading
-import logic_manager
-import json
 from datetime import date
 
 from google.genai import types

@@ -72,7 +72,7 @@ class WellnessRoutes(RouteGroup):
 
         try:
             record = self.__assessments.assess(uid, username, survey_result.response, chat)
-        except AssessmentFailed:
+        except AssessmentFailed as e:
             chat.notify(self.ASSESSMENT_FAILED)
             return redirect(url_for("confirm_survey"))    # shows the answers again with Yes / No
 

@@ -4,11 +4,17 @@ One user's chatbot conversation
 
 import logging
 import threading
+import json
 
 from pydantic import ValidationError
+from google.genai import types
 
-from ai_manager import AIManager
+from ai_manager_helper.ai_manager import AIManager
 from ai_manager_helper.data_classes.conversation import Conversation
+from ai_manager_helper.crisis_safety_filter import CrisisSafetyFilter
+from ai_manager_helper.gemini_client import GeminiClient
+from ai_manager_helper.gemini_client_with_fallback import GeminiClientWithFallback
+from ai_manager_helper.counselling_strategy_factory import CounsellingStrategyFactory
 
 _logger = logging.getLogger(__name__)
 
@@ -20,9 +26,22 @@ class ChatSession:
     FALLBACK_REPLY = "Sorry, I'm having trouble replying right now. Please try sending your message again."
 
     def __init__(self):
+        retry_config = types.HttpRetryOptions(
+            attempts=5,                         
+            initial_delay=2.0,                  
+            max_delay=60.0,                     
+            http_status_codes=[408, 429, 500, 502, 503, 504],
+        )     
+        primary_client = GeminiClient('gemini-3.5-flash-lite', retry_config)
+        primary_client.connect_client()
+        fallback_client = GeminiClient('gemini-3.1-flash-lite', retry_config)
+        client = GeminiClientWithFallback(primary_client, fallback_client)
+
+        counselling_strategy_factory = CounsellingStrategyFactory()
+        self.__collect_survey_strategy = counselling_strategy_factory.create_strategy('survey')
+        self.__evaluate_survey_strategy = counselling_strategy_factory.create_strategy('evaluate')
         self.__conversation = Conversation()
-        self.__ai_manager = AIManager()
-        self.__ai_manager.connect_client()
+        self.__ai_manager = AIManager(client=client, safety_filter=CrisisSafetyFilter())
         self.__reply_ready = threading.Event()
         self.__reply_ready.set()    # No reply is pending yet
 
@@ -58,13 +77,16 @@ class ChatSession:
 
     # Tells chatbot that the survey answers are wrong, then lets it ask what to fix
     def deny_survey(self, reason):
-        self.__ai_manager.deny_survey()
+        self.__ai_manager.process_message('The survey results are inaccurate: ' + \
+                                           json.dumps(self.__ai_manager.show_survey_results()), self.__collect_survey_strategy)
         self.__reply_in_background(reason)
 
     # Asks the AI for the wellness assessment of validated survey answers
     # returns an APIResult
     def analyse(self, user_input):
-        return self.__ai_manager.get_ai_output(user_input)
+        user_input = json.dumps(user_input)
+        output = self.__ai_manager.process_message(user_input, self.__evaluate_survey_strategy)
+        return output['text']
 
     # Shows a message from the app in the chat
     def notify(self, message):
@@ -82,7 +104,7 @@ class ChatSession:
     # Always clears typing state, so the page doesn't hang
     def __reply(self, prompt):
         try:
-            response = self.__ai_manager.prompt_bot(prompt)
+            response = self.__ai_manager.process_message(prompt, self.__collect_survey_strategy)
         except Exception:
             _logger.exception("Chatbot reply failed")
             response = {'text': self.FALLBACK_REPLY, 'survey_done': False}
