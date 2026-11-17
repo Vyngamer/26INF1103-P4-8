@@ -2,12 +2,12 @@
 Survey Questions
 '''
 
-from io_helpers.prompt_range import RangePrompt
-from io_helpers.prompt_choice import ChoicePrompt
-from io_helpers.prompt_text import TextPrompt
-from io_helpers.errors.invalid_input import InvalidInput
-from io_helpers.survey_response import SurveyResponse
-from io_helpers.errors.survey_error import SurveyAnswersError
+from io_helpers.RangePrompt import RangePrompt
+from io_helpers.ChoicePrompt import ChoicePrompt
+from io_helpers.TextPrompt import TextPrompt
+from io_helpers.errors.InvalidInput import InvalidInput
+from io_helpers.SurveyResponse import SurveyResponse
+from io_helpers.errors.SurveyAnswersError import SurveyAnswersError
 
 
 # Questionnaire class

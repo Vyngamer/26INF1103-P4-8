@@ -5,7 +5,7 @@ Wellness check pages: chatbot survey, confirmation & submission
 from flask import render_template, request, redirect, url_for
 
 from app_helpers.routes.RouteGroup import RouteGroup
-from io_helpers.errors.assessment_error import AssessmentFailed
+from io_helpers.errors.AssessmentFailed import AssessmentFailed
 
 
 # Connects the chatbot page to the user's ChatSession and the AssessmentService.

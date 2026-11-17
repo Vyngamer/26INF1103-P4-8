@@ -95,20 +95,20 @@ def last_prompt(bot):
 @pytest.fixture
 def web(monkeypatch):
     import data_manager
-    import io_manager
+    import IOManager
     monkeypatch.setattr(data_manager, "MongoDBConnection",
                         lambda: MagicMock(**{"test_connection.return_value": True}))
     monkeypatch.setattr(data_manager, "MongoDBStorage", FakeStorage)
     emails = []
-    monkeypatch.setattr(io_manager.IOManager, "send_email",
+    monkeypatch.setattr(IOManager.IOManager, "send_email",
                         staticmethod(lambda recipient, username, record, mail: emails.append(username) or True))
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
     BOTS.clear()
 
     sys.modules.pop("app", None)    # app.py builds the app when imported, so import it fresh each test
     app_module = importlib.import_module("app")
-    import app_helpers.chat_session as chat_session
-    monkeypatch.setattr(chat_session, "AIManager", fake_ai_manager)
+    import app_helpers.ChatSession as ChatSession
+    monkeypatch.setattr(ChatSession, "AIManager", fake_ai_manager)
 
     app_module.app.config["TESTING"] = True
     app_module.app.emails = emails

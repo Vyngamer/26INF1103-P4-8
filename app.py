@@ -17,14 +17,14 @@ from dotenv import load_dotenv
 from markupsafe import escape
 from ai_manager_helper.ai_manager import AIManager
 from data_manager import DataManager
-from io_manager import IOManager
+from IOManager import IOManager
 from LogicManager import LogicManager
-from app_helpers.user_session import UserSession
-from app_helpers.chat_registry import ChatRegistry
-from app_helpers.assessment_service import AssessmentService
-from app_helpers.routes.account_routes import AccountRoutes
-from app_helpers.routes.dashboard_routes import DashboardRoutes
-from app_helpers.routes.wellness_routes import WellnessRoutes
+from app_helpers.UserSession import UserSession
+from app_helpers.ChatRegistry import ChatRegistry
+from app_helpers.AssessmentService import AssessmentService
+from app_helpers.routes.AccountRoutes import AccountRoutes
+from app_helpers.routes.DashboardRoutes import DashboardRoutes
+from app_helpers.routes.WellnessRoutes import WellnessRoutes
 
 
 # Builds the whole web app & wires managers together.

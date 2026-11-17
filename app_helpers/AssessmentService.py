@@ -8,7 +8,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from ai_manager_helper.data_classes.ai_output import AIOutput
-from io_helpers.errors.assessment_error import AssessmentFailed
+from io_helpers.errors.AssessmentFailed import AssessmentFailed
 
 _logger = logging.getLogger(__name__)
 

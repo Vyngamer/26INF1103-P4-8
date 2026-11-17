@@ -5,7 +5,7 @@ from flask_mail import Mail
 from IOManager import IOManager
 from io_helpers.AccountService import AccountService
 from data_manager_helper.UserRecord import UserRecord
-from data_manager_helper.hasher import PasswordHasher
+from data_manager_helper.PasswordHasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors, USERNAME_RULES
 from io_helpers.TextPrompt import TextPrompt
 from io_helpers.RangePrompt import RangePrompt
