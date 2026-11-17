@@ -12,21 +12,21 @@ class PasswordHasher:
     ITERATIONS = 600_000
     SALT_BYTES = 16  
 
-    def __init__(self, iterations=ITERATIONS):
-        self.iterations = iterations
+    def __init__(self, iterations: int =ITERATIONS):
+        self.iterations: int = iterations
 
     @staticmethod
-    def _derive(password, salt, iterations):
+    def _derive(password, salt: bytes, iterations: int) -> bytes:
         return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations)
 
     #Password Hashing (new random salt every time)
-    def hash(self, password):
+    def hash(self, password: str)-> str:
         salt = os.urandom(self.SALT_BYTES)
         digest = self._derive(password, salt, self.iterations)
         return f"{self.ALGORITHM}${self.iterations}${salt.hex()}${digest.hex()}"
 
     #Check a plain-text password against a stored hash
-    def verify(self, password, stored):
+    def verify(self, password: str, stored: str) -> bool:
         try:
             algorithm, iterations, salt_hex, digest_hex = stored.split("$")
             if algorithm != self.ALGORITHM:
