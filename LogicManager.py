@@ -1,5 +1,5 @@
 from ai_manager_helper.data_classes.ai_output import AIOutput
-from io_helpers.survey_response import SurveyResponse
+from io_helpers.SurveyResponse import SurveyResponse
 from logic_manager_helper.CurrentAttempt import CurrentAttempt
 from logic_manager_helper.PreviousAttempts import PreviousAttempts
 from logic_manager_helper.LogicOutput import LogicOutput
