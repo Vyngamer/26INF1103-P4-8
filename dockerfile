@@ -6,18 +6,30 @@ ENV GEMINI_API_KEY=$GEMINI_API_KEY
 ARG BACKUP_GEMINI_API_KEY
 ENV BACKUP_GEMINI_API_KEY=$BACKUP_GEMINI_API_KEY
 
-WORKDIR /app
+ARG MONGODB_URI
+ENV MONGODB_URI=$MONGODB_URI
 
-RUN apt-get update && apt-get install -y --no-install-recommends libtk8.6 \
-    && rm -rf /var/lib/apt/lists/*
+ARG FLASK_SECRET_KEY
+ENV FLASK_SECRET_KEY=$FLASK_SECRET_KEY
+
+ARG MAIL_USERNAME
+ENV MAIL_USERNAME=$MAIL_USERNAME
+
+
+ARG MAIL_PASSWORD
+ENV MAIL_PASSWORD=$MAIL_PASSWORD
+
+
+WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python -m pytest test_ai_manager.py
-RUN python -m pytest -v test_logic_manager.py
-RUN python -m pytest test_io_manager.py
+RUN useradd --create-home appuser && chown -R appuser /app
+USER appuser
 
-CMD ["python", "main.py"]
+EXPOSE 5000
+
+CMD ["flask", "--app", "app", "run", "--host", "0.0.0.0", "--port", "5000"]
