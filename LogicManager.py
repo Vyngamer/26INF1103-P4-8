@@ -1,3 +1,5 @@
+from ai_manager_helper.data_classes.ai_output import AIOutput
+from io_helpers.survey_response import SurveyResponse
 from logic_manager_helper.CurrentAttempt import CurrentAttempt
 from logic_manager_helper.PreviousAttempts import PreviousAttempts
 from logic_manager_helper.LogicOutput import LogicOutput
@@ -47,8 +49,8 @@ class LogicManager:
 
     def _make_current_attempt(
         self,
-        user_input,
-        ai_output,
+        user_input: SurveyResponse,
+        ai_output: AIOutput,
     ) -> CurrentAttempt:
         return CurrentAttempt(
             sleep_duration=user_input.sleep_duration,
