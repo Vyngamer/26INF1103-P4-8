@@ -4,20 +4,9 @@ User Account Actions
 
 import functools
 from data_manager_helper.hasher import PasswordHasher
-from io_helpers.account_result import AccountResult
-from io_helpers.errors.account_error import AccountError
+from io_helpers.AccountResult import AccountResult
+from io_helpers.errors.AccountError import AccountError
 from io_helpers.validators import username_errors, password_errors
-
-# Decorator for AccountService actions
-# Wraps the method so any AccountError raised inside it becomes a failed AccountResult.
-def account_action(method):
-    @functools.wraps(method)    # Keep the original method's name and docstring
-    def wrapper(self, *args, **kwargs):   # **kwargs so callers can pass answers by name
-        try:
-            return method(self, *args, **kwargs)
-        except AccountError as error:
-            return AccountResult(False, str(error))
-    return wrapper
 
 
 # All account actions (was user_register / user_login / change_username / change_password).
@@ -29,6 +18,18 @@ class AccountService:
     def __init__(self, data, passwords=None):
         self.data = data
         self.passwords = passwords or PasswordHasher()
+
+    # Decorator for AccountService actions
+    # Wraps the method so any AccountError raised inside it becomes a failed AccountResult.
+    @staticmethod
+    def _account_action(method):
+        @functools.wraps(method)    # Keep the original method's name and docstring
+        def wrapper(self, *args, **kwargs):   # **kwargs so callers can pass answers by name
+            try:
+                return method(self, *args, **kwargs)
+            except AccountError as error:
+                return AccountResult(False, str(error))
+        return wrapper
 
     # One answer as text with whitespace trimmed
     # None (e.g. a missing form field) counts as empty
@@ -84,7 +85,7 @@ class AccountService:
             raise AccountError("Password must have " + ", ".join(problems) + ".")
 
     # Register New User
-    @account_action
+    @_account_action
     def register(self, username, password, confirm):
         username = self._check_unique_username(self._clean_username(username))
         password = self._clean(password)
@@ -101,7 +102,7 @@ class AccountService:
         return AccountResult(True, "Account created successfully!", uid=uid, username=username)
 
     # Login Existing User
-    @account_action
+    @_account_action
     def login(self, username, password):
         if not self.data.get_users():
             raise AccountError("No users registered yet. Please register first.")
@@ -114,7 +115,7 @@ class AccountService:
                              uid=user.get_user_id(), username=user.get_username())
 
     # Change Username
-    @account_action
+    @_account_action
     def change_username(self, uid, new_username):
         self._load_current_user(uid)
         new_username = self._clean_username(new_username)
@@ -127,7 +128,7 @@ class AccountService:
         return AccountResult(True, "Your username has been successfully updated!", username=new_username)
 
     # Change Password
-    @account_action
+    @_account_action
     def change_password(self, uid, current_password, new_password, confirm):
         user = self._load_current_user(uid)
 
@@ -153,7 +154,7 @@ class AccountService:
         return AccountResult(True, "Your password has been successfully updated!")
 
     # Delete Account & all associated records
-    @account_action
+    @_account_action
     def delete_account(self, uid, password, confirm_text):
         user = self._load_current_user(uid)
 

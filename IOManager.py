@@ -4,9 +4,9 @@ Main I/O Layer
 
 import logging
 from flask_mail import Message
-from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
-from io_helpers.account_service import AccountService
-from io_helpers.survey_result import SurveyResult
+from io_helpers.Questionnaire import Questionnaire, SurveyAnswersError
+from io_helpers.AccountService import AccountService
+from io_helpers.SurveyResult import SurveyResult
 
 _logger = logging.getLogger(__name__)
 

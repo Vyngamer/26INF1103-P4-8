@@ -2,18 +2,18 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Flask
 from flask_mail import Mail
-from io_manager import IOManager
-from io_helpers.account_service import AccountService
+from IOManager import IOManager
+from io_helpers.AccountService import AccountService
 from data_manager_helper.UserRecord import UserRecord
 from data_manager_helper.hasher import PasswordHasher
 from io_helpers.validators import username_errors, password_errors, USERNAME_RULES
-from io_helpers.prompt_text import TextPrompt
-from io_helpers.prompt_range import RangePrompt
-from io_helpers.prompt_choice import ChoicePrompt
-from io_helpers.errors.invalid_input import InvalidInput
-from io_helpers.survey_response import SurveyResponse
-from io_helpers.survey_result import SurveyResult
-from io_helpers.questionnaire import Questionnaire, SurveyAnswersError
+from io_helpers.TextPrompt import TextPrompt
+from io_helpers.RangePrompt import RangePrompt
+from io_helpers.ChoicePrompt import ChoicePrompt
+from io_helpers.errors.InvalidInput import InvalidInput
+from io_helpers.SurveyResponse import SurveyResponse
+from io_helpers.SurveyResult import SurveyResult
+from io_helpers.Questionnaire import Questionnaire, SurveyAnswersError
 
 # Sample completed survey, used by the survey tests below
 SAMPLE_RESPONSE = SurveyResponse("123", 7.5, 5, 6, 4, "Calm", 3, "Good week")

@@ -2,8 +2,8 @@
 Text Prompt (Child of Prompt)
 '''
 
-from io_helpers.prompts import Prompt
-from io_helpers.errors.invalid_input import InvalidInput
+from io_helpers.Prompt import Prompt
+from io_helpers.errors.InvalidInput import InvalidInput
 
 # Non-empty text input (whitespace trimmed), with an optional maximum length
 class TextPrompt(Prompt):

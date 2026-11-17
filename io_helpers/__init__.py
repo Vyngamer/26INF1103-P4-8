@@ -1,23 +1,23 @@
 '''
 I/O helper package used by io_manager.py
 
-account_result   - User account results (AccountResult)
-account_service  - User account actions (AccountService)
-prompts          - Abstract class for other prompts. (Prompt)
-                   Child classes implement answer checks that
-                   convert one given answer or reject it with a message
-prompt_text      - Text prompt for a single answer (TextPrompt)
-prompt_range     - Range prompt for a single answer (RangePrompt)
-prompt_choice    - Choice prompt for a single answer (ChoicePrompt)
-questionnaire    - Survey questions and their answer checks (Questionnaire)
-validators       - Username and password rules (username_errors, password_errors)
-survey_response  - One completed survey's answers (SurveyResponse)
-survey_result    - One completed surveys' result (SurveyResults)
+AccountResult      - User account results (AccountResult)
+AccountService     - User account actions (AccountService)
+Prompt             - Abstract class for other prompts. (Prompt)
+                    Child classes implement answer checks that
+                    convert one given answer or reject it with a message
+TextPrompt         - Text prompt for a single answer (TextPrompt)
+RangePrompt        - Range prompt for a single answer (RangePrompt)
+ChoicePrompt       - Choice prompt for a single answer (ChoicePrompt)
+Questionnaire      - Survey questions and their answer checks (Questionnaire)
+validators         - Username and password rules (username_errors, password_errors)
+SurveyResponse     - One completed survey's answers (SurveyResponse)
+SurveyResult       - One completed surveys' result (SurveyResults)
 
 Errors
-account_error    - Account-related error (AccountError)
-invalid_input    - Invalid prompt answer error (InvalidInput)
-assessment_error - Assessment failed error (AssessmentFailed)
-survey_error     - Survey question input error (SurveyError)
+AccountError       - Account-related error (AccountError)
+InvalidInput       - Invalid prompt answer error (InvalidInput)
+AssessmentFailed   - Assessment failed error (AssessmentFailed)
+SurveyAnswersError - Survey question input error (SurveyError)
 
 '''

@@ -2,7 +2,7 @@
 Survey Answers Error
 '''
 
-from io_helpers.errors.invalid_input import InvalidInput
+from io_helpers.errors.InvalidInput import InvalidInput
 
 
 # Raised by Questionnaire.from_answers() when any answer is invalid.

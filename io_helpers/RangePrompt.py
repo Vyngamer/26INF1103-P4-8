@@ -2,8 +2,8 @@
 Range Prompt (Child of Prompt)
 '''
 
-from io_helpers.prompts import Prompt
-from io_helpers.errors.invalid_input import InvalidInput
+from io_helpers.Prompt import Prompt
+from io_helpers.errors.InvalidInput import InvalidInput
 
 # Number input with range validation.
 class RangePrompt(Prompt):

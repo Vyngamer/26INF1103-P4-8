@@ -2,8 +2,8 @@
 Choice Prompt (Child of RangePrompt)
 '''
 
-from io_helpers.prompt_range import RangePrompt
-from io_helpers.errors.invalid_input import InvalidInput
+from io_helpers.RangePrompt import RangePrompt
+from io_helpers.errors.InvalidInput import InvalidInput
 
 # One answer from a list of options
 # Returns the chosen option
