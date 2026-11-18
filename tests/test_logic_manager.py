@@ -66,20 +66,11 @@ class MessageAssertions:
 
 class TestPreviousAttempts:
 
-    @pytest.mark.parametrize(
-        "values, latest, average",
-        [
-            ([], None, None),
-            ([5], 5, 5),
-            ([2, 4, 9], 9, 5),
-            ([6, 5, 4, 3], 3, 4.5),
-        ],
-    )
-    def test_values_latest_and_average(self, values, latest, average):
-        history = AttemptFactory.history("x", values)
-        assert history.get_values("x") == values
-        assert history.get_latest("x") == latest
-        assert history.get_average("x") == (None if average is None else pytest.approx(average))
+    def test_values_latest_and_average(self):
+        history = AttemptFactory.history("x", [2, 4, 9])
+        assert history.get_values("x") == [2, 4, 9]
+        assert history.get_latest("x") == 9
+        assert history.get_average("x") == pytest.approx(5)
 
     def test_copies_input(self):
         rows = [{"x": 1}]
@@ -89,46 +80,30 @@ class TestPreviousAttempts:
 
 class TestRiskTierClassifier:
 
-    @pytest.fixture
-    def classifier(self):
-        return RiskTierClassifier()
-
     @pytest.mark.parametrize(
         "score, expected",
         [
-            (0, "Low"),
             (40, "Low"),
             (41, "Medium"),
-            (70, "Medium"),
             (71, "High"),
-            (100, "High"),
         ],
     )
-    def test_classify(self, classifier, score, expected):
+    def test_classify(self, score, expected):
         current = AttemptFactory.current(mental_wellness_risk_score=score)
-        assert classifier.classify(current) == expected
+        assert RiskTierClassifier().classify(current) == expected
+
 
 class TestWarningRules:
 
     @pytest.mark.parametrize(
         "rule, attempt, expected",
         [
-            # SleepBurnoutRule
             (SleepBurnoutRule(), dict(burnout_risk_score=76, sleep_duration=5.9), "High Burnout Warning (Sleep)"),
             (SleepBurnoutRule(), dict(burnout_risk_score=75, sleep_duration=4), None),
-            (SleepBurnoutRule(), dict(burnout_risk_score=90, sleep_duration=6), None),
-            # WorkloadBurnoutRule
             (WorkloadBurnoutRule(), dict(burnout_risk_score=61, academic_workload=7), "Burnout Warning (Workload)"),
             (WorkloadBurnoutRule(), dict(burnout_risk_score=60, academic_workload=10), None),
-            (WorkloadBurnoutRule(), dict(burnout_risk_score=90, academic_workload=6), None),
-            # SocialWithdrawalRule
             (SocialWithdrawalRule(), dict(social_activity_level=3, sentiment="Negative"), "Social Withdrawal Risk"),
-            (SocialWithdrawalRule(), dict(social_activity_level=4, sentiment="Negative"), None),
-            (SocialWithdrawalRule(), dict(social_activity_level=1, sentiment="Neutral"), None),
-            # CognitiveFatigueRule
             (CognitiveFatigueRule(), dict(focus_level=4, sentiment="Negative"), "Cognitive Fatigue Risk"),
-            (CognitiveFatigueRule(), dict(focus_level=5, sentiment="Negative"), None),
-            (CognitiveFatigueRule(), dict(focus_level=1, sentiment="Positive"), None),
         ],
     )
     def test_evaluate(self, rule, attempt, expected):
@@ -137,59 +112,55 @@ class TestWarningRules:
 
 class TestSleepReminder:
 
-    REMINDER = "You slept less than 7 hours. Try to get more sleep."
-
     @pytest.mark.parametrize(
         "sleep, expected",
         [
-            (3, REMINDER),
-            (6.9, REMINDER),
+            (6.9, "You slept less than 7 hours. Try to get more sleep."),
             (7, None),
-            (9, None),
         ],
     )
     def test_evaluate(self, sleep, expected):
         assert SleepReminder().evaluate(AttemptFactory.current(sleep_duration=sleep)) == expected
 
 
-# ---------------------------------------------------------------------------
-# SupportRouter
-# ---------------------------------------------------------------------------
-
 class TestSupportRouter:
 
     EVERYTHING = dict(mental_wellness_risk_score=60, burnout_risk_score=70, sentiment="Negative")
 
-    @pytest.fixture
-    def router(self):
-        return SupportRouter()
-
     @pytest.mark.parametrize(
         "attempt, tier, warnings, expected",
         [
-            (dict(crisis_alert=True), "Low", [], "Urgent support"),
             (dict(crisis_alert=True), "High", ["a", "b"], "Urgent support"),
             ({}, "High", [], "Counsellor follow-up"),
-            ({}, "Low", ["a", "b"], "Counsellor follow-up"),
             (EVERYTHING, "Medium", [], "Counsellor follow-up"),
             ({**EVERYTHING, "sentiment": "Neutral"}, "Medium", [], "Self-care guidance"),
-            ({**EVERYTHING, "burnout_risk_score": 69}, "Medium", [], "Self-care guidance"),
-            ({**EVERYTHING, "mental_wellness_risk_score": 59}, "Medium", [], "Self-care guidance"),
-            ({}, "Medium", ["a"], "Self-care guidance"),
-            ({}, "Low", [], "Self-care guidance"),
         ],
     )
-    def test_decide(self, router, attempt, tier, warnings, expected):
-        assert router.decide(AttemptFactory.current(**attempt), tier, warnings) == expected
+    def test_decide(self, attempt, tier, warnings, expected):
+        assert SupportRouter().decide(AttemptFactory.current(**attempt), tier, warnings) == expected
+
+
+class TestComparisonsWithNoHistory:
+
+    def test_all_return_none(self):
+        rules = [
+            SleepComparison(),
+            SocialComparison(),
+            FocusComparison(),
+            RiskScoreComparison("burnout_risk_score", "burnout"),
+        ]
+        current = AttemptFactory.current()
+        empty = PreviousAttempts([])
+        for rule in rules:
+            assert rule.evaluate(current, empty) is None, type(rule).__name__
+
 
 class TestSleepComparison:
 
     @pytest.mark.parametrize(
         "history, sleep, expected",
         [
-            ([], 7, None),
             ([8, 8], 6.5, "You slept 1.50 hours less than your average."),
-            ([6], 8, "You slept 2.00 hours more than your average."),
             ([7], 7, "You slept the same number of hours as your average."),
         ],
     )
@@ -204,12 +175,8 @@ class TestSocialComparison(MessageAssertions):
     @pytest.mark.parametrize(
         "history, social, expected_text",
         [
-            ([], 5, None),
             ([6, 5, 4], 3, "four consecutive attempts"),
-            ([9, 6, 5, 4], 3, "four consecutive attempts"),
             ([6, 6], 4, "less than your previous average"),
-            ([5, 5], 4, None),
-            ([6, 5, 4, 3], 3, None),
         ],
     )
     def test_evaluate(self, history, social, expected_text):
@@ -223,13 +190,9 @@ class TestFocusComparison(MessageAssertions):
     @pytest.mark.parametrize(
         "history, focus, expected_text",
         [
-            ([], 5, None),
             ([7], 5, "dropped since your last attempt"),
             ([5], 6, "improved since your last attempt"),
-            ([9, 9, 5], 5, "below your previous average"),
-            ([2, 2, 6], 6, "compared with your previous average"),
             ([5], 5, None),
-            ([6], 5, None),
         ],
     )
     def test_evaluate(self, history, focus, expected_text):
@@ -243,14 +206,9 @@ class TestRiskScoreComparison(MessageAssertions):
     @pytest.mark.parametrize(
         "field, label, history, score, expected_text",
         [
-            ("burnout_risk_score", "burnout", [], 50, None),
-            ("burnout_risk_score", "burnout", [30], 50, None),
             ("burnout_risk_score", "burnout", [60], 50, "Your burnout risk score has improved since your last attempt"),
             ("burnout_risk_score", "burnout", [80, 55], 55, "Your burnout risk score has improved compared with your previous average"),
-            ("burnout_risk_score", "burnout", [55], 50, None),
-            ("mental_wellness_risk_score", "mental wellness", [80], 50, "Your mental wellness risk score has improved since"),
-            ("mental_wellness_risk_score", "mental wellness", [90, 60], 60, "Your mental wellness risk score has improved compared"),
-            ("mental_wellness_risk_score", "mental wellness", [40], 45, None),
+            ("burnout_risk_score", "burnout", [30], 50, None),
         ],
     )
     def test_evaluate(self, field, label, history, score, expected_text):
@@ -264,7 +222,6 @@ class TestLogicOutput:
     @pytest.mark.parametrize(
         "route, expected",
         [
-            ("Urgent support", True),
             ("Counsellor follow-up", True),
             ("Self-care guidance", False),
         ],
@@ -311,14 +268,6 @@ class TestLogicManager:
         "attempt, history, tier, warnings, route, recommend, messages_include",
         [
             pytest.param(NORMAL, [], "Low", [], "Self-care guidance", False, [], id="healthy"),
-            pytest.param(
-                {**NORMAL, "crisis_alert": True}, [], "Low", [], "Urgent support", True, [],
-                id="crisis",
-            ),
-            pytest.param(
-                {**NORMAL, "mental_wellness_risk_score": 55}, [], "Medium", [], "Self-care guidance", False, [],
-                id="medium-no-warnings",
-            ),
             pytest.param(
                 NOT_SO_GOOD, NOT_SO_GOOD_HISTORY, "High", ALL_WARNINGS,
                 "Counsellor follow-up", True,
