@@ -6,8 +6,7 @@ from ai_manager import AIManager
 from ai_manager_helper.crisis_safety_filter import CrisisDetectedError, CrisisSafetyFilter
 from ai_manager_helper.data_classes.ai_output import AIOutput
 from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
-from tests.support.builders import AIScoresBuilder, SurveyAnswersBuilder, SurveyPayloadBuilder
-from tests.support.doubles.safety_filters import AlwaysCrisisFilter
+from tests.support.survey_payload_builder import SurveyPayloadBuilder
 
 
 class TestSurveyTurn:

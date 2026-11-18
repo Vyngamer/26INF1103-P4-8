@@ -11,8 +11,6 @@ from urllib.parse import urlparse, parse_qs
 import pytest
 from unittest.mock import MagicMock
 
-from ai_manager_helper.data_classes.api_result import APIResult
-
 PASSWORD = "pass1!"
 ANSWERS = {"sleep_duration": 7.5, "stress_level": 5, "focus_level": 6, "academic_workload": 4,
            "mood": "Calm", "social_activity_level": 6, "reflection": "Good week"}
@@ -70,49 +68,8 @@ BOT = {"answers": ANSWERS, "scores": AI_SCORES, "ai_fails": False}
 BOTS = []    # Every chatbot made, in order
 
 
-# Scripted chatbot (stands in for AIManager): replies to every message and has BOT["answers"] ready
-def fake_ai_manager():
-    def show_survey_results(by_alias=False):
-        if BOT["answers"] is None:
-            raise TypeError("no survey results yet")
-        return dict(BOT["answers"])
-
-    def get_ai_output(user_input):
-        return APIResult.fail("AI is down") if BOT["ai_fails"] else APIResult.ok(json.dumps(BOT["scores"]))
-
-    bot = MagicMock()
-    bot.prompt_bot.side_effect = lambda message: {"text": f"reply to {message}", "survey_done": True}
-    bot.show_survey_results.side_effect = show_survey_results
-    bot.get_ai_output.side_effect = get_ai_output
-    BOTS.append(bot)
-    return bot
-
-
 def last_prompt(bot):
     return bot.prompt_bot.call_args.args[0]
-
-
-@pytest.fixture
-def web(monkeypatch):
-    import data_manager
-    import IOManager
-    monkeypatch.setattr(data_manager, "MongoDBConnection",
-                        lambda: MagicMock(**{"test_connection.return_value": True}))
-    monkeypatch.setattr(data_manager, "MongoDBStorage", FakeStorage)
-    emails = []
-    monkeypatch.setattr(IOManager.IOManager, "send_email",
-                        staticmethod(lambda recipient, username, record, mail: emails.append(username) or True))
-    monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
-    BOTS.clear()
-
-    sys.modules.pop("app", None)    # app.py builds the app when imported, so import it fresh each test
-    app_module = importlib.import_module("app")
-    import app_helpers.ChatSession as ChatSession
-    monkeypatch.setattr(ChatSession, "AIManager", fake_ai_manager)
-
-    app_module.app.config["TESTING"] = True
-    app_module.app.emails = emails
-    return app_module.app
 
 
 def sign_up(web, username):

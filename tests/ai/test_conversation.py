@@ -1,14 +1,7 @@
-import dataclasses
-
 import pytest
 from pydantic import ValidationError
 
-from ai_manager_helper.data_classes.ai_output import AIOutput
-from ai_manager_helper.data_classes.api_result import APIResult
-from ai_manager_helper.data_classes.conversation import Conversation, Message
-from ai_manager_helper.data_classes.survey_entity_schema import SurveyEntitySchema
-from tests.support.builders import AIScoresBuilder, SurveyPayloadBuilder
-
+from ai_manager_helper.data_classes.conversation import Conversation
 
 class TestConversation:
 
@@ -57,3 +50,4 @@ class TestConversation:
         conversation.add_message("user", "YT", "Hi")
         conversation.reset_conversation()
         assert conversation.logs() == []
+

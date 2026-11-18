@@ -31,4 +31,7 @@ jobs:
           python -m pytest tests/test_data_manager.py -v
           python -m pytest tests/test_io_manager.py -v
           python -m pytest tests/test_logic_manager.py -v
+          python -m pytest tests/ai/test_conversation.py -v
+          python -m pytest tests/ai/test_gemini_client.py -v
+          python -m pytest tests/ai/test_survey_turn.py -v
           

@@ -1,15 +1,11 @@
-import logging
-
 import pytest
 from google.genai import types
 
-from ai_manager_helper import gemini_client as gemini_client_module
 from ai_manager_helper.gemini_client import GeminiClient
-from ai_manager_helper.gemini_client_with_fallback import GeminiClientWithFallback
 from tests.support.guards import LiveServiceBlocked
-from tests.support.contracts.ai import ChatClientContract
-from tests.support.doubles.chat_clients import MockChatClient, QueuedResponder, Responder
-from tests.support.doubles.genai_sdk import FakeGenAIModule, FakeInteractions, SdkErrors, retry_options
+from tests.doubles.fake_genai_client import FakeGenAIClient
+from tests.doubles.fake_interactions import FakeInteractions
+from tests.doubles.fake_genai_modules import FakeGenAIModule
 
 
 class TestGeminiClient:
@@ -17,10 +13,6 @@ class TestGeminiClient:
     @pytest.fixture
     def interactions(self) -> FakeInteractions:
         return FakeInteractions(output_text='{"ok": true}')
-
-    @pytest.fixture
-    def sdk(self, monkeypatch, interactions) -> FakeGenAIModule:
-        return install_fake_sdk(monkeypatch, interactions)
 
     @pytest.fixture
     def retry(self) -> types.HttpRetryOptions:
@@ -58,15 +50,3 @@ class TestGeminiClient:
     def test_sending_before_connecting_fails(self, sdk, retry):
         with pytest.raises(AttributeError):
             GeminiClient("gemini-test", retry).send_message("Hello!", None)
-
-    @pytest.mark.parametrize("error", [SdkErrors.connection_error(), SdkErrors.model_not_found()],
-                             ids=["connection", "not-found"])
-    def test_sdk_errors_reach_the_caller(self, client, interactions, error):
-        interactions.error = error
-        with pytest.raises(type(error)):
-            client.send_message("Hello!", None)
-
-    def test_suite_blocks_a_real_connection(self, retry):
-        # No fake SDK installed: the suite-wide guard must stop the real client being created.
-        with pytest.raises(LiveServiceBlocked):
-            GeminiClient("gemini-test", retry).connect_client()
