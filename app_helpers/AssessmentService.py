@@ -59,6 +59,10 @@ class AssessmentService:
         if logic_output["counselling_recommendation"]:
             self.__notify_counsellor(uid, username, record)
         return record
+    
+    def send_emergency_email(self, uid, username):
+        if not self.__io_manager.send_email_crisis_detected(self.__counsellor_email, username, self.__mail):
+            _logger.error("Counsellor email could not be sent for user %s", uid)
 
     @staticmethod
     def __ai_scores(chat, user_input):
@@ -67,3 +71,4 @@ class AssessmentService:
     def __notify_counsellor(self, uid, username, record):
         if not self.__io_manager.send_email(self.__counsellor_email, username, record, self.__mail):
             _logger.error("Counsellor email could not be sent for user %s", uid)
+    

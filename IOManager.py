@@ -117,3 +117,15 @@ class IOManager:
             except Exception:
                 _logger.exception("Failed to send email")
                 return False
+        
+    @staticmethod
+    def send_email_crisis_detected(recipient, username, mail):
+        body = f"{username} has triggered the self-harm detection in one of his daily check ins."
+
+        try:
+            msg = Message(subject="URGENT", recipients=[recipient], body=body)
+            mail.send(msg)
+            return True
+        except Exception:
+            _logger.exception("Failed to send email")
+            return False

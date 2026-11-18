@@ -93,4 +93,7 @@ class WellnessRoutes(RouteGroup):
     
     def __crisis_detected(self, uid, username):
         chat = self.__chat_registry.get(uid)
+        self.__chat_registry.discard(uid)
+        self.__assessments.send_emergency_email(uid, username)
+
         return render_template("wellness-check.html", conversation=chat.conversation, crisis_detected=True)
