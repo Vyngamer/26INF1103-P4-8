@@ -1,4 +1,4 @@
-# test_data_manager.py
+# test_manager.py
 # Tests DataManager's user and assessment record functions against an in-memory fake of MongoDB
 
 import copy
@@ -15,7 +15,7 @@ MISSING = object()
 
 # ---------- in-memory stand-in for pymongo ----------
 
-# read a value from a nested dict using a dotten key
+# read a value from a nested dict using a dotted key
 def get_path(doc, dotted):
     current = doc
     for part in dotted.split("."):
@@ -24,7 +24,7 @@ def get_path(doc, dotted):
         current = current[part]
     return current
 
-# true is document matches every key / value pair in the query
+# true if document matches every key / value pair in the query
 def matches(doc, query):
     return all(get_path(doc, key) == value for key, value in query.items())
 
@@ -58,7 +58,7 @@ class FakeCollection:
                 if existing is not ignore and get_path(existing, field) == value:
                     raise DuplicateKeyError(f"duplicate value for {field}")
 
-    # position of first document
+    # position of first matching document
     def _index_of(self, query):
         for i, doc in enumerate(self.docs):
             if matches(doc, query):
@@ -78,7 +78,7 @@ class FakeCollection:
         self.docs.append(stored)
         return FakeResult(inserted_id=stored["_id"])
 
-    # apply a set update to the first document
+    # apply a set update to the first matching document
     def update_one(self, query, update):
         i = self._index_of(query)
         if i is None:
@@ -88,7 +88,7 @@ class FakeCollection:
         self.docs[i] = new_doc
         return FakeResult(matched_count=1)
 
-    # replcae a document or insert it
+    # replace a document, or insert it if nothing matches and upsert is set
     def replace_one(self, query, new_doc, upsert=False):
         i = self._index_of(query)
         if i is not None:
@@ -132,36 +132,13 @@ class FakeConnection:
         pass
 
 
-# ---------- helpers and fixtures ----------
+# ---------- helpers ----------
 
-# use the fake connection
-@pytest.fixture
-def connection(monkeypatch):
-    # one fake database shared by every DataManager created in the test
-    conn = FakeConnection()
-    monkeypatch.setattr(data_manager_module, "MongoDBConnection", lambda: conn)
-    return conn
-
-# DataManager
-@pytest.fixture
-def dm(connection):
-    return DataManager()
-
-#create user
-@pytest.fixture
-def alice(dm):
-    return dm.create_user("alice", "hashed-pw")
-
-
-@pytest.fixture
-def bob(dm):
-    return dm.create_user("bob", "hashed-pw")
-
-# today date
+# today's date in the same format the app stores
 def today_str():
     return datetime.now(ZoneInfo("Asia/Singapore")).strftime("%d-%m-%Y")
 
-# Sample Data
+# sample assessment record
 def make_record(user_id, mental=30, date=None, time="09:00:00", record_id=None):
     """date=None gives a record stamped with the real current time (today)."""
     user_input = {
@@ -184,171 +161,184 @@ def make_record(user_id, mental=30, date=None, time="09:00:00", record_id=None):
                             record_id=record_id or str(uuid.uuid4()), date=date, time=time)
 
 
-# ---------- user management ----------
-# look up username and check
-@pytest.mark.parametrize(
-    "username, expected_found",
-    [
-        ("alice", True),
-        ("nobody", False),
-    ],
-)
+# ---------- tests ----------
 
-def test_user_lookup_by_username(dm, alice, username, expected_found):
-    found = dm.get_user_by_username(username)
-    assert (found is not None) is expected_found
+class TestDataManager:
+    """Tests for DataManager. MongoDB is replaced with an in-memory fake."""
 
-# check id
-def test_create_user_returns_id_that_resolves(dm):
-    uid = dm.create_user("carol", "hashed-pw")
-    assert uid is not None
-    assert dm.get_user_by_id(uid).get_username() == "carol"
+    # ---------- fixtures ----------
 
-# check duplicate username
-def test_duplicate_username_is_rejected(dm, alice):
-    assert dm.create_user("alice", "another-pw") is None
-    assert len(dm.get_users()) == 1
+    @pytest.fixture
+    def connection(self, monkeypatch):
+        # one fake database shared by every DataManager created in the test
+        conn = FakeConnection()
+        monkeypatch.setattr(data_manager_module, "MongoDBConnection", lambda: conn)
+        return conn
 
-# only username and password can update
-@pytest.mark.parametrize(
-    "updates, expected_ok, expected_username",
-    [
-        ({"username": "alice2"}, True, "alice2"),
-        ({"password": "new-hash"}, True, "alice"),
-        ({"user_id": "hacked"}, False, "alice"),
-        ({"username": "alice2", "user_id": "hacked"}, False, "alice"),
-        ({}, False, "alice"),
-        ("not-a-dict", False, "alice"),
-    ],
-)
+    @pytest.fixture
+    def dm(self, connection):
+        return DataManager()
 
-#
-def test_update_user(dm, alice, updates, expected_ok, expected_username):
-    assert dm.update_user(alice, updates) is expected_ok
-    assert dm.get_user_by_id(alice).get_username() == expected_username
+    @pytest.fixture
+    def alice(self, dm):
+        return dm.create_user("alice", "hashed-pw")
 
+    @pytest.fixture
+    def bob(self, dm):
+        return dm.create_user("bob", "hashed-pw")
 
-def test_update_username_to_taken_name_is_rejected(dm, alice, bob):
-    assert dm.update_user(alice, {"username": "bob"}) is False
-    assert dm.get_user_by_id(alice).get_username() == "alice"
+    # ---------- user lookup ----------
 
+    @pytest.mark.parametrize(
+        "username, expected_found",
+        [
+            ("alice", True),
+            ("nobody", False),
+        ],
+    )
+    def test_user_lookup_by_username(self, dm, alice, username, expected_found):
+        found = dm.get_user_by_username(username)
+        assert (found is not None) is expected_found
 
-def test_delete_user_removes_only_their_records(dm, alice, bob):
-    dm.save(make_record(alice, date="01-01-2026", record_id="a1"))
-    dm.save(make_record(bob, date="01-01-2026", record_id="b1"))
+    def test_create_user_returns_id_that_resolves(self, dm):
+        uid = dm.create_user("carol", "hashed-pw")
+        assert uid is not None
+        assert dm.get_user_by_id(uid).get_username() == "carol"
 
-    assert dm.delete_user(alice) is True
+    def test_duplicate_username_is_rejected(self, dm, alice):
+        assert dm.create_user("alice", "another-pw") is None
+        assert len(dm.get_users()) == 1
 
-    assert dm.get_user_by_id(alice) is None
-    assert dm.get_user_records(alice) == []
-    assert len(dm.get_user_records(bob)) == 1
+    # ---------- user updates ----------
 
+    @pytest.mark.parametrize(
+        "updates, expected_ok, expected_username",
+        [
+            ({"username": "alice2"}, True, "alice2"),
+            ({"password": "new-hash"}, True, "alice"),
+            ({"user_id": "hacked"}, False, "alice"),
+            ({"username": "alice2", "user_id": "hacked"}, False, "alice"),
+            ({}, False, "alice"),
+            ("not-a-dict", False, "alice"),
+        ],
+    )
+    def test_update_user(self, dm, alice, updates, expected_ok, expected_username):
+        assert dm.update_user(alice, updates) is expected_ok
+        assert dm.get_user_by_id(alice).get_username() == expected_username
 
-def test_delete_unknown_user_returns_false(dm):
-    assert dm.delete_user("does-not-exist") is False
+    def test_update_username_to_taken_name_is_rejected(self, dm, alice, bob):
+        assert dm.update_user(alice, {"username": "bob"}) is False
+        assert dm.get_user_by_id(alice).get_username() == "alice"
 
+    # ---------- user deletion and reload ----------
 
-def test_users_and_records_reload_from_storage(connection, dm, alice):
-    dm.save(make_record(alice, date="01-01-2026", record_id="r1"))
+    def test_delete_user_removes_only_their_records(self, dm, alice, bob):
+        dm.save(make_record(alice, date="01-01-2026", record_id="a1"))
+        dm.save(make_record(bob, date="01-01-2026", record_id="b1"))
 
-    # a fresh DataManager on the same database should load what was saved
-    reloaded = DataManager()
+        assert dm.delete_user(alice) is True
 
-    assert reloaded.get_user_by_username("alice").get_user_id() == alice
-    assert [r.get_record_id() for r in reloaded.get_user_records(alice)] == ["r1"]
+        assert dm.get_user_by_id(alice) is None
+        assert dm.get_user_records(alice) == []
+        assert len(dm.get_user_records(bob)) == 1
 
+    def test_delete_unknown_user_returns_false(self, dm):
+        assert dm.delete_user("does-not-exist") is False
 
-# ---------- assessment records ----------
+    def test_users_and_records_reload_from_storage(self, connection, dm, alice):
+        dm.save(make_record(alice, date="01-01-2026", record_id="r1"))
 
-def test_save_adds_record(dm, alice):
-    assert dm.save(make_record(alice, date="01-01-2026", record_id="r1")) is True
-    assert len(dm.get_records()) == 1
+        # a fresh DataManager on the same database should load what was saved
+        reloaded = DataManager()
 
+        assert reloaded.get_user_by_username("alice").get_user_id() == alice
+        assert [r.get_record_id() for r in reloaded.get_user_records(alice)] == ["r1"]
 
-def test_save_rejects_non_record(dm):
-    assert dm.save({"user_id": "x"}) is False
+    # ---------- saving records ----------
 
+    def test_save_adds_record(self, dm, alice):
+        assert dm.save(make_record(alice, date="01-01-2026", record_id="r1")) is True
+        assert len(dm.get_records()) == 1
 
-@pytest.mark.parametrize(
-    "owner, date, expected_saved",
-    [
-        ("alice", None, True),            # today's record for the logged-in user
-        ("bob", None, False),             # another user's record
-        ("alice", "01-01-2026", False),   # not dated today
-    ],
-)
-def test_replace_user_record_rules(dm, alice, bob, owner, date, expected_saved):
-    owners = {"alice": alice, "bob": bob}
-    record = make_record(owners[owner], date=date, record_id="r1")
+    def test_save_rejects_non_record(self, dm):
+        assert dm.save({"user_id": "x"}) is False
 
-    assert dm.replace_user_record(alice, record) is expected_saved
-    assert len(dm.get_user_records(alice)) == (1 if expected_saved else 0)
+    @pytest.mark.parametrize(
+        "owner, date, expected_saved",
+        [
+            ("alice", None, True),            # today's record for the logged-in user
+            ("bob", None, False),             # another user's record
+            ("alice", "01-01-2026", False),   # not dated today
+        ],
+    )
+    def test_replace_user_record_rules(self, dm, alice, bob, owner, date, expected_saved):
+        owners = {"alice": alice, "bob": bob}
+        record = make_record(owners[owner], date=date, record_id="r1")
 
+        assert dm.replace_user_record(alice, record) is expected_saved
+        assert len(dm.get_user_records(alice)) == (1 if expected_saved else 0)
 
-def test_replace_user_record_overwrites_todays_record(dm, alice):
-    dm.replace_user_record(alice, make_record(alice, mental=30))
-    dm.replace_user_record(alice, make_record(alice, mental=55))
+    def test_replace_user_record_overwrites_todays_record(self, dm, alice):
+        dm.replace_user_record(alice, make_record(alice, mental=30))
+        dm.replace_user_record(alice, make_record(alice, mental=55))
 
-    records = dm.get_user_records(alice)
-    assert len(records) == 1
-    assert records[0].get_ai_output()["mental_wellness_risk_score"] == 55
+        records = dm.get_user_records(alice)
+        assert len(records) == 1
+        assert records[0].get_ai_output()["mental_wellness_risk_score"] == 55
 
+    # ---------- querying records ----------
 
-def test_user_records_newest_first_and_per_user(dm, alice, bob):
-    dm.save(make_record(alice, date="01-01-2026", record_id="a-old"))
-    dm.save(make_record(alice, date="02-01-2026", record_id="a-new"))
-    dm.save(make_record(bob, date="03-01-2026", record_id="b1"))
+    def test_user_records_newest_first_and_per_user(self, dm, alice, bob):
+        dm.save(make_record(alice, date="01-01-2026", record_id="a-old"))
+        dm.save(make_record(alice, date="02-01-2026", record_id="a-new"))
+        dm.save(make_record(bob, date="03-01-2026", record_id="b1"))
 
-    ids = [r.get_record_id() for r in dm.get_user_records(alice)]
+        ids = [r.get_record_id() for r in dm.get_user_records(alice)]
 
-    assert ids == ["a-new", "a-old"]
+        assert ids == ["a-new", "a-old"]
 
+    @pytest.mark.parametrize(
+        "saved_dates, expected_latest",
+        [
+            ([], None),
+            (["01-01-2026"], "01-01-2026"),
+            (["01-01-2026", "05-01-2026", "03-01-2026"], "05-01-2026"),
+        ],
+    )
+    def test_get_latest_user_record(self, dm, alice, saved_dates, expected_latest):
+        for i, date in enumerate(saved_dates):
+            dm.save(make_record(alice, date=date, record_id=f"r{i}"))
 
-@pytest.mark.parametrize(
-    "saved_dates, expected_latest",
-    [
-        ([], None),
-        (["01-01-2026"], "01-01-2026"),
-        (["01-01-2026", "05-01-2026", "03-01-2026"], "05-01-2026"),
-    ],
-)
-def test_get_latest_user_record(dm, alice, saved_dates, expected_latest):
-    for i, date in enumerate(saved_dates):
-        dm.save(make_record(alice, date=date, record_id=f"r{i}"))
+        latest = dm.get_latest_user_record(alice)
 
-    latest = dm.get_latest_user_record(alice)
+        assert (None if latest is None else latest.get_date()) == expected_latest
 
-    assert (None if latest is None else latest.get_date()) == expected_latest
+    def test_previous_attempts_exclude_today_and_are_oldest_first(self, dm, alice):
+        dm.save(make_record(alice, date="01-01-2026", record_id="first"))
+        dm.save(make_record(alice, date="02-01-2026", record_id="second"))
+        dm.replace_user_record(alice, make_record(alice))  # today's, must be excluded
 
+        attempts = dm.get_previous_attempts(alice)
 
-def test_previous_attempts_exclude_today_and_are_oldest_first(dm, alice):
-    dm.save(make_record(alice, date="01-01-2026", record_id="first"))
-    dm.save(make_record(alice, date="02-01-2026", record_id="second"))
-    dm.replace_user_record(alice, make_record(alice))  # today's, must be excluded
+        assert [a["record_id"] for a in attempts] == ["first", "second"]
+        assert all(a["date"] != today_str() for a in attempts)
 
-    attempts = dm.get_previous_attempts(alice)
+    def test_user_int_records_extract_numeric_fields(self, dm, alice):
+        dm.save(make_record(alice, mental=42, date="01-01-2026", record_id="r1"))
 
-    assert [a["record_id"] for a in attempts] == ["first", "second"]
-    assert all(a["date"] != today_str() for a in attempts)
+        rows = dm.get_user_int_records(dm.get_user_records(alice), alice)
 
+        assert rows == [{
+            "date": "01-01-2026",
+            "sleep_duration": 7.0,
+            "focus_level": 6,
+            "stress_level": 4,
+            "social_activity_level": 6,
+            "mental_wellness_risk_score": 42,
+            "burnout_risk_score": 40,
+        }]
 
-def test_user_int_records_extract_numeric_fields(dm, alice):
-    dm.save(make_record(alice, mental=42, date="01-01-2026", record_id="r1"))
+    def test_user_int_records_only_include_requested_user(self, dm, alice, bob):
+        dm.save(make_record(bob, date="01-01-2026", record_id="b1"))
 
-    rows = dm.get_user_int_records(dm.get_user_records(alice), alice)
-
-    assert rows == [{
-        "date": "01-01-2026",
-        "sleep_duration": 7.0,
-        "focus_level": 6,
-        "stress_level": 4,
-        "social_activity_level": 6,
-        "mental_wellness_risk_score": 42,
-        "burnout_risk_score": 40,
-    }]
-
-
-def test_user_int_records_only_include_requested_user(dm, alice, bob):
-    dm.save(make_record(bob, date="01-01-2026", record_id="b1"))
-
-    assert dm.get_user_int_records(dm.get_records(), alice) == []
+        assert dm.get_user_int_records(dm.get_records(), alice) == []

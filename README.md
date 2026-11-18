@@ -2,9 +2,9 @@
 
 ### App quickstart
 ```powershell
-docker compose build
+docker compose up --build
 
-docker run --rm -it -v "${PWD}:/app" -e DISPLAY=:0 -v /run/desktop/mnt/host/wslg/.X11-unix:/tmp/.X11-unix ai-counsellor
+docker compose up
 ```
 
 ### Problem Statement
