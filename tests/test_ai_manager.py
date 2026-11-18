@@ -1,6 +1,7 @@
 import pytest
 import os
 from ai_manager import validate_response, call_api, generate_survey_response
+from ai_manager_helper.interfaces.chat_client import IChatClient
 
 valid_survey_false = [
     {},
@@ -40,7 +41,6 @@ def test_valid_survey_true(survey_data):
 def test_api_key_exists():
     assert len(os.environ["GEMINI_API_KEY"]) != 0
 
-
 call_api_test_data = [
     ("Hello!", "", {}, None )
 ]
@@ -63,6 +63,4 @@ def test_call_api_xfail(prompt, system_instruction, response_output_format, prev
         assert False
     except Exception as e:
         assert True 
-
-
 
