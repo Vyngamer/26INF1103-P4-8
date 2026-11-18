@@ -35,10 +35,20 @@ class WellnessRoutes(RouteGroup):
         ]
 
     def __wellness_check(self, uid, username, continue_chat=False, crisis_detected=False):
+        continue_chat = str(
+            request.args.get("continue_chat", continue_chat)).lower() == "true"
+        crisis_detected = str(
+            request.args.get("crisis_detected", crisis_detected)).lower() == "true"
+
         chat = self.__chat_registry.get(uid)
         chat.start()
-        return render_template("wellness-check.html", conversation=chat.conversation, survey_results=None,
-                               already_done_today=not continue_chat and self.__assessments.done_today(uid), crisis_detected=crisis_detected)
+        return render_template(
+            "wellness-check.html",
+            conversation=chat.conversation,
+            survey_results=None,
+            already_done_today=not continue_chat and self.__assessments.done_today(uid),
+            crisis_detected=crisis_detected,
+        )
 
     def __reset_conversation(self, uid, username):
         self.__chat_registry.discard(uid)
