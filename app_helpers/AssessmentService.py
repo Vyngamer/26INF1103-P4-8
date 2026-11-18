@@ -51,8 +51,8 @@ class AssessmentService:
                 raise AssessmentFailed("The assessment could not be saved.")
         except AssessmentFailed:
             raise
-        # except Exception as error:
-        #     raise AssessmentFailed(f"The assessment could not be finished: {error}") from error
+        except Exception as error:
+            raise AssessmentFailed(f"The assessment could not be finished: {error}") from error
 
         # Counselling recommended (Urgent support or Counsellor follow-up route): email the counsellor.
         # The record is already saved, so a failed email is logged instead of failing the assessment.
