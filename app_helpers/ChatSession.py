@@ -89,8 +89,11 @@ class ChatSession:
     # Asks the AI for the wellness assessment of validated survey answers
     # returns an APIResult
     def analyse(self, user_input):
-        user_input = json.dumps(user_input)
-        output = self.__ai_manager.process_message(user_input, self.__evaluate_survey_strategy)
+        # Filters out user id from getting fed into the chatbot
+        user_input = {
+            key: value for key, value in user_input.items() if key != "user_id"
+        }
+        output = self.__ai_manager.process_message(json.dumps(user_input), self.__evaluate_survey_strategy)
         return output['text']
 
     # Shows a message from the app in the chat
