@@ -2,7 +2,7 @@
 Wellness check pages: chatbot survey, confirmation & submission
 '''
 
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, session
 
 from app_helpers.routes.RouteGroup import RouteGroup
 from io_helpers.errors.AssessmentFailed import AssessmentFailed
@@ -50,6 +50,7 @@ class WellnessRoutes(RouteGroup):
         try:
             return {'data': self.__chat_registry.get(uid).send(request.form["msg"]), 'crisis_detected': False}
         except CrisisDetectedError:
+            session["crisis_email_pending"] = True
             return {'data': {}, 'crisis_detected': True}
             
 
@@ -92,8 +93,11 @@ class WellnessRoutes(RouteGroup):
         return redirect(url_for("wellness_check", continue_chat=True))
     
     def __crisis_detected(self, uid, username):
+        if not session.pop("crisis_email_pending", False):
+            return redirect(url_for("dashboard"))
+        
         chat = self.__chat_registry.get(uid)
         self.__chat_registry.discard(uid)
         self.__assessments.send_emergency_email(uid, username)
 
-        return render_template("wellness-check.html", conversation=chat.conversation, crisis_detected=True)
+        return render_template("dashboard.html", conversation=chat.conversation, crisis_detected=True)
