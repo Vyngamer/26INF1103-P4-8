@@ -15,7 +15,6 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from flask_mail import Mail
 from dotenv import load_dotenv
 from markupsafe import escape
-from ai_manager_helper.ai_manager import AIManager
 from data_manager import DataManager
 from io_manager import IOManager
 from LogicManager import LogicManager
@@ -26,6 +25,7 @@ from app_helpers.routes.account_routes import AccountRoutes
 from app_helpers.routes.dashboard_routes import DashboardRoutes
 from app_helpers.routes.wellness_routes import WellnessRoutes
 
+from ai_manager_helper.crisis_safety_filter import CrisisDetectedError
 
 # Builds the whole web app & wires managers together.
 class WellnessApp:

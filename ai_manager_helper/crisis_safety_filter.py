@@ -1,5 +1,10 @@
 import re
 
+class CrisisDetectedError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(message)
+
 class CrisisSafetyFilter:
     CRISIS_KEYWORDS = [
         r"suicide", r"kill myself", r"end it all", r"want to die", 
@@ -10,5 +15,5 @@ class CrisisSafetyFilter:
         text_lower = text.lower()
         for pattern in self.CRISIS_KEYWORDS:
             if re.search(pattern, text_lower):
-                raise Exception("Crisis Detected")
+                raise CrisisDetectedError("Crisis Detected")
 

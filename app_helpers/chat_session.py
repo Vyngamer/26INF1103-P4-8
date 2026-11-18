@@ -12,6 +12,7 @@ from google.genai import types
 from ai_manager_helper.ai_manager import AIManager
 from ai_manager_helper.data_classes.conversation import Conversation
 from ai_manager_helper.crisis_safety_filter import CrisisSafetyFilter
+from ai_manager_helper.crisis_safety_filter import CrisisDetectedError
 from ai_manager_helper.gemini_client import GeminiClient
 from ai_manager_helper.gemini_client_with_fallback import GeminiClientWithFallback
 from ai_manager_helper.counselling_strategy_factory import CounsellingStrategyFactory
@@ -105,6 +106,8 @@ class ChatSession:
     def __reply(self, prompt):
         try:
             response = self.__ai_manager.process_message(prompt, self.__collect_survey_strategy)
+        except CrisisDetectedError:
+            raise 
         except Exception:
             _logger.exception("Chatbot reply failed")
             response = {'text': self.FALLBACK_REPLY, 'survey_done': False}
