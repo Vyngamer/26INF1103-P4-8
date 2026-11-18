@@ -13,7 +13,7 @@ class SleepComparison(ComparisonRule):
         if average is None:
             return None
 
-        difference = average - current.sleep_duration
+        difference = round(average - current.sleep_duration, 2)
 
         if difference > 0:
             return f"You slept {difference:.2f} hours less than your average."
