@@ -203,7 +203,7 @@
         } else {
           window.location.href = "{{ url_for('crisis_detected') }}"
         }
-				if (data.survey_done == true) {
+				if (data.data.survey_done == true) {
                     botTyping(botTypingHtml)
 					window.location.href = "{{ url_for('confirm_survey') }}"
 				}
