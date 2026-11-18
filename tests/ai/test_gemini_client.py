@@ -50,3 +50,9 @@ class TestGeminiClient:
     def test_sending_before_connecting_fails(self, sdk, retry):
         with pytest.raises(AttributeError):
             GeminiClient("gemini-test", retry).send_message("Hello!", None)
+
+    @pytest.fixture
+    def sdk(self, monkeypatch, interactions):
+        fake = FakeGenAIModule(interactions)
+        monkeypatch.setattr("ai_manager_helper.gemini_client.genai", fake)
+        return fake
