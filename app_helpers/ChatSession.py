@@ -78,8 +78,12 @@ class ChatSession:
 
     # Tells chatbot that the survey answers are wrong, then lets it ask what to fix
     def deny_survey(self, reason):
-        self.__ai_manager.process_message('The survey results are inaccurate: ' + \
-                                           json.dumps(self.__ai_manager.show_survey_results()), self.__collect_survey_strategy)
+        answers = self.survey_answers()
+        if answers is not None:
+            reason = (
+                f"The survey results are inaccurate: {json.dumps(answers)}\n"
+                f"{reason}"
+            )
         self.__reply_in_background(reason)
 
     # Asks the AI for the wellness assessment of validated survey answers
