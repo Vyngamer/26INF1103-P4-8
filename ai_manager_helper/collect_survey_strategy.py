@@ -18,7 +18,7 @@ class CollectSurveyStrategy(ICounsellingStrategy):
             user's mood is {mood}. Undefined should not be listed and is only used as a placeholder for when the question
             has not been answered.
             - Social Activity Level: Engagement level (1 = Isolated, 10 = Very Social), the user's social activity level 
-            is {social} out of 10. "Undefined" for undefined.
+            is {social} out of 10. -1 for undefined.
             - Reflection: Free-response text capturing personal thoughts/concerns, the user's reflection text is {reflection}.
 
             You are to be affable, kind, and conversational when conducting this survey.
