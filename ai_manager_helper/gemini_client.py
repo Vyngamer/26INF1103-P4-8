@@ -17,7 +17,7 @@ class GeminiClient(IChatClient):
             )
         )
 
-    def send_message(self, prompt: str, previous_interaction_id: str, system_instruction: Optional[str] = None, json_response_schema: Optional[dict] = None) -> str:
+    def send_message(self, prompt: str, previous_interaction_id: str, system_instruction: Optional[str] = None, json_response_schema: Optional[dict] = None) -> dict:
         interaction = self.__client.interactions.create(
             model=self.__model,
             input=prompt,

@@ -9,7 +9,7 @@ import json
 from pydantic import ValidationError
 from google.genai import types
 
-from ai_manager_helper.ai_manager import AIManager
+from ai_manager import AIManager
 from ai_manager_helper.data_classes.conversation import Conversation
 from ai_manager_helper.crisis_safety_filter import CrisisSafetyFilter
 from ai_manager_helper.crisis_safety_filter import CrisisDetectedError
