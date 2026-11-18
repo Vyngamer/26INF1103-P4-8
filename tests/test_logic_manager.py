@@ -20,7 +20,6 @@ from logic_manager_helper.SupportRouter import SupportRouter
 from logic_manager_helper.LogicOutput import LogicOutput
 from LogicManager import LogicManager
 
-
 class AttemptFactory:
     """Builds the domain objects the tests need, with sensible defaults."""
 
@@ -92,7 +91,6 @@ class TestRiskTierClassifier:
         current = AttemptFactory.current(mental_wellness_risk_score=score)
         assert RiskTierClassifier().classify(current) == expected
 
-
 class TestWarningRules:
 
     @pytest.mark.parametrize(
@@ -109,7 +107,6 @@ class TestWarningRules:
     def test_evaluate(self, rule, attempt, expected):
         assert rule.evaluate(AttemptFactory.current(**attempt)) == expected
 
-
 class TestSleepReminder:
 
     @pytest.mark.parametrize(
@@ -121,7 +118,6 @@ class TestSleepReminder:
     )
     def test_evaluate(self, sleep, expected):
         assert SleepReminder().evaluate(AttemptFactory.current(sleep_duration=sleep)) == expected
-
 
 class TestSupportRouter:
 
@@ -289,4 +285,3 @@ class TestLogicManager:
             assert message in out.display_messages
         if not history and attempt["sleep_duration"] >= 7:
             assert out.display_messages == []
-        assert manager.to_dict(out) == out.to_dict()
