@@ -6,6 +6,7 @@ from flask import render_template, request, redirect, url_for
 
 from app_helpers.routes.RouteGroup import RouteGroup
 from io_helpers.errors.AssessmentFailed import AssessmentFailed
+from ai_manager_helper.crisis_safety_filter import CrisisDetectedError
 
 
 # Connects the chatbot page to the user's ChatSession and the AssessmentService.
@@ -23,20 +24,21 @@ class WellnessRoutes(RouteGroup):
         wellness_check = self._protected(self.__wellness_check)
         return [
             ("/wellness-check", "wellness_check", wellness_check, ["GET"]),
-            ("/wellness-check/<continue_chat>", "wellness_check", wellness_check, ["GET"]),
+            ("/wellness-check/<continue_chat>/<crisis_detected>", "wellness_check", wellness_check, ["GET"]),
             ("/reset-conversation", "reset_conversation", self._protected(self.__reset_conversation), ["GET"]),
             ("/get", "chat", self._protected(self.__chat), ["POST"]),
             ("/get-bot-response", "wait_for_bot_response", self._protected(self.__wait_for_bot_response), ["GET"]),
             ("/confirm-survey", "confirm_survey", self._protected(self.__confirm_survey), ["GET"]),
             ("/submit_survey", "submit_survey", self._protected(self.__submit_survey), ["GET"]),
             ("/deny-survey", "deny_survey", self._protected(self.__deny_survey), ["GET"]),
+            ("/crisis-detected", "crisis_detected", self._protected(self.__crisis_detected), ["GET"]),
         ]
 
-    def __wellness_check(self, uid, username, continue_chat=False):
+    def __wellness_check(self, uid, username, continue_chat=False, crisis_detected=False):
         chat = self.__chat_registry.get(uid)
         chat.start()
         return render_template("wellness-check.html", conversation=chat.conversation, survey_results=None,
-                               already_done_today=not continue_chat and self.__assessments.done_today(uid))
+                               already_done_today=not continue_chat and self.__assessments.done_today(uid), crisis_detected=crisis_detected)
 
     def __reset_conversation(self, uid, username):
         self.__chat_registry.discard(uid)
@@ -45,7 +47,11 @@ class WellnessRoutes(RouteGroup):
     # User message
     # returns the chatbot's reply as JSON for the page's script
     def __chat(self, uid, username):
-        return self.__chat_registry.get(uid).send(request.form["msg"])
+        try:
+            return {'data': self.__chat_registry.get(uid).send(request.form["msg"]), 'crisis_detected': False}
+        except CrisisDetectedError:
+            return {'data': {}, 'crisis_detected': True}
+            
 
     # Waits for a bot reply that was started in the background
     def __wait_for_bot_response(self, uid, username):
@@ -84,3 +90,7 @@ class WellnessRoutes(RouteGroup):
     def __deny_survey(self, uid, username):
         self.__chat_registry.get(uid).deny_survey(self.SURVEY_DENIED)
         return redirect(url_for("wellness_check", continue_chat=True))
+    
+    def __crisis_detected(self, uid, username):
+        chat = self.__chat_registry.get(uid)
+        return render_template("wellness-check.html", conversation=chat.conversation, crisis_detected=True)

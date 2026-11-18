@@ -47,6 +47,27 @@
     </div>
   </div>
       {% endif %}
+    {% if crisis_detected %}
+  <div class="redo-modal-overlay" id="redoModal">
+    <div class="redo-modal">
+      <h2>Crisis Detected</h2>
+      <p>
+        Our program detected that you may be considering self-harm.
+      </p>
+
+      <div class="redo-warning">
+        The conversation has been saved and will be sent to your counsellor for further evaluation.
+      </div>
+
+      <div class="redo-actions">
+        <a href="{{ url_for('dashboard') }}" class="redo-btn redo-no">
+          Ok
+        </a>
+      </div>
+    </div>
+  </div>
+      {% endif %}
+
       <div class="page-head">
         <h1>Wellness check</h1>
         <p>A quick conversation to understand how you're feeling today. I'll ask a few questions, and you can choose the responses that feel most like you.</p>
@@ -117,6 +138,7 @@
   </div>
 
 <script>
+
 	function selectYes() {
 		window.location.href = "{{ url_for('submit_survey') }}"
 	}
@@ -175,19 +197,28 @@
 				type: 'POST',
 				url: '/get'
 			}).done(function(data) {
-				botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data.text + '</div></div>';
-                removeBotTyping(botHtml)
-
+        if (!data.crisis_detected) {
+          botHtml = '<div class="msg ai"><div class="avatar">AI</div><div class="bubble">' + data.data.text + '</div></div>';
+          removeBotTyping(botHtml)
+        } else {
+          window.location.href = "{{ url_for('crisis_detected') }}"
+        }
 				if (data.survey_done == true) {
                     botTyping(botTypingHtml)
-					window.location.href = '{{ url_for('confirm_survey') }}'
+					window.location.href = "{{ url_for('confirm_survey') }}"
 				}
 			})
 		})
 	});
-function continueAssessment() {
-	document.getElementById('redoModal').style.display = 'none';
-}
+
+  function continueAssessment() {
+    document.getElementById('redoModal').style.display = 'none';
+  }
+{% if crisis_detected %}
+console.log('true')
+{% else %}
+console.log('false')
+{% endif %}
 </script>
 
 </body>
