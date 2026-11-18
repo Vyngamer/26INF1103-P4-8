@@ -497,12 +497,12 @@ def test_send_email_failure(caplog, mail_app_context):
 # --- Web App Tests ---
 
 # The I/O layer runs inside the web server, so it must not use the terminal:
-# no input() or print() calls in io_manager.py or io_helpers/
+# no input() or print() calls in IOManager.py or io_helpers/
 def test_no_terminal_input_or_output():
     import ast
     from pathlib import Path
     folder = Path(__file__).resolve().parents[1]
-    files = [folder / "io_manager.py", *sorted((folder / "io_helpers").rglob("*.py"))]
+    files = [folder / "IOManager.py", *sorted((folder / "io_helpers").rglob("*.py"))]
     assert len(files) > 5    # the files were found, so the check below means something
 
     calls = [f"{path.name}:{node.lineno} {node.func.id}()"

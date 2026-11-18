@@ -1,5 +1,5 @@
 '''
-I/O helper package used by io_manager.py
+I/O helper package used by IOManager.py
 
 AccountResult      - User account results (AccountResult)
 AccountService     - User account actions (AccountService)
