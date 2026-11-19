@@ -8,6 +8,31 @@
   {% include 'navbar.html' %}
 
     <main class="main">
+      {% if crisis_detected %}
+      <div class="redo-modal-overlay" id="crisisModal" role="alertdialog"
+          aria-modal="true" aria-labelledby="crisisModalTitle"
+          aria-describedby="crisisModalDescription">
+        <div class="redo-modal">
+          <h2 id="crisisModalTitle">Crisis Detected</h2>
+          <p id="crisisModalDescription">
+            Our program detected that you may be considering self-harm.
+          </p>
+
+          <div class="redo-warning">
+            Your input triggered an urgent safety alert for your counsellor.
+            If you may be in immediate danger, contact local emergency services
+            or someone you trust.
+          </div>
+
+          <div class="redo-actions">
+            <a href="{{ url_for('dashboard') }}" class="redo-btn redo-no">
+              Ok
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
       {% if latest_attempt %}
       <div class="page-head">
         <h1>Welcome back, <span data-first-name></span>{{ username }}</h1>
