@@ -7,6 +7,16 @@ docker compose up --build
 docker compose up
 ```
 
+### Pre-Requisite
+You would need to get the following API keys/secret keys and place it in a .env file
+
+1) gemini API key and backup API key - You should be able to get this from Google AI Studio 
+2) mongodb URL - 
+3) flask secret key - You can just generate a random key from a terminal using the following command: openssl rand -hex 24
+4) mail_username - This would be the email address of your choice.
+5) mail_password - To get this, go into the email that you choose and enable 2FA and generate an app password. DO NOT put your actual email password here.
+
+
 ### Problem Statement
 Mental health challenges such as stress, anxiety, and burnout are increasingly common among students. Many students fail to recognise early warning signs of declining mental well-being until their academic performance, physical health, or social life is negatively affected. Existing wellness applications often provide generic advice and do not offer personalised analysis based on a student's individual circumstances.
 
