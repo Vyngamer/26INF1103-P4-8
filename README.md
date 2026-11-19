@@ -11,7 +11,7 @@ docker compose up
 You would need to get the following API keys/secret keys and place it in a .env file
 
 1) gemini API key and backup API key - You should be able to get this from Google AI Studio 
-2) mongodb URL - 
+2) mongodb URL - Create a free cluster on MongoDB Atlas and a database user. Under "Connect", choose "Drivers" and copy the connection string into your .env file
 3) flask secret key - You can just generate a random key from a terminal using the following command: openssl rand -hex 24
 4) mail_username - This would be the email address of your choice.
 5) mail_password - To get this, go into the email that you choose and enable 2FA and generate an app password. DO NOT put your actual email password here.
